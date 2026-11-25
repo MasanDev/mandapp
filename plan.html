@@ -1,0 +1,798 @@
+<title>Mandapp – plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: en läskolumn (~70ch) med bredare utbrytningar för skärmskisser och tabeller. Tonfärger (1–4) är ämnets egen detalj. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunk:#e7eeec; --fg:#14201d; --muted:#55645f; --line:#cfdbd7;
+  --accent:#0d7a6a; --accent-soft:#d5ece7; --warn:#a85a00; --warn-soft:#fbecd7; --bad:#b3261e; --bad-soft:#f8dedb;
+  --t1:#c62828; --t2:#2e7d32; --t3:#1565c0; --t4:#6a1b9a; --t5:#6b7773;
+  --phone:#0f1715; --screen:#fbfcfc;
+  --display:"Sora","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --zh:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
+  --accent:#4cc2ad; --accent-soft:#163a34; --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19;
+  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c;
+  --phone:#000; --screen:#121a18; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
+  --accent:#4cc2ad; --accent-soft:#163a34; --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19;
+  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c;
+  --phone:#000; --screen:#121a18; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:1040px;margin:0 auto}
+.col{max-width:70ch}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,5vw,3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.6rem;font-weight:600;margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--line)}
+h3{font-size:1.15rem;font-weight:600;margin-top:2rem}
+h4{font-size:1rem;font-weight:600}
+p{margin:.75rem 0}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.zh{font-family:var(--zh)}
+.eyebrow{font:500 .75rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.15rem;color:var(--muted);max-width:62ch}
+small,.small{font-size:.875rem;color:var(--muted)}
+code{font-family:var(--mono);font-size:.85em;background:var(--sunk);padding:.1em .35em;border-radius:4px}
+
+header.top{padding-block:3rem 1.5rem;display:grid;gap:1rem}
+.hero-zh{font-family:var(--zh);font-size:clamp(2.6rem,9vw,4.5rem);font-weight:700;line-height:1;letter-spacing:.04em}
+.hero-zh .p{display:block;font:500 1rem/1.4 var(--mono);letter-spacing:.04em;margin-top:.5rem;color:var(--muted)}
+.t1{color:var(--t1)}.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}.t5{color:var(--t5)}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+nav.toc a{font-size:.875rem;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);padding:.3rem .7rem;border-radius:999px}
+nav.toc a:hover{border-color:var(--accent)}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin-top:1.5rem}
+.summary div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;min-width:0}
+.summary h4{margin-bottom:.35rem}
+.summary p{margin:0;font-size:.95rem}
+
+.callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:.9rem 1.1rem;border-radius:0 8px 8px 0;margin:1.25rem 0;max-width:70ch}
+.callout.ok{border-color:var(--accent);background:var(--accent-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout p{margin:.35rem 0}
+
+.hc{display:inline-block;font:500 .72rem/1.3 var(--mono);color:var(--accent);background:var(--accent-soft);padding:.1rem .45rem;border-radius:4px;text-decoration:none;white-space:nowrap}
+.feature{display:grid;grid-template-columns:minmax(0,1fr);gap:.25rem;margin-top:1.75rem;max-width:70ch}
+.feature ul{margin:.25rem 0;padding-left:1.2rem}
+.feature li{margin:.25rem 0}
+
+.tbl{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:620px}
+th,td{text-align:left;padding:.6rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);font-weight:600;font-size:.82rem;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-size:.75rem;font-weight:600;padding:.1rem .5rem;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* ---------- mockups ---------- */
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:2rem 1.5rem;margin-top:1.5rem;align-items:start}
+figure{margin:0;min-width:0}
+figcaption{font-size:.88rem;color:var(--muted);margin-top:.7rem;max-width:36ch}
+figcaption b{color:var(--fg);font-family:var(--display);font-weight:600}
+.phone{background:var(--phone);border-radius:34px;padding:10px;max-width:300px;margin:0 auto;box-shadow:0 18px 40px -22px rgba(0,0,0,.45)}
+.screen{background:var(--screen);border-radius:26px;overflow:hidden;min-height:540px;display:flex;flex-direction:column;font-size:13px;line-height:1.45}
+.sbar{display:flex;justify-content:space-between;padding:10px 18px 4px;font:500 11px var(--mono);color:var(--muted)}
+.appbar{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 10px;border-bottom:1px solid var(--line)}
+.appbar b{font-family:var(--display);font-size:14px}
+.appbar span{font:500 11px var(--mono);color:var(--muted)}
+.sc{padding:14px 16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.tabbar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding:8px 6px 12px;text-align:center;font-size:10px;color:var(--muted)}
+.tabbar .on{color:var(--accent);font-weight:600}
+.tabbar i{display:block;font-style:normal;font-size:15px;line-height:1.1;font-family:var(--zh)}
+.prog{height:4px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;width:38%;background:var(--accent)}
+.bigword{font-family:var(--zh);font-size:44px;font-weight:700;text-align:center;letter-spacing:.06em;margin-top:6px}
+.py{text-align:center;font:500 14px var(--mono)}
+.mean{text-align:center;color:var(--muted)}
+.ctx{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.ctx .zh{font-size:15px}
+.ctx mark{background:var(--accent-soft);color:var(--fg);padding:0 2px;border-radius:3px}
+.ctx .tr{color:var(--muted);font-size:12px;margin-top:4px}
+.ctx .lbl{font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between}
+.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:auto}
+.btns span{border-radius:10px;padding:8px 2px;text-align:center;font-weight:600;font-size:12px;border:1px solid var(--line);background:var(--surface)}
+.btns span small{display:block;font:400 10px var(--mono);color:var(--muted)}
+.btns .a{color:var(--bad)} .btns .h{color:var(--warn)} .btns .g{color:var(--accent)} .btns .e{color:var(--t3)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--fg)}
+.chip.on{background:var(--accent);color:var(--screen)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:10px;padding:3px;font-size:12px;text-align:center}
+.seg span{padding:6px;border-radius:8px}
+.seg .on{background:var(--surface);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.photo{position:relative;border-radius:12px;overflow:hidden;height:150px;background:linear-gradient(135deg,#3a4a45,#1f2a27)}
+.photo .menu{position:absolute;inset:14px 22px;background:#f4efe3;border-radius:4px;transform:rotate(-3deg);padding:10px 12px;font-family:var(--zh);color:#2b2b2b;font-size:13px;line-height:1.7;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.photo .box{position:absolute;border:2px solid #4cc2ad;border-radius:3px;background:rgba(76,194,173,.18)}
+.wl{display:flex;flex-direction:column;gap:6px}
+.wl div{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.wl .zh{font-size:15px;font-weight:500}
+.wl em{font-style:normal;font:500 11px var(--mono)}
+.wl small{font-size:11px}
+.add{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--screen);font-weight:700;flex:none}
+.add.done{background:var(--sunk);color:var(--muted)}
+.cta{background:var(--accent);color:var(--screen);text-align:center;border-radius:12px;padding:10px;font-weight:600}
+.input{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--fg)}
+.input .ph{color:var(--muted)}
+
+/* desktop mock */
+.desk{background:var(--phone);border-radius:14px;padding:8px;box-shadow:0 18px 40px -22px rgba(0,0,0,.45)}
+.desk .win{background:var(--screen);border-radius:8px;overflow:hidden;font-size:13px}
+.desk .tb{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.desk .tb i{width:10px;height:10px;border-radius:50%;background:var(--line);display:block}
+.desk .tb b{margin-left:8px;font-family:var(--display);font-size:12px}
+.studio{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:380px}
+.studio aside{border-right:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.studio aside div{padding:7px 9px;border-radius:8px;font-size:12px}
+.studio aside .on{background:var(--accent-soft)}
+.studio aside .zh{font-size:13px}
+.studio main{padding:14px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.sent{font-family:var(--zh);font-size:22px;letter-spacing:.04em}
+.sentpy{font:500 12px var(--mono);color:var(--muted)}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.controls span{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:12px}
+.controls .rec{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:600}
+.score{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.score div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:center;font-size:11px;color:var(--muted)}
+.score b{display:block;font:600 15px var(--display);color:var(--fg)}
+.score .warnb b{color:var(--warn)}
+.desk-fig{grid-column:1/-1}
+@media (max-width:640px){.studio{grid-template-columns:1fr}.studio aside{display:none}.score{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* architecture */
+.arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem}
+.arch div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem;min-width:0}
+.arch h4{margin-bottom:.4rem}
+.arch ul{margin:0;padding-left:1.1rem;font-size:.92rem}
+
+.phase{display:grid;grid-template-columns:7rem minmax(0,1fr);gap:1rem;padding:1.1rem 0;border-bottom:1px solid var(--line);max-width:860px}
+.phase:last-of-type{border-bottom:0}
+.phase .when{font:500 .8rem/1.4 var(--mono);color:var(--muted)}
+.phase .when b{display:block;font:600 1.05rem var(--display);color:var(--accent)}
+.phase ul{margin:.4rem 0 0;padding-left:1.1rem}
+.phase .done{font-size:.88rem;color:var(--muted);margin-top:.4rem}
+@media (max-width:560px){.phase{grid-template-columns:1fr;gap:.25rem}}
+
+.sources{font-size:.88rem;columns:2 300px;column-gap:2rem}
+.sources li{margin:.3rem 0;break-inside:avoid}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">Projektplan · personlig PWA · v8, 25 nov 2026</div>
+  <div class="hero-zh"><span class="t3">我</span><span class="t4">的</span><span class="t3">中</span><span class="t1">文</span><span class="t2">学</span><span class="t1">习</span><span class="t2">机</span>
+    <span class="p"><span class="t3">wǒ</span> <span class="t5">de</span> <span class="t1">zhōng</span><span class="t2">wén</span> <span class="t2">xué</span><span class="t2">xí</span> <span class="t1">jī</span></span></div>
+  <h1>Mandapp</h1>
+  <p class="lead">En plan för en webbapp som bara du använder: ordbank med spaced repetition, ord i kontext, inmatning med text eller foto, en skuggningsstudio med tonkurvor och ett läge som ger dig orden du behöver för dagens ärenden. Anpassad för HSK 4–5 och byggd för att köras på ditt Claude Max-abonnemang.</p>
+  <nav class="toc" aria-label="Innehåll">
+    <a href="#kort">Kort sagt</a><a href="#skisser">Skisser</a><a href="#funktioner">Funktioner</a><a href="#ai">Max och API</a><a href="#arkitektur">Arkitektur</a><a href="#implementation">Implementation</a><a href="#forbattringar">Förbättringar</a><a href="#kina">Kina (senare)</a><a href="#kallor">Källor</a>
+  </nav>
+</header>
+
+<section id="kort">
+  <h2>Kort sagt</h2>
+  <div class="summary">
+    <div><h4>Mobilen först, på Max</h4><p>Huvudappen byggs som en app i Claude (en artifact) som du öppnar i mobilens webbläsare och lägger som ikon på hemskärmen. Dess AI-anrop räknas mot din Max-kvot. Ingen API-nyckel, ingen server.</p></div>
+    <div><h4>Max i egen kod är inte tillåtet</h4><p>Max-inloggningen får bara användas i Claudes egna appar och i Claude Code. Att lägga den i en egen backend, till exempel på Railway, bryter mot villkoren. Den vägen kräver API-nyckel.</p></div>
+    <div><h4>Skuggningen behöver ingen AI</h4><p>Tonhöjdsanalysen räknas lokalt. Skuggningsstudion kan därför bli en liten fristående PWA som kostar noll, om mikrofonen inte går att använda i Claude-appen.</p></div>
+    <div><h4>Bara Claude i version 1</h4><p>All AI går via Claude. Kina är en öppen fråga till senare. Ljudkurvan visar tonhöjd (F0), inte vågform, eftersom det är tonhöjden som avslöjar tonfel.</p></div>
+  </div>
+</section>
+
+<section id="skisser">
+  <h2>Skisser av appen</h2>
+  <p class="col">Så här kan de viktigaste skärmarna se ut. Det är skisser för att visa innehåll och flöde, inte färdig grafisk design. Appen byggs för mobilen först; på datorn får samma app mer plats, som i den sista skissen.</p>
+
+  <div class="gallery">
+    <!-- 1. Review -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>08:12</span><span>synkad ✓</span></div>
+        <div class="appbar"><b>Repetera</b><span>14 / 37</span></div>
+        <div class="sc">
+          <div class="prog"><i></i></div>
+          <div class="bigword">办理</div>
+          <div class="py"><span class="t4">bàn</span><span class="t3">lǐ</span></div>
+          <div class="mean">hantera, ordna (ärende, kort, tillstånd)</div>
+          <div class="ctx">
+            <div class="lbl"><span>Ny mening idag</span><span>↻</span></div>
+            <div class="zh">我想在这儿<mark>办理</mark>一张银行卡。</div>
+            <div class="tr">Jag vill skaffa ett bankkort här.</div>
+          </div>
+          <div class="ctx">
+            <div class="lbl"><span>Vanliga kombinationer</span></div>
+            <div class="zh" style="font-size:13px">办理手续 · 办理签证 · 办理退房</div>
+          </div>
+          <div class="btns">
+            <span class="a">Igen<small>&lt;10 min</small></span>
+            <span class="h">Svårt<small>2 d</small></span>
+            <span class="g">Bra<small>6 d</small></span>
+            <span class="e">Lätt<small>15 d</small></span>
+          </div>
+        </div>
+        <div class="tabbar"><span class="on"><i>复</i>Repetera</span><span><i>+</i>Lägg till</span><span><i>听</i>Skugga</span><span><i>今</i>Idag</span></div>
+      </div></div>
+      <figcaption><b>Repetition med kontext.</b> Ordet visas först ensamt. När du vänder kortet får du en ny exempelmening varje gång, så att du lär dig ordet och inte meningen utantill.</figcaption>
+    </figure>
+
+    <!-- 2. Add word -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>12:40</span><span>AI: Claude</span></div>
+        <div class="appbar"><b>Lägg till ord</b><span>via Max</span></div>
+        <div class="sc">
+          <div class="seg"><span>Skriv</span><span class="on">Foto</span></div>
+          <div class="photo">
+            <div class="menu">今日特价<br>麻辣香锅 ¥38<br>酸菜鱼 ¥42<br>凉拌木耳 ¥16</div>
+            <div class="box" style="left:44px;top:52px;width:70px;height:20px"></div>
+            <div class="box" style="left:42px;top:75px;width:56px;height:20px"></div>
+          </div>
+          <div class="small" style="font-size:11px">Hittade 5 ord. 2 kan du redan.</div>
+          <div class="wl">
+            <div><span><span class="zh">麻辣</span> <em><span class="t2">má</span><span class="t4">là</span></em><br><small>stark och bedövande kryddad</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">酸菜鱼</span> <em><span class="t1">suān</span><span class="t4">cài</span><span class="t2">yú</span></em><br><small>fisk med syrad kål</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">凉拌</span> <em><span class="t2">liáng</span><span class="t4">bàn</span></em><br><small>kall, blandad (sallad)</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">特价</span> <em><span class="t4">tè</span><span class="t4">jià</span></em><br><small>specialpris</small></span><span class="add done">✓</span></div>
+          </div>
+          <div class="cta">Lägg till 3 ord</div>
+        </div>
+        <div class="tabbar"><span><i>复</i>Repetera</span><span class="on"><i>+</i>Lägg till</span><span><i>听</i>Skugga</span><span><i>今</i>Idag</span></div>
+      </div></div>
+      <figcaption><b>Inmatning med foto eller text.</b> Fota en meny, skylt eller boksida. Appen hittar orden, slår upp pinyin i en inbyggd ordbok och markerar vad du redan kan.</figcaption>
+    </figure>
+
+    <!-- 3. Today -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>09:05</span><span>AI: Claude</span></div>
+        <div class="appbar"><b>Idag ska jag…</b><span>HSK 5</span></div>
+        <div class="sc">
+          <div class="input">…gå till banken och öppna ett konto, och fråga om att föra över pengar till Sverige.</div>
+          <div class="row"><span class="chip on">Ord</span><span class="chip">Fraser</span><span class="chip">Minidialog</span><span class="chip">Rollspel</span></div>
+          <div class="wl">
+            <div><span><span class="zh">开户</span> <em><span class="t1">kāi</span><span class="t4">hù</span></em><br><small>öppna konto</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">汇款</span> <em><span class="t4">huì</span><span class="t3">kuǎn</span></em><br><small>överföra pengar</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">手续费</span> <em><span class="t3">shǒu</span><span class="t4">xù</span><span class="t4">fèi</span></em><br><small>avgift</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">汇率</span> <em><span class="t4">huì</span><span class="t4">lǜ</span></em><br><small>växelkurs</small></span><span class="add">+</span></div>
+            <div><span><span class="zh">护照原件</span> <em>…</em><br><small>originalpass</small></span><span class="add">+</span></div>
+          </div>
+          <div class="ctx"><div class="lbl"><span>Säg så här</span></div>
+            <div class="zh" style="font-size:13px">请问往瑞典汇款要多少手续费?</div></div>
+          <div class="cta">Plugga inför idag (10 min)</div>
+        </div>
+        <div class="tabbar"><span><i>复</i>Repetera</span><span><i>+</i>Lägg till</span><span><i>听</i>Skugga</span><span class="on"><i>今</i>Idag</span></div>
+      </div></div>
+      <figcaption><b>Dagens ord.</b> Skriv vad du ska göra. Du får ord och fraser på rätt nivå, filtrerade mot det du redan kan, och kan plugga dem intensivt just idag.</figcaption>
+    </figure>
+
+    <!-- 3b. Shadowing phone -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>21:30</span><span>🎧 hörlurar</span></div>
+        <div class="appbar"><b>Skugga</b><span>2 / 4</span></div>
+        <div class="sc">
+          <div><div class="zh" style="font-size:19px;letter-spacing:.04em"><span class="t3">我</span><span class="t1">今</span><span class="t1">天</span><span class="t4">要</span><span class="t4">去</span><span class="t2">银</span><span class="t2">行</span><span class="t4">办</span><span class="t3">卡</span>。</div>
+          <div class="sentpy" style="font-size:11px">wǒ jīntiān yào qù yínháng bàn kǎ</div></div>
+          <div class="chart" style="padding:6px">
+            <svg viewBox="0 0 260 120" role="img" aria-label="Tonkurvor på mobilen">
+              <g stroke="var(--line)" stroke-width="1"><line x1="6" y1="25" x2="254" y2="25"/><line x1="6" y1="60" x2="254" y2="60"/><line x1="6" y1="95" x2="254" y2="95"/></g>
+              <path fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" d="M10 80 C18 96 26 98 32 92 M38 30 L62 29 L86 29 M92 26 C100 40 106 70 112 86 M118 30 C126 46 132 72 138 88 M146 78 C152 66 160 52 168 40 M172 76 C180 64 186 52 194 40 M200 26 C206 44 212 70 220 86 M226 86 C232 94 240 92 246 78"/>
+              <path fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 3" stroke-linecap="round" d="M12 74 C20 88 28 92 34 88 M40 36 L64 34 L88 38 M94 32 C102 44 108 66 114 80 M120 36 C128 50 134 68 140 82 M148 64 C154 64 162 60 170 56 M174 64 C182 62 188 58 196 54 M202 34 C208 48 214 68 222 82 M228 82 C234 88 242 88 248 78"/>
+              <rect x="142" y="34" width="56" height="64" rx="5" fill="var(--warn)" opacity=".1"/>
+            </svg>
+          </div>
+          <div class="legend"><span><i style="background:var(--accent)"></i>Förlaga</span><span><i style="background:var(--warn)"></i>Du</span><span style="color:var(--warn)">银行 för platt</span></div>
+          <div class="row"><span class="chip">▶ Förlaga</span><span class="chip">⟲ Loop</span><span class="chip">0,75×</span><span class="chip">▶ Jämför</span></div>
+          <div class="row"><span class="chip on">Lyssna, sedan säg</span><span class="chip">Säg samtidigt</span></div>
+          <div class="cta" style="background:var(--bad)">● Håll in och säg meningen</div>
+        </div>
+        <div class="tabbar"><span><i>复</i>Repetera</span><span><i>+</i>Lägg till</span><span class="on"><i>听</i>Skugga</span><span><i>今</i>Idag</span></div>
+      </div></div>
+      <figcaption><b>Skuggning på mobilen.</b> Samma tonkurvor som på datorn. På telefonen är standardläget "lyssna, sedan säg", eftersom Bluetooth-hörlurar fördröjer ljudet när man spelar in samtidigt.</figcaption>
+    </figure>
+
+    <!-- 3c. Phoneme analysis phone -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>21:34</span><span>analys klar</span></div>
+        <div class="appbar"><b>Uttal per stavelse</b><span>我今天要去银行办卡</span></div>
+        <div class="sc" style="gap:8px">
+          <div class="seg"><span>Före inspelning</span><span class="on">Jämförelse</span></div>
+          <div class="tbl" style="margin:0;border-radius:10px"><table style="min-width:0;font-size:11px">
+            <thead><tr><th>Stavelse</th><th>Initial</th><th>Final</th><th>Ton</th></tr></thead>
+            <tbody>
+              <tr><td class="zh">今 jīn</td><td><span class="pill ok">j</span></td><td><span class="pill warn">in→ing</span></td><td><span class="pill ok">1</span></td></tr>
+              <tr><td class="zh">天 tiān</td><td><span class="pill bad">t → d</span></td><td><span class="pill ok">ian</span></td><td><span class="pill ok">1</span></td></tr>
+              <tr><td class="zh">去 qù</td><td><span class="pill ok">q</span></td><td><span class="pill warn">ü → u</span></td><td><span class="pill ok">4</span></td></tr>
+              <tr><td class="zh">银 yín</td><td><span class="pill ok">y</span></td><td><span class="pill ok">in</span></td><td><span class="pill bad">2 platt</span></td></tr>
+              <tr><td class="zh">行 háng</td><td><span class="pill ok">h</span></td><td><span class="pill ok">ang</span></td><td><span class="pill warn">2 låg</span></td></tr>
+              <tr><td class="zh">卡 kǎ</td><td><span class="pill warn">k svag</span></td><td><span class="pill ok">a</span></td><td><span class="pill ok">3</span></td></tr>
+            </tbody></table></div>
+          <div class="ctx">
+            <div class="lbl"><span>天 tiān · aspiration</span><span>VOT</span></div>
+            <div style="display:grid;grid-template-columns:52px 1fr;gap:4px 8px;align-items:center;font-size:11px">
+              <span>Förlaga</span><span style="display:block;height:8px;border-radius:4px;background:var(--accent);width:82%"></span>
+              <span>Du</span><span style="display:block;height:8px;border-radius:4px;background:var(--warn);width:22%"></span>
+            </div>
+            <div class="tr">Luftpuffen efter t är 18 ms hos dig och cirka 70 ms hos förlagan. Det låter som d. Håll handen framför munnen och känn luften.</div>
+          </div>
+          <div class="row"><span class="chip">▶ Bara 天</span><span class="chip">▶ t/d-par</span><span class="chip">Spektrogram</span></div>
+        </div>
+        <div class="tabbar"><span><i>复</i>Repetera</span><span><i>+</i>Lägg till</span><span class="on"><i>听</i>Skugga</span><span><i>今</i>Idag</span></div>
+      </div></div>
+      <figcaption><b>Uttal per stavelse.</b> Efter inspelningen delas varje stavelse upp i initial, final och ton. Fel markeras med vad det lät som, och aspiration visas som längden på luftpuffen jämfört med förlagan.</figcaption>
+    </figure>
+
+    <!-- 3e. Tap word phone -->
+    <figure>
+      <div class="phone"><div class="screen" style="position:relative">
+        <div class="sbar"><span>19:02</span><span>via Max</span></div>
+        <div class="appbar"><b>Läs</b><span>Exempelmening</span></div>
+        <div class="sc" style="opacity:.55">
+          <div class="zh" style="font-size:18px;line-height:1.9">他在银行<span style="background:var(--accent-soft);border-bottom:2px solid var(--accent);border-radius:3px;padding:0 2px">办理</span>了转账手续，结果发现手续费比他想象的高。</div>
+          <div class="small" style="font-size:11px">Tryck på ett ord. Håll in för ett tecken.</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:10px 16px 16px;display:flex;flex-direction:column;gap:9px;box-shadow:0 -10px 24px -14px rgba(0,0,0,.35)">
+          <div style="width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto"></div>
+          <div class="row" style="justify-content:space-between"><span><span class="zh" style="font-size:26px;font-weight:700">办理</span> <em style="font:500 13px var(--mono);font-style:normal"><span class="t4">bàn</span><span class="t3">lǐ</span></em></span><span class="row"><span class="chip">🔊</span><span class="chip">HSK 5</span></span></div>
+          <div style="font-size:12.5px">hantera, ordna, ombesörja (ärende, tillstånd, formaliteter)</div>
+          <div class="row"><span class="chip">I din ordbank · mogen</span><span class="chip">Formellt</span></div>
+          <div class="ctx" style="padding:8px 10px">
+            <div class="lbl"><span>I den här meningen</span><span>Claude</span></div>
+            <div style="font-size:11.5px">办理 används med 手续 (formaliteter). 处理 hade betytt att lösa ett problem, inte att gå igenom en procedur.</div>
+          </div>
+          <div class="row" style="font-size:11px"><span class="chip"><span class="zh">办</span>&nbsp;göra, ordna</span><span class="chip"><span class="zh">理</span>&nbsp;ordna, princip</span><span class="chip">Fler ord med 办</span></div>
+          <div class="cta">Lägg till / öva extra</div>
+        </div>
+        <div style="height:56px"></div>
+      </div></div>
+      <figcaption><b>Tryck på ett ord.</b> Var som helst där det finns kinesisk text får du uttal, betydelse, nivå och om ordet finns i din ordbank. Claude förklarar varför just det ordet används i meningen. Tecknen leder vidare till sina egna betydelser.</figcaption>
+    </figure>
+
+    <!-- 3d. Stats phone -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>22:10</span><span>exempeldata</span></div>
+        <div class="appbar"><b>Utveckling</b><span>senaste 3 mån</span></div>
+        <div class="sc" style="gap:10px">
+          <div class="score" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+            <div>Mogna ord<b>1 240</b></div>
+            <div>Minne<b>91 %</b></div>
+            <div>Svit<b>23 d</b></div>
+          </div>
+          <div class="chart" style="padding:6px">
+            <div class="lbl" style="font:500 10px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:2px 4px 4px">Ord du kan (mogna kort)</div>
+            <svg viewBox="0 0 260 110" role="img" aria-label="Antal mogna ord, från 820 till 1240 på tolv veckor">
+              <g stroke="var(--line)" stroke-width="1"><line x1="20" y1="15" x2="250" y2="15"/><line x1="20" y1="55" x2="250" y2="55"/><line x1="20" y1="95" x2="250" y2="95"/></g>
+              <g font-family="IBM Plex Mono,monospace" font-size="8" fill="var(--muted)"><text x="0" y="18">1300</text><text x="0" y="58">1050</text><text x="2" y="98">800</text><text x="20" y="107">sep</text><text x="128" y="107">okt</text><text x="232" y="107">nov</text></g>
+              <path d="M20.0 91.8 L39.2 87.0 L58.3 82.2 L77.5 76.6 L96.7 71.0 L115.8 66.2 L135.0 61.4 L154.2 55.0 L173.3 48.6 L192.5 42.2 L211.7 35.8 L230.8 30.2 L250.0 24.6 L250 95 L20 95 Z" fill="var(--accent)" opacity=".12"/>
+              <path d="M20.0 91.8 L39.2 87.0 L58.3 82.2 L77.5 76.6 L96.7 71.0 L115.8 66.2 L135.0 61.4 L154.2 55.0 L173.3 48.6 L192.5 42.2 L211.7 35.8 L230.8 30.2 L250.0 24.6" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="250" cy="24.6" r="3.5" fill="var(--accent)"/>
+            </svg>
+          </div>
+          <div class="ctx">
+            <div class="lbl"><span>Uttal: rätt per ljud</span><span>sep → nov</span></div>
+            <div style="display:grid;grid-template-columns:70px 1fr 34px;gap:5px 8px;align-items:center;font-size:11px">
+              <span>2:a tonen</span><span style="height:7px;border-radius:4px;background:var(--sunk);display:block"><span style="display:block;height:100%;width:64%;border-radius:4px;background:var(--warn)"></span></span><span>64 %</span>
+              <span>t / d</span><span style="height:7px;border-radius:4px;background:var(--sunk);display:block"><span style="display:block;height:100%;width:78%;border-radius:4px;background:var(--accent)"></span></span><span>78 %</span>
+              <span>ü</span><span style="height:7px;border-radius:4px;background:var(--sunk);display:block"><span style="display:block;height:100%;width:85%;border-radius:4px;background:var(--accent)"></span></span><span>85 %</span>
+              <span>-n / -ng</span><span style="height:7px;border-radius:4px;background:var(--sunk);display:block"><span style="display:block;height:100%;width:58%;border-radius:4px;background:var(--warn)"></span></span><span>58 %</span>
+            </div>
+          </div>
+          <div class="ctx">
+            <div class="lbl"><span>Appen minns</span><span>redigera</span></div>
+            <div style="font-size:11.5px">Blandar 办理 och 处理 · svag på -n/-ng · intresserad av mat och ekonomi · mål: HSK 5 i juni</div>
+          </div>
+        </div>
+        <div class="tabbar"><span><i>复</i>Repetera</span><span><i>+</i>Lägg till</span><span><i>听</i>Skugga</span><span class="on"><i>统</i>Utveckling</span></div>
+      </div></div>
+      <figcaption><b>Minne och statistik.</b> Hur många ord du kan, hur väl du minns dem och hur uttalet utvecklas per ljud. Längst ner det appen minns om dig, som skickas med när Claude skapar meningar och övningar. Siffrorna är exempel.</figcaption>
+    </figure>
+
+    <!-- 4. Shadowing studio desktop -->
+    <figure class="desk-fig">
+      <div class="desk"><div class="win">
+        <div class="tb"><i></i><i></i><i></i><b>Mandapp · Skuggningsstudio</b></div>
+        <div class="studio">
+          <aside>
+            <div class="eyebrow" style="padding:0 2px">Klipp: 银行办卡.mp3</div>
+            <div class="zh">1 · 你好，我想办张卡。</div>
+            <div class="on zh">2 · 我今天要去银行办卡。</div>
+            <div class="zh">3 · 需要带护照吗?</div>
+            <div class="zh">4 · 手续费是多少?</div>
+            <div class="small" style="margin-top:auto;font-size:11px">Sparade inspelningar: 23<br>Första: 3 sep · senaste: idag</div>
+          </aside>
+          <main>
+            <div>
+              <div class="sent"><span class="t3">我</span><span class="t1">今</span><span class="t1">天</span><span class="t4">要</span><span class="t4">去</span><span class="t2">银</span><span class="t2">行</span><span class="t4">办</span><span class="t3">卡</span>。</div>
+              <div class="sentpy">wǒ jīntiān yào qù yínháng bàn kǎ · tonsandhi: inga</div>
+            </div>
+            <div class="chart">
+              <svg viewBox="0 0 640 210" role="img" aria-label="Tonhöjdskurvor: förlaga och din inspelning">
+                <g stroke="var(--line)" stroke-width="1">
+                  <line x1="44" y1="30" x2="630" y2="30"/><line x1="44" y1="75" x2="630" y2="75"/><line x1="44" y1="120" x2="630" y2="120"/><line x1="44" y1="165" x2="630" y2="165"/>
+                </g>
+                <g font-family="IBM Plex Mono,monospace" font-size="10" fill="var(--muted)">
+                  <text x="6" y="34">+6 st</text><text x="6" y="79">+2 st</text><text x="6" y="124">−2 st</text><text x="6" y="169">−6 st</text>
+                </g>
+                <!-- syllable bands -->
+                <g font-family="Noto Sans SC,sans-serif" font-size="13" fill="var(--muted)" text-anchor="middle">
+                  <text x="76" y="196">我</text><text x="138" y="196">今</text><text x="196" y="196">天</text><text x="256" y="196">要</text><text x="318" y="196">去</text><text x="386" y="196">银</text><text x="450" y="196">行</text><text x="518" y="196">办</text><text x="590" y="196">卡</text>
+                </g>
+                <!-- native -->
+                <path fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                  d="M54 120 C70 150 86 160 100 150 M114 50 L166 48 L222 48 M236 42 C252 60 266 110 280 140 M296 52 C312 72 326 118 342 145 M358 120 C374 104 392 82 412 62 M424 118 C440 100 458 80 476 60 M492 40 C508 66 524 112 542 140 M560 140 C574 152 590 150 604 128 L616 100"/>
+                <!-- learner -->
+                <path fill="none" stroke="var(--warn)" stroke-width="2.5" stroke-dasharray="6 4" stroke-linecap="round" stroke-linejoin="round"
+                  d="M56 112 C72 136 88 146 102 140 M116 62 L168 58 L224 64 M238 54 C254 70 268 104 282 128 M298 60 C314 78 328 110 344 132 M360 96 C376 96 394 90 414 84 M426 96 C442 92 460 86 478 80 M494 52 C510 74 526 108 544 132 M562 132 C576 140 592 140 606 126 L618 108"/>
+                <!-- highlight problem -->
+                <rect x="352" y="40" width="132" height="135" rx="6" fill="var(--warn)" opacity=".08"/>
+                <text x="418" y="36" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="11" fill="var(--warn)">andra tonen för platt</text>
+              </svg>
+            </div>
+            <div class="legend"><span><i style="background:var(--accent)"></i>Förlaga (native)</span><span><i style="background:var(--warn)"></i>Din inspelning</span><span>Skala: halvtoner kring din egen medelton</span></div>
+            <div class="controls">
+              <span>▶ Förlaga</span><span>⟲ Loopa A–B</span><span>0,75×</span><span class="rec">● Spela in medan förlagan spelas</span><span>▶ Jämför</span><span>Hörlurar: på</span>
+            </div>
+            <div class="score">
+              <div>Tonform<b>7 / 9</b></div>
+              <div class="warnb">Svagast<b>银行</b></div>
+              <div>Tempo<b>0,9×</b></div>
+              <div>Försök idag<b>11</b></div>
+            </div>
+          </main>
+        </div>
+      </div></div>
+      <figcaption style="max-width:70ch"><b>Skuggningsstudio på datorn (valfritt).</b> Klippet delas i meningar. Du loopar, saktar ner utan att ändra tonhöjd, spelar in samtidigt som förlagan går i hörlurarna och ser direkt var din tonkurva avviker. Här är 银行 (två andra toner) för platt. Alla inspelningar sparas så att du kan höra hur du låter nu jämfört med i september.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="funktioner">
+  <h2>Funktioner</h2>
+  <p class="col">Varje funktion har en eller flera taggar som <span class="hc">HC</span> visar vilket råd från Hacking Chinese som ligger bakom designvalet. Källorna finns <a href="#kallor">längst ner</a>.</p>
+
+  <div class="feature">
+    <h3>1. Ordbank och spaced repetition</h3>
+    <ul>
+      <li><b>Algoritm: FSRS</b> (biblioteket <code>ts-fsrs</code>), samma som moderna Anki. Den låter dig ställa in önskad minnesnivå direkt. Standard 90 %, vilket motsvarar Olle Linges tumregel om ungefär 10 % missar på mogna kort. <span class="hc">HC: answer buttons</span></li>
+      <li><b>Fyra knappar med tydliga regler</b> som visas första veckan: <i>Igen</i> = kunde inte eller missade något viktigt, <i>Svårt</i> = fick kämpa, <i>Bra</i> = kom på det inom cirka 3 sekunder, <i>Lätt</i> = används sparsamt. Appen kan mäta svarstid och föreslå <i>Svårt</i> om du tog längre än 3 sekunder. <span class="hc">HC: answer buttons</span></li>
+      <li><b>Korttyper per ord</b>, som du slår på efter behov: igenkänning (tecken → ljud och betydelse), ljudkort (bara ljud → vad hör du?) och produktion (svensk betydelse eller lucka i mening → ordet). Ljudkort tränar hörförståelse, som vanliga kort missar. <span class="hc">HC: when SRS fails</span></li>
+      <li><b>Olika stränghet för olika ord.</b> Vardagsord: rätt ton krävs. Formella eller sällsynta ord: betydelsen räcker, fel ton blir <i>Svårt</i> i stället för <i>Igen</i>. <span class="hc">HC: answer buttons</span></li>
+      <li><b>Iglar</b> (ord du missar om och om igen) flaggas redan efter 6 missar, inte 16 som i Anki. Appen föreslår då något annat: ny minnesbild, jämförelse med ett ord du blandar ihop det med, eller att pausa kortet. <span class="hc">HC: answer buttons</span></li>
+      <li><b>Markera för senare.</b> En knapp under repetitionen som lägger kortet i en lista att reda ut efteråt, så att passet går snabbt. <span class="hc">HC: answer buttons</span></li>
+      <li><b>Inbyggd ordbok</b> (CC-CEDICT, fri licens) och HSK-listor ger pinyin, betydelser och nivå utan nätverk och utan AI-kostnad.</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>2. Ord i kontext</h3>
+    <ul>
+      <li><b>Ny exempelmening vid varje repetition</b>, genererad av AI och byggd av ord du redan kan, så att bara målordet är nytt. Hacking Chinese avråder från egna meningskort eftersom de tar lång tid att skapa. Här skapas de automatiskt, och eftersom meningen byts ut lär du dig ordet, inte meningen. <span class="hc">HC: answer buttons</span> <span class="hc">HC: cramming vs SRS</span></li>
+      <li><b>Kollokationer och nyanser:</b> vanliga ordkombinationer, register (talspråk/skriftspråk) och skillnaden mot närliggande ord, till exempel 办理 / 处理 / 解决.</li>
+      <li><b>Meningar sparas och återanvänds</b> (till exempel 5 per ord), och kan förgenereras i stora omgångar i Claude Code, så att repetitionen går snabbt och sparar Max-kvot.</li>
+      <li><b>Uppläsning</b> av varje mening, så att kontexten också blir hörträning.</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>2b. Tryck på ett ord eller tecken för förklaring</h3>
+    <ul>
+      <li><b>Fungerar överallt</b> där det finns kinesisk text: exempelmeningar, "Idag ska jag…", fotolistor, lästexter och skuggningsmeningar.</li>
+      <li><b>Uppdelning i ord</b> görs med webbläsarens inbyggda ordsegmentering för kinesiska (<code>Intl.Segmenter</code>) mot ordboken, så att 手续费 blir ett ord och inte tre tecken. Ingen AI och ingen kostnad.</li>
+      <li><b>Tryck på ett ord:</b> pinyin med tonfärger, uppläsning, betydelser från CC-CEDICT, HSK-nivå, register (talspråk/formellt) och om ordet finns i din ordbank och hur väl du kan det.</li>
+      <li><b>"Förklara i meningen":</b> Claude förklarar varför ordet används just här, vad det skiljer sig från nära synonymer och ger två nya exempel. Svaret sparas, så samma fråga kostar inget igen.</li>
+      <li><b>Håll in för ett tecken:</b> tecknets betydelse, komponenter och radikal, och andra ord du kan som innehåller tecknet. Det binder ihop ordförrådet. Teckendata från den öppna databasen Make Me a Hanzi.</li>
+      <li><b>En knapp för nästa steg:</b> lägg till i ordbanken, eller markera ett ord du redan har för extra övning. Uppslag loggas, så att statistiken visar vilka ord du slår upp ofta men inte har lagt till.</li>
+    </ul>
+  </div>
+  <div class="feature">
+    <h3>3. Lägga till ord med text eller foto</h3>
+    <ul>
+      <li><b>Text:</b> skriv tecken, pinyin eller svenska/engelska. Ordboken föreslår träffar, AI kompletterar med förklaring och exempel.</li>
+      <li><b>Foto:</b> ta en bild av en meny, skylt eller textsida. En vision-modell läser texten, plockar ut ord över din nivå och visar dem som en lista att bocka för. Redan kända ord gråas ut.</li>
+            <li><b>Källa sparas</b> med ordet (foto, mening, datum), så att du minns var du stötte på det.</li>
+      <li><b>Import</b> från Pleco- eller Anki-export, så att du inte börjar från noll.</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>4. Skuggningsstudio (härmning i realtid)</h3>
+    <p class="small" style="margin:.25rem 0">Byggs som egen liten PWA som installeras på hemskärmen, eftersom Claude-appar inte får använda mikrofonen på ditt konto i dag. Ingen AI behövs.</p>
+    <ul>
+      <li><b>Native-ljud in:</b> importera egna klipp (poddar, videor, inspelningar av vänner). Hacking Chinese menar att syntetiskt tal inte räcker som förlaga för uttal, så uppläsning används bara för att höra ord, aldrig som förlaga att härma. <span class="hc">HC: listen and mimic</span></li>
+      <li><b>Dela upp i bitar:</b> från några sekunder upp till ett par meningar, med transkription och nya ord markerade. Börja med korta bitar. <span class="hc">HC: mimicking native speakers</span></li>
+      <li><b>Loopa och sakta ner</b> utan att tonhöjden ändras, men inte för mycket så att ljudet blir förvrängt. <span class="hc">HC: Audacity</span></li>
+      <li><b>Spela in medan förlagan spelas</b> i hörlurarna, så att bara din röst spelas in. Målet är att din röst smälter ihop med talarens. <span class="hc">HC: mimicking native speakers</span> På mobilen ger Bluetooth-hörlurar fördröjning, så där är "lyssna, sedan säg" standard och samtidig inspelning ett val för trådade hörlurar. Tidsjusteringen (DTW) gör jämförelsen rättvis i båda lägena.</li>
+      <li><b>Tonhöjdskurvor i realtid:</b> medan du pratar ritas din kurva live. Efteråt läggs den ovanpå förlagan, tidsjusterad (DTW) och normaliserad i halvtoner kring din egen röstläge, så att en mörk mansröst och en ljus kvinnoröst kan jämföras.</li>
+      <li><b>Lyssna separat och ihop:</b> förlaga, du, eller båda samtidigt.</li>
+      <li><b>Spara bästa försöket</b> som riktmärke. Tidslinjen visar hur du lät för en månad sedan. <span class="hc">HC: Audacity</span> <span class="hc">HC: intermediate plateau</span></li>
+      <li><b>Tonpar-övningar:</b> de cirka 20 tvåstaviga tonkombinationerna, plus regler för tredje tonen, 不 och 一 samt neutral ton. <span class="hc">HC: 7 tone problems</span></li>
+    </ul>
+    <h4 style="margin-top:1rem">4b. Avancerad uttalsanalys: initial, final och aspiration</h4>
+    <p class="col" style="margin:.35rem 0">Tonkurvan visar bara tonerna. Analysen nedan jämför också konsonanter och vokaler, stavelse för stavelse, både före och efter att du spelar in.</p>
+    <ul>
+      <li><b>Före inspelning:</b> meningen delas upp i initial, final och ton för varje stavelse, med de svåra punkterna markerade: aspirerade konsonanter (p t k q ch c), retroflexer (zh ch sh r), ü, -n mot -ng och tonsandhi. Du kan lyssna på en stavelse i taget och på minimala par som tào/dào. <span class="hc">HC: listen and mimic</span></li>
+      <li><b>Uppdelning i ljud:</b> en fonemmodell som körs i webbläsaren (wav2vec2 tränad på fonem, via transformers.js) hittar var varje ljud börjar och slutar, både i förlagan och i din inspelning. Den vet vilken text som sägs, så den behöver bara placera ljuden rätt i tid, och kan därför också märka när du säger ett annat ljud än det som står.</li>
+      <li><b>Aspiration:</b> mäts som tiden från konsonantens smäll till att rösten startar (VOT). Aspirerade konsonanter har lång luftpuff, oaspirerade kort. Visas som staplar mot förlagan, med gränsvärden för då det låter som fel konsonant.</li>
+      <li><b>Initialer:</b> s mot sh och z mot zh skiljs åt med var energin i frikativan ligger i frekvens (sh ligger lägre än s). x, q och j kontrolleras på samma sätt. Svenska talare blandar ofta ihop x och sh.</li>
+      <li><b>Finaler:</b> vokalernas formanter (F1 och F2) jämförs med förlagan, vilket fångar ü som blir u, e som blir svenskt e och -i efter zh/z. Slutet -n mot -ng bedöms av fonemmodellen.</li>
+      <li><b>Ton per stavelse</b> i samma tabell, med tonsandhi inräknad, så att 3+3 bedöms som 2+3.</li>
+      <li><b>Spektrogram</b> för förlaga och dig sida vid sida, för den som vill se detaljerna.</li>
+      <li><b>Felstatistik över tid:</b> appen räknar vilka ljud du oftast missar och föreslår riktade övningar, till exempel tio t/d-par. Det följer rådet att ställa diagnos först och sedan öva på just det problemet. <span class="hc">HC: 7 tone problems</span> <span class="hc">HC: intermediate plateau</span></li>
+      <li><b>Ärliga gränser:</b> mätningarna är vägledning, inte facit. Brus, mobilmikrofon och röstläge påverkar. Appen visar därför alltid förlagan bredvid, och vid tveksamma fall gul i stället för röd markering. Fonemmodellen är på runt 100–300 MB, laddas ner en gång och körs sedan offline, men analysen tar några sekunder på en telefon.</li>
+      <li><b>Pass på 20–30 minuter</b> som standard, med få bitar på djupet i stället för många ytligt. <span class="hc">HC: mimicking native speakers</span></li>
+    </ul>
+
+    <h4 style="margin-top:1rem">4c. Fler uttalsförslag från Hacking Chinese</h4>
+    <p class="col" style="margin:.35rem 0">Efter att ha läst fler av sajtens uttalsartiklar är det här mina förslag på vad appen mer kan analysera och träna. "Hög" betyder att jag rekommenderar det i första versionen av uttalsanalysen.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Förslag</th><th>Vad appen gör</th><th>Prio</th><th>Råd</th></tr></thead>
+    <tbody>
+      <tr><td><b>Hörtest med minimala par</b></td><td>Appen spelar en stavelse (gärna nonsens som bā/bá) och du väljer ton, aspiration eller final. Svar loggas som rätt, fel eller "vet inte", plus om du var säker. Visar om problemet sitter i örat eller i munnen. Börja med en rad i tonpartabellen, inte alla 20.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/a-smart-method-to-discover-problems-with-tones/" target="_blank" rel="noopener">smart method</a></td></tr>
+      <tr><td><b>Feltyp: kan inte säga eller läser fel</b></td><td>Samma ljud testas två gånger: genom att härma ett klipp och genom att läsa pinyin. Klarar du härmningen men inte pinyinet är det stavningen som lurar dig, och appen föreslår pinyinregler i stället för uttalsövning.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/two-types-of-pronunciation-problems-and-what-to-do-about-them/" target="_blank" rel="noopener">two types</a></td></tr>
+      <tr><td><b>Pinyinfällor</b></td><td>Förväntat ljud tas från regler och förlaga, inte från bokstäverna: iu = iou, ui = uei, un = uen, u efter j/q/x/y = ü, de olika e och i. Varningarna visas i vyn före inspelning.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/a-guide-to-pinyin-traps-and-pitfalls/" target="_blank" rel="noopener">pinyin traps</a></td></tr>
+      <tr><td><b>Neutral ton</b></td><td>Neutrala stavelser (了 吗 的, 们 子 头 som suffix) bedöms på rätt sätt: tonhöjd relativt stavelsen före (hög efter tredje tonen, låg annars), kortare och svagare. Vanligt fel som flaggas: full ton på 桌子. Regionala varianter som xǐhuan/xǐhuān godkänns.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/learning-the-neutral-tone-in-mandarin/" target="_blank" rel="noopener">neutral tone</a></td></tr>
+      <tr><td><b>Tredje tonen som låg ton</b></td><td>Tredje tonen bedöms som låg, inte som "ner och upp". Den hela svackan krävs bara sist i en fras. Tonsandhi för 3+3, 不 och 一 räknas in, och regler som är valfria ger mildare bedömning än obligatoriska.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/tag/third-tone/" target="_blank" rel="noopener">third tone</a></td></tr>
+      <tr><td><b>Tonfel efter typ</b></td><td>Fel sorteras i de sju typerna: hör inte tonen, kan inte säga den, kan inte i ord, minns fel ton, känner inte regeln, blandar ton och intonation, faller tillbaka under press. Varje typ får sin egen övning.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/7-kinds-tone-problems/" target="_blank" rel="noopener">7 tone problems</a></td></tr>
+      <tr><td><b>Typiska tonfel i detalj</b></td><td>Andra tonen som stiger för sent eller börjar för högt, fjärde tonen som "ropas", första tonen som sjunker. Visas som tydliga etiketter på tonkurvan.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/the-hacking-chinese-guide-to-mandarin-tones/" target="_blank" rel="noopener">tones guide</a></td></tr>
+      <tr><td><b>Intonation mot ton</b></td><td>I frågor och känslosamma meningar ska hela röstläget flyttas medan varje tons form behålls. Appen jämför tonformerna och röstläget var för sig, och 吗 som låter hög i en fråga räknas inte som fel.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/7-kinds-tone-problems/" target="_blank" rel="noopener">7 tone problems</a></td></tr>
+      <tr><td><b>Fel viktade efter risk för missförstånd</b></td><td>Fel som kan byta betydelse i samma sammanhang väger tyngst: 买/卖, 哪里/那里, 汉语/韩语, 山西/陕西. Ett eget övningspaket med sådana par.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/tone-errors-in-mandarin-that-actually-can-cause-confusion/" target="_blank" rel="noopener">tone errors</a></td></tr>
+      <tr><td><b>Överdriv först, sedan naturligt</b></td><td>En stege i två led: tempo (0,6× → 0,8× → 1×) och storlek (överdrivna toner → tonpar → meningar). Nästa steg låses upp när du klarar det nuvarande.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/learning-by-exaggerating-slow-then-fast-big-then-small/" target="_blank" rel="noopener">exaggerating</a></td></tr>
+      <tr><td><b>Munställning</b></td><td>Enkla bilder av tunga och läppar för x/q/j, zh/ch/sh/r och ü, som visas när ett sådant ljud blir fel.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/two-types-of-pronunciation-problems-and-what-to-do-about-them/" target="_blank" rel="noopener">two types</a></td></tr>
+      <tr><td><b>Röstdägbok och kvartalsjämförelse</b></td><td>En kort fri inspelning då och då, och samma provtext var tredje månad. Appen spelar upp dem efter varandra och jämför mätvärdena.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/know-your-chinese-voice/" target="_blank" rel="noopener">your Chinese voice</a></td></tr>
+      <tr><td><b>Lyssna på många röster</b></td><td>Hörtesterna använder klipp från flera olika talare, så att örat lär sig tonen och inte en viss röst.</td><td><span class="pill warn">Medel</span></td><td><a class="hc" href="https://www.hackingchinese.com/the-hacking-chinese-guide-to-mandarin-tones/" target="_blank" rel="noopener">tones guide</a></td></tr>
+      <tr><td><b>Lita på mätningarna, inte på AI-omdömen</b></td><td>Hacking Chinese visar att chattbottar som "lyssnar" ger olika betyg för samma ljud och hittar på fel, och att vanlig taligenkänning är för snäll och missar enstaka stavelser. Appen bygger därför bedömningen på mätningar, inte på Claude eller taligenkänning. Kontroll: en native-inspelning ska få nära fullt betyg, och samma inspelning ska alltid få samma betyg.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/no-chatgpt-cant-analyse-your-mandarin-pronunciation/" target="_blank" rel="noopener">ChatGPT can't</a> <a class="hc" href="https://www.hackingchinese.com/using-speech-recognition-to-improve-chinese-pronunciation-part-1/" target="_blank" rel="noopener">speech recognition</a></td></tr>
+      <tr><td><b>Bedömning per stavelse</b></td><td>Inget samlat betyg för hela meningen, utan resultat per stavelse och ljud, som i tabellen ovan.</td><td><span class="pill ok">Hög</span></td><td><a class="hc" href="https://www.hackingchinese.com/how-good-chinese-pronunciation/" target="_blank" rel="noopener">how good</a></td></tr>
+    </tbody>
+  </table></div>
+  <div class="feature" style="margin-top:0">
+    <p class="col small">Ytterligare en idé från samma artiklar: ibland få en människa att lyssna. Appen kan exportera ett blindtest (inspelningar i slumpad ordning) som en vän eller lärare skriver ner vad de hör, och resultatet läggs in i statistiken.</p>
+  </div>
+
+  <div class="feature">
+    <h3>5. "Idag ska jag…"</h3>
+    <ul>
+      <li><b>Skriv vad du ska göra</b> (banken, läkaren, hyra lägenhet, ett jobbmöte). Du får 10–15 ord och fraser som faktiskt behövs, en minidialog och fraser att säga.</li>
+      <li><b>Filtreras mot din ordbank</b> och din nivå, så att du inte får ord du redan kan eller som är för basala för HSK 4–5.</li>
+      <li><b>Intensivläge för dagen:</b> plugga orden flera gånger på kort tid inför något specifikt. Hacking Chinese menar att intensivplugg passar just för ett konkret, kortsiktigt mål. Orden du vill behålla flyttas sedan in i den vanliga repetitionen. <span class="hc">HC: cramming vs SRS</span></li>
+      <li><b>Rollspel</b> (senare fas): AI spelar banktjänstemannen, du svarar med text eller tal.</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>6. Minne och statistik</h3>
+    <p class="col" style="margin:.35rem 0">Allt du gör loggas från första dagen, så att utvecklingen går att se i efterhand. Att mäta framsteg är också Hacking Chinese råd mot känslan av att stå still på mellannivå. <span class="hc">HC: intermediate plateau</span></p>
+    <ul>
+      <li><b>Minne om dig:</b> en profil som appen bygger upp och du kan redigera: nivå, mål, intressen, ord du blandar ihop, ljud och toner du ofta missar, situationer du förberett i "Idag ska jag…". En kort sammanfattning skickas med varje Claude-anrop, så att exempelmeningar handlar om dina intressen och tränar dina svaga punkter. Eftersom varje anrop börjar från noll är det så appen "minns".</li>
+      <li><b>Ordförråd:</b> antal ord per status (nya, under inlärning, mogna), utveckling vecka för vecka och täckning per HSK-nivå.</li>
+      <li><b>Minne och repetition:</b> faktisk minnesnivå per månad (mål cirka 90 %), knappfördelning (Igen/Svårt/Bra/Lätt), svarstid, prognos för kommande repetitioner och de svåraste orden. Knappfördelningen hjälper dig se om du är för sträng eller för snäll. <span class="hc">HC: answer buttons</span></li>
+      <li><b>Vana:</b> kalender med dagar du pluggat, svit och tid per dag.</li>
+      <li><b>Uttal:</b> andel rätt per ton, tonpar och ljud (aspiration, s/sh, ü, -n/-ng) över tid, från uttalsanalysen. Plus tidslinjen med sparade inspelningar, så att du kan höra skillnaden och inte bara se den.</li>
+      <li><b>Veckorapport från Claude:</b> en kort sammanfattning varje vecka av vad som gått framåt, vad som står still och ett förslag på fokus för nästa vecka.</li>
+      <li><b>Data:</b> repetitionsloggen och profilen sparas i Mandapps databas. Uttalsresultaten från skuggningsappen förs över till Mandapp med en fil (export och import), så att all statistik syns på ett ställe.</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>7. App och data</h3>
+    <ul>
+      <li><b>Byggs för mobilen först.</b> Öppnas i mobilens webbläsare (inloggad på claude.ai) och läggs som ikon på hemskärmen. Fungerar också på datorn, där den kan installeras som eget fönster via Claude-appen.</li>
+      <li><b>Kameran används via filval:</b> "Ta foto" öppnar telefonens kamera direkt, så foto till ord fungerar utan särskild behörighet.</li>
+      <li><b>Data sparas i appens databas på claude.ai</b>, kopplad till ditt konto. Det betyder synk mellan dator och mobil utan egen server.</li>
+      <li><b>Backup:</b> export till en JSON-fil med ett klick, och en påminnelse varje vecka.</li>
+      <li><b>Kräver nät och inloggning på claude.ai.</b> Det är priset för att slippa API-nyckel; en offline-version kräver API-väg B nedan.</li>
+      <li><b>Ingen egen inloggning</b>, inga andra användare. Appen är privat för ditt konto.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="ai">
+  <h2>Max-abonnemanget: vad som går och inte går</h2>
+  <p class="col">Du vill använda Max så långt det går och API bara där det inte går att undvika. Så här ser reglerna ut, enligt Anthropics <a href="https://code.claude.com/docs/en/legal-and-compliance" target="_blank" rel="noopener">villkor för Claude Code</a> och dokumentationen för appar i Claude.</p>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Sätt att använda Max</th><th>Tillåtet?</th><th>Kommentar</th></tr></thead>
+    <tbody>
+      <tr><td><b>Bygga appen med Claude Code</b></td><td><span class="pill ok">Ja</span></td><td>Vanlig, personlig användning av Claude Code ingår i abonnemanget. Claude Code kan skriva all kod i planen.</td></tr>
+      <tr><td><b>Appen som artifact i Claude</b>, där sidan frågar Claude</td><td><span class="pill ok">Ja</span></td><td>Funktionen är gjord för detta: varje AI-anrop från sidan går på den som tittar, alltså dig, efter att du godkänt det en gång. Räknas mot din Max-kvot.</td></tr>
+      <tr><td><b>Förgenerera innehåll i Claude</b> (ordlistor, exempelmeningar) och importera som fil</td><td><span class="pill ok">Ja</span></td><td>Vanlig användning av Claude eller Claude Code. Bra för att fylla på exempelmeningar i stora omgångar.</td></tr>
+      <tr><td><b>Max-inloggningen i en egen backend</b> (Railway, egen server)</td><td><span class="pill bad">Nej</span></td><td>Villkoren tillåter inte att inloggningsuppgifter från Free, Pro eller Max används i andra produkter eller att anrop skickas via dem. Risk för avstängt konto.</td></tr>
+      <tr><td><b>Agent SDK eller egen app med Max-inloggning</b></td><td><span class="pill bad">Nej</span></td><td>Egna program och Agent SDK ska använda API-nyckel.</td></tr>
+      <tr><td><b>Köra <code>claude -p</code> från en server</b> som appen anropar</td><td><span class="pill warn">Undvik</span></td><td>Inte uttryckligen förbjudet, men kvoterna förutsätter "ordinary, individual usage". En server som anropar Claude Code åt en app ligger för nära det förbjudna. Planen bygger inte på det.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Vad Claude-appen ger dig utan API</h3>
+  <div class="arch">
+    <div><h4>Fråga Claude</h4><ul><li>Exempelmeningar, kollokationer, "Idag ska jag…"</li><li>Bilder: foto av meny eller skylt till ordlista</li><li>Välj modellnivå: snabb, standard eller mest kapabel</li></ul></div>
+    <div><h4>Databas</h4><ul><li>Ord, kort och repetitionslogg sparas på claude.ai</li><li>Synk mellan enheter automatiskt</li><li>Privat för ditt konto</li></ul></div>
+    <div><h4>Röst</h4><ul><li>Uppläsning med telefonens inbyggda kinesiska röster</li><li>Claudes egen röst och diktering finns inte i mobilapparna eller Safari, så de används inte</li><li>Tala in ord med tangentbordets diktering</li></ul></div>
+    <div><h4>På mobilen</h4><ul><li>Öppnas i mobilens webbläsare, inloggad på claude.ai</li><li>Ikon på hemskärmen</li><li>Kameran via "Ta foto" i filväljaren</li></ul></div>
+  </div>
+
+  <h3>Begränsningar att känna till</h3>
+  <ul class="col">
+    <li><b>Kvot:</b> anropen delar Max-kvoten med din vanliga Claude-användning. Ungefär 30 korta anrop om dagen är lite, men tunga bildanrop och rollspel märks mer.</li>
+    <li><b>Nät krävs:</b> appen körs på claude.ai och fungerar inte offline. Mobildata räcker.</li>
+    <li><b>Hemskärmsikonen är ett bokmärke:</b> den öppnar appen i webbläsaren, inte som en riktig app. Uppläsning med webbläsarens röster måste testas inne i Claude-appen på din telefon.</li>
+    <li><b>Mikrofonen är osäker:</b> en installerad Claude-app kan få mikrofonåtkomst, men den behörigheten finns inte för ditt konto i dag. Därför planeras skuggningsstudion som en egen liten PWA tills det ändras (se arkitekturen).</li>
+    <li><b>Mindre kontroll:</b> du väljer modellnivå, men inte exakt hur anropen görs. Svar är tillfälliga per anrop, så appen skickar med allt Claude behöver varje gång.</li>
+  </ul>
+
+  <h3>Om du behöver API senare</h3>
+  <p class="col">API-nyckel behövs bara för en offline-version, en egen backend eller om Max-kvoten inte räcker. Den köps separat på platform.claude.com med förbetald kredit. Med cirka 900 anrop i månaden (800 tokens in, 300 ut):</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Modell</th><th>Pris in / ut per miljon tokens</th><th>Per anrop</th><th>Per månad</th></tr></thead>
+    <tbody>
+      <tr><td>Claude Haiku 5.5</td><td class="num">0,10 / 0,50 USD</td><td class="num">≈ 0,0002 USD</td><td class="num">≈ 0,20 USD</td></tr>
+      <tr><td>Claude Sonnet 5.5</td><td class="num">2 / 10 USD</td><td class="num">≈ 0,005 USD</td><td class="num">≈ 4 USD</td></tr>
+      <tr><td>Claude Opus 5.5</td><td class="num">4 / 20 USD</td><td class="num">≈ 0,009 USD</td><td class="num">≈ 8 USD</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="arkitektur">
+  <h2>Arkitektur</h2>
+  <h3>Två delar, noll API-nycklar</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Del</th><th>Var den körs</th><th>Innehåll</th><th>Kostnad</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. Mandapp</b> (huvudappen)</td><td>Artifact i Claude, öppnad i mobilens webbläsare med ikon på hemskärmen</td><td>Ordbank, repetition, kontext, foto, "Idag ska jag…", uppläsning</td><td class="num">Ingår i Max</td></tr>
+      <tr><td><b>2. Skuggningsstudio</b></td><td>Liten statisk PWA (GitHub Pages), installerad på hemskärmen och helt lokal. Flyttas in i Mandapp om mikrofon blir tillgänglig där.</td><td>Ljudimport, loop, inspelning, tonkurvor, tonpar</td><td class="num">0 kr</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout ok">
+    <p><b>Rekommendation:</b> börja med del 1, eftersom den ger mest nytta direkt och kostar inget extra. Bygg del 2 när ordbanken fungerar. Ordlistan kan exporteras från Mandapp och importeras i studion, så att du skuggar meningar med dina egna ord.</p>
+  </div>
+
+  <h3>Byggstenar</h3>
+  <div class="arch">
+    <div><h4>Mandapp (artifact)</h4><ul><li>En HTML-sida med JavaScript, publicerad från Claude Code</li><li>Databas, Claude-anrop, röst och diktering via appens inbyggda funktioner</li><li><code>ts-fsrs</code> för schemaläggning (laddas från CDN)</li></ul></div>
+    <div><h4>Ordbok</h4><ul><li>CC-CEDICT och HSK-listor som datafiler bredvid sidan</li><li><code>pinyin-pro</code> för pinyin och toner</li><li>Förgenererade exempelmeningar som JSON</li></ul></div>
+    <div><h4>Skuggningsstudio (PWA)</h4><ul><li>Vite + TypeScript, <code>vite-plugin-pwa</code></li><li>Web Audio och <code>pitchy</code> för tonhöjd</li><li>DTW för tidsjustering, WaveSurfer.js för A–B-loop</li><li>transformers.js med wav2vec2-fonemmodell för uppdelning i ljud</li><li>Egen signalanalys i en Web Worker: VOT, frikativans frekvens, formanter (LPC)</li></ul></div>
+    <div><h4>Kodflöde</h4><ul><li>Kod i ett GitHub-repo</li><li>Claude Code skriver koden och publicerar Mandapp</li><li>Studion publiceras på GitHub Pages</li></ul></div>
+  </div>
+
+  <h3>Alternativ B: egen backend med API-nyckel</h3>
+  <p class="col">Om du senare vill ha offline-läge, full kontroll över anropen eller slippa dela Max-kvoten, är en egen backend på Railway en bra väg. Den måste då använda en API-nyckel, inte Max.</p>
+  <div class="arch">
+    <div><h4>Server</h4><ul><li>Node + Hono eller Fastify</li><li>Postgres på Railway</li><li>Ljudfiler i volym eller S3-kompatibel bucket</li><li>Från ca 5 USD/mån plus API-kostnad</li></ul></div>
+    <div><h4>Endpoints</h4><ul><li><code>POST /ai/*</code> anropar Claude med nyckeln från miljövariabel</li><li><code>POST /sync</code> för ändringar sedan senaste synk</li><li><code>PUT /audio/:id</code> för inspelningar</li></ul></div>
+    <div><h4>Synk</h4><ul><li>Appen skriver lokalt först (IndexedDB)</li><li>Id, ändringstid och raderingsflagga på varje post</li><li>Senaste ändring vinner, repetitionsloggen slås ihop</li></ul></div>
+    <div><h4>Säkerhet</h4><ul><li>Lång hemlig token i appen, ingen inloggning</li><li>Begränsa anrop per minut</li><li>Månadsgräns i Claude Console</li></ul></div>
+  </div>
+  <p class="col small">Datamodellen i Mandapp görs från början med id och ändringstid på varje post, så att en flytt till alternativ B inte kräver att data byggs om.</p>
+</section>
+
+<section id="implementation">
+  <h2>Implementationsplan</h2>
+  <p class="col">Allt byggs med Claude Code inom ditt Max-abonnemang. Tiderna gäller kvällar och helger; med Claude Code som skriver det mesta av koden går det betydligt fortare. Varje fas ger något du kan använda direkt.</p>
+
+  <div class="phase"><div class="when"><b>Fas 0</b>1 kväll</div><div>
+    <h4>Grund</h4>
+    <ul><li>GitHub-repo, Claude Code uppsatt mot det</li><li>Första version av Mandapp publicerad som artifact, testad på din telefon och lagd på hemskärmen</li><li>Datamodell i appens databas: ord, kort, repetitionslogg, inställningar</li><li>Test på telefonen: Claude-anrop, foto med kameran och uppläsning med kinesisk röst</li></ul>
+    <div class="done">Klart när: du öppnar appen från hemskärmen och den kan fråga Claude.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 1</b>1–2 veckor</div><div>
+    <h4>Ordbank och repetition</h4>
+    <ul><li>Lägg till ord med text, uppslag i CC-CEDICT</li><li>FSRS-schema med fyra knappar, svarstid och daglig gräns för nya ord</li><li>Igenkännings- och ljudkort med uppläsning</li><li>Iglar, markera för senare, pausa kort</li><li>Import från Pleco/Anki, export till JSON</li><li>Logga varje repetition med tid, knapp och svarstid från första dagen</li></ul>
+    <div class="done">Klart när: du kan ersätta din nuvarande ordapp.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 2</b>1 vecka</div><div>
+    <h4>Kontext och foto via Max</h4>
+    <ul><li>Exempelmeningar byggda av dina kända ord, sparade i databasen och återanvända</li><li>Förgenerering i stora omgångar i Claude Code, importerade som fil</li><li>Kollokationer och skillnader mot liknande ord</li><li>Foto till ordlista med Claudes bildstöd</li><li>Tryck på ord och tecken: ordsegmentering, uppslagsruta, "Förklara i meningen" och teckenvy</li></ul>
+    <div class="done">Klart när: varje kort visar en ny mening och du kan fota en meny.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 3</b>1 vecka</div><div>
+    <h4>"Idag ska jag…"</h4>
+    <ul><li>Fritext till ord, fraser och minidialog, filtrerat mot din ordbank</li><li>Intensivläge för dagen, flytt till vanlig repetition efteråt</li></ul>
+    <div class="done">Klart när: du kan förbereda ett bankbesök på 10 minuter.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 4</b>2–3 veckor</div><div>
+    <h4>Skuggningsstudio</h4>
+    <ul><li>Fristående PWA: ljudimport, uppdelning, A–B-loop, nedsaktning</li><li>Inspelning samtidigt som förlagan spelas</li><li>Tonhöjdskurva live, jämförelse med DTW, normalisering i halvtoner</li><li>Tidslinje med sparade inspelningar, tonpar-övningar</li><li>Import av meningar och ord från Mandapp</li></ul>
+    <div class="done">Klart när: du ser din tonkurva över förlagans och hör skillnaden.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 5</b>2–4 veckor</div><div>
+    <h4>Avancerad uttalsanalys</h4>
+    <ul><li>Vy före inspelning: initial, final och ton per stavelse, minimala par</li><li>Fonemmodell i webbläsaren som placerar varje ljud i tid, för förlaga och inspelning</li><li>Mätning av aspiration (VOT), s/sh/x och z/zh, vokalformanter</li><li>Tabell per stavelse, spektrogram, felstatistik och riktade övningar</li><li>Hörtest med minimala par, feltyp (säga eller läsa), pinyinfällor, neutral ton och tredje ton som låg</li><li>Kontroll med native-inspelningar: nära fullt betyg och samma betyg varje gång</li><li>Test på din telefon med mobilmikrofon och hörlurar, justering av gränsvärden</li></ul>
+    <div class="done">Klart när: appen säger att ditt 天 låter som diān, och har rätt.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 6</b>1–2 veckor</div><div>
+    <h4>Minne och statistik</h4>
+    <ul><li>Profil som appen bygger upp och du kan redigera, skickad med i Claude-anrop</li><li>Statistikvy: ordförråd, minnesnivå, knappfördelning, vana, prognos</li><li>Uttalsstatistik per ljud och ton, import från skuggningsappen</li><li>Veckorapport från Claude</li></ul>
+    <div class="done">Klart när: du ser hur många ord du lärt dig sedan start och om ditt -ng blivit bättre.</div></div></div>
+
+  <div class="phase"><div class="when"><b>Fas 7</b>löpande</div><div>
+    <h4>Finputs</h4>
+    <ul><li>Daglig påminnelse att repetera</li><li>Ta ställning till alternativ B om offline eller Kina blir aktuellt</li></ul>
+    <div class="done">Klart när: du använder appen varje dag utan att sakna något.</div></div></div>
+</section>
+
+<section id="forbattringar">
+  <h2>Övriga förbättringsområden</h2>
+  <p class="col">Saker du inte bad om, men som Hacking Chinese pekar ut som viktiga på din nivå, eller som gör appen bättre att leva med.</p>
+  <div class="feature">
+    <ul>
+      <li><b>Läs- och lyssningsläge.</b> På mellannivå är mycket läsning och lyssning det som ger mest. AI kan skriva korta texter om saker du är intresserad av, där 95–98 % av orden är kända och resten är ord från din ordbank. Det ger repetition i kontext utan kort. <span class="hc">HC: intermediate plateau</span> <span class="hc">HC: answer buttons</span></li>
+      <li><b>Benchmark mot prov.</b> Gör ett HSK-provprov var tredje månad och lägg in resultatet i statistiken, som ett mått utanför appen. <span class="hc">HC: intermediate plateau</span></li>
+      <li><b>Fokusperioder.</b> Låt appen föreslå en månad med fokus på en sak i taget: toner, läshastighet eller en viss typ av ord. <span class="hc">HC: intermediate plateau</span></li>
+      <li><b>Snabbhet för vanliga ord.</b> För de vanligaste orden räcker det inte att minnas långsamt. Ett tidsbegränsat läge med vanliga ord tränar automatik. <span class="hc">HC: when SRS fails</span></li>
+      <li><b>Rensa kortleken.</b> Mycket lätta ord kan få långa intervall eller pausas, så att tiden läggs på ord i rätt svårighetsgrad. <span class="hc">HC: when SRS fails</span></li>
+      <li><b>Handskrift</b> med Hanzi Writer, om du vill kunna skriva tecken för hand. Valfritt; på din nivå är läsa och skriva på tangentbord ofta viktigare.</li>
+      <li><b>Feedback från människor.</b> Exportera en inspelning och skicka till en lärare eller vän. Appen kan visa tonkurvor, men en lärare hör mer. <span class="hc">HC: 7 tone problems</span></li>
+      <li><b>Kvotkoll.</b> Räkna antalet Claude-anrop per dag, så att du ser hur mycket av Max-kvoten appen använder.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="kina">
+  <h2>Kina: öppen fråga till senare</h2>
+  <p class="col">Version 1 använder bara Claude och tar inte hänsyn till Kina. Det här är vad som är känt till dess att frågan blir aktuell.</p>
+  <div class="callout bad">
+    <p><b>Claude får inte användas från fastlandskina eller Hongkong.</b> Båda saknas på Anthropics <a href="https://www.anthropic.com/legal/supported-regions" target="_blank" rel="noopener">lista över stödda regioner</a>. Det gäller även med VPN och även för Claude-appen på claude.ai, eftersom det är där du befinner dig som räknas. Kontot kan stängas av.</p>
+  </div>
+  <div class="feature">
+    <ul>
+      <li><b>Det som fungerar i Kina:</b> skuggningsstudion, eftersom den körs lokalt.</li>
+      <li><b>Det som slutar fungera:</b> Mandapp som helhet, eftersom den körs på claude.ai. En offline-version (alternativ B) skulle behålla repetition och ordbok.</li>
+      <li><b>Möjlig lösning senare:</b> alternativ B med offline-läge, där en kinesisk leverantör som DeepSeek eller Qwen kan läggas till som andra AI-val i Kina.</li>
+      <li><b>Nåbarhet:</b> gratis-hostar som <code>pages.dev</code> och <code>vercel.app</code> når inte fram pålitligt från Kina, så installera PWA:er innan du åker.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="kallor">
+  <h2>Källor</h2>
+  <ul class="sources">
+    <li><a href="https://www.hackingchinese.com/answer-buttons-and-how-to-use-srs/" target="_blank" rel="noopener">HC: Answer buttons and how to use SRS</a></li>
+    <li><a href="https://www.hackingchinese.com/when-spaced-repetition-fails-and-what-to-do-about-it/" target="_blank" rel="noopener">HC: When spaced repetition fails and what to do about it</a></li>
+    <li><a href="https://www.hackingchinese.com/cramming-vs-spaced-repetition-when-to-use-which-method-to-learn-chinese/" target="_blank" rel="noopener">HC: Cramming vs spaced repetition</a></li>
+    <li><a href="https://www.hackingchinese.com/mimicking-native-speakers-way-learning-chinese/" target="_blank" rel="noopener">HC: Improving your pronunciation by mimicking native speakers</a></li>
+    <li><a href="https://www.hackingchinese.com/using-audacity-to-learn-chinese-speaking-and-listening/" target="_blank" rel="noopener">HC: Using Audacity to learn Chinese</a></li>
+    <li><a href="https://www.hackingchinese.com/dont-learn-mandarin-pronunciation-by-reading/" target="_blank" rel="noopener">HC: Don't learn pronunciation by reading, listen and mimic</a></li>
+    <li><a href="https://www.hackingchinese.com/7-kinds-tone-problems/" target="_blank" rel="noopener">HC: 7 kinds of tone problems</a></li>
+    <li><a href="https://www.hackingchinese.com/learning-the-neutral-tone-in-mandarin/" target="_blank" rel="noopener">HC: Learning the neutral tone</a></li>
+    <li><a href="https://www.hackingchinese.com/the-hacking-chinese-guide-to-mandarin-tones/" target="_blank" rel="noopener">HC: The four Mandarin tones</a></li>
+    <li><a href="https://www.hackingchinese.com/a-smart-method-to-discover-problems-with-tones/" target="_blank" rel="noopener">HC: A smart method to discover problems with tones</a></li>
+    <li><a href="https://www.hackingchinese.com/two-types-of-pronunciation-problems-and-what-to-do-about-them/" target="_blank" rel="noopener">HC: Two types of pronunciation problems</a></li>
+    <li><a href="https://www.hackingchinese.com/a-guide-to-pinyin-traps-and-pitfalls/" target="_blank" rel="noopener">HC: Pinyin traps and pitfalls</a></li>
+    <li><a href="https://www.hackingchinese.com/learning-by-exaggerating-slow-then-fast-big-then-small/" target="_blank" rel="noopener">HC: Learn by exaggerating</a></li>
+    <li><a href="https://www.hackingchinese.com/tone-errors-in-mandarin-that-actually-can-cause-confusion/" target="_blank" rel="noopener">HC: Tone errors that can cause misunderstandings</a></li>
+    <li><a href="https://www.hackingchinese.com/no-chatgpt-cant-analyse-your-mandarin-pronunciation/" target="_blank" rel="noopener">HC: No, ChatGPT can't analyse your pronunciation</a></li>
+    <li><a href="https://www.hackingchinese.com/using-speech-recognition-to-improve-chinese-pronunciation-part-1/" target="_blank" rel="noopener">HC: Using speech recognition, part 1</a></li>
+    <li><a href="https://www.hackingchinese.com/how-good-chinese-pronunciation/" target="_blank" rel="noopener">HC: How good is your pronunciation really</a></li>
+    <li><a href="https://www.hackingchinese.com/know-your-chinese-voice/" target="_blank" rel="noopener">HC: Get to know your Chinese voice</a></li>
+    <li><a href="https://www.hackingchinese.com/how-to-get-past-the-intermediate-chinese-learning-plateau/" target="_blank" rel="noopener">HC: How to get past the intermediate plateau</a></li>
+    <li><a href="https://code.claude.com/docs/en/legal-and-compliance" target="_blank" rel="noopener">Claude Code: Legal and compliance (prenumerationer och OAuth)</a></li>
+    <li><a href="https://www.anthropic.com/legal/supported-regions" target="_blank" rel="noopener">Anthropic: Supported regions</a></li>
+    <li><a href="https://support.claude.com/en/articles/9876003" target="_blank" rel="noopener">Claude Help: API billed separately from paid plans</a></li>
+    <li><a href="https://api-docs.deepseek.com/quick_start/pricing" target="_blank" rel="noopener">DeepSeek: API pricing</a></li>
+    <li><a href="https://www.alibabacloud.com/help/en/model-studio/qwenvl-ocr" target="_blank" rel="noopener">Alibaba Cloud: Qwen-VL-OCR</a></li>
+    <li><a href="https://developers.cloudflare.com/china-network/faq/" target="_blank" rel="noopener">Cloudflare: China Network FAQ (pages.dev)</a></li>
+    <li><a href="https://vercel.com/kb/guide/accessing-vercel-hosted-sites-from-mainland-china" target="_blank" rel="noopener">Vercel: Accessing sites from mainland China</a></li>
+  </ul>
+</section>
+
+</div>

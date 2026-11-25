@@ -1,0 +1,1239 @@
+<meta charset="utf-8">
+<title>Mandapp</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: en kolumn för mobil (max 560px), fast flikrad i botten, bottenark för uppslag. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunk:#e7eeec; --fg:#14201d; --muted:#55645f; --line:#cfdbd7;
+  --accent:#0d7a6a; --accent-soft:#d5ece7; --on-accent:#ffffff;
+  --warn:#a85a00; --warn-soft:#fbecd7; --bad:#b3261e; --bad-soft:#f8dedb; --blue:#1565c0;
+  --t1:#c62828; --t2:#2e7d32; --t3:#1565c0; --t4:#6a1b9a; --t5:#6b7773;
+  --display:"Sora","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --zh:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
+  --accent:#4cc2ad; --accent-soft:#163a34; --on-accent:#08201c;
+  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --blue:#6aa8f0;
+  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
+  --accent:#4cc2ad; --accent-soft:#163a34; --on-accent:#08201c;
+  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --blue:#6aa8f0;
+  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);margin:0}
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(76px + env(safe-area-inset-bottom,0px))}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-block:14px 8px}
+header.top h1{font:700 1.25rem var(--display);margin:0;letter-spacing:-.01em}
+header.top .sub{font:500 .72rem var(--mono);color:var(--muted)}
+.banner{font-size:.85rem;background:var(--warn-soft);color:var(--fg);border-left:3px solid var(--warn);padding:8px 10px;border-radius:0 8px 8px 0;margin:6px 0}
+.banner[hidden]{display:none}
+h2{font:600 1.05rem var(--display);margin:18px 0 8px}
+.muted{color:var(--muted)} .small{font-size:.85rem} .mono{font-family:var(--mono)}
+.zh{font-family:var(--zh)}
+.t1{color:var(--t1)}.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}.t5{color:var(--t5)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.block{width:100%}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--fg);border:0}
+button.chip{cursor:pointer}
+.chip.on{background:var(--accent);color:var(--on-accent)}
+.pill{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.pill.new{background:var(--sunk);color:var(--muted)} .pill.learn{background:var(--warn-soft);color:var(--warn)}
+.pill.young{background:var(--accent-soft);color:var(--accent)} .pill.mature{background:var(--accent);color:var(--on-accent)}
+.pill.leech{background:var(--bad-soft);color:var(--bad)} .pill.susp{background:var(--sunk);color:var(--muted);text-decoration:line-through}
+.pill.flag{background:var(--warn-soft);color:var(--warn)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+input[type=text],input[type=search],input[type=number],textarea,select{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+textarea{min-height:90px;resize:vertical}
+label.lbl{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.view{display:flex;flex-direction:column;gap:12px}
+.view[hidden]{display:none}
+
+/* review */
+.progress{display:flex;justify-content:space-between;font:500 .75rem var(--mono);color:var(--muted)}
+.bar{height:4px;background:var(--sunk);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);width:0}
+.rcard{min-height:340px;display:flex;flex-direction:column;gap:12px}
+.big{font-family:var(--zh);font-size:clamp(2.6rem,13vw,3.6rem);font-weight:700;text-align:center;letter-spacing:.06em;line-height:1.15;margin-top:10px;word-break:break-all}
+.py{text-align:center;font:500 1.05rem var(--mono)}
+.mean{text-align:center}
+.mean .en{color:var(--muted);font-size:.88rem;display:block;margin-top:2px}
+.ctx{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.ctx .lblrow{display:flex;justify-content:space-between;align-items:center;font:500 .68rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;gap:8px}
+.ctx .zhline{font-family:var(--zh);font-size:1.12rem;line-height:1.9}
+.ctx .sv{color:var(--muted);font-size:.85rem}
+.seg{cursor:pointer;border-radius:3px}
+.seg:hover{background:var(--sunk)}
+.seg.target{background:var(--accent-soft);border-bottom:2px solid var(--accent)}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.grades button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 2px;font-weight:600}
+.grades small{display:block;font:400 .7rem var(--mono);color:var(--muted)}
+.grades .g1{color:var(--bad)} .grades .g2{color:var(--warn)} .grades .g3{color:var(--accent)} .grades .g4{color:var(--blue)}
+.grades .suggest{outline:2px solid var(--warn);outline-offset:1px}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font:600 1.05rem var(--display);margin-bottom:6px}
+.note{font-size:.82rem;color:var(--muted)}
+.thinking{font-size:.85rem;color:var(--muted);font-style:italic}
+
+/* lists */
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;text-align:left;width:100%}
+.item .w{min-width:0;flex:1}
+.item .hz{font-family:var(--zh);font-size:1.12rem;font-weight:500}
+.item .pyi{font:500 .8rem var(--mono);margin-left:6px}
+.item .def{display:block;font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.add{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-weight:700;border:0;flex:none}
+.add.done{background:var(--sunk);color:var(--muted)}
+.check{width:22px;height:22px;flex:none;accent-color:var(--accent)}
+.segtabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:12px;padding:3px}
+.segtabs button{border:0;background:transparent;padding:8px;border-radius:9px;font-weight:500}
+.segtabs button.on{background:var(--surface);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* stats */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:.75rem;color:var(--muted)}
+.tile b{display:block;font:600 1.3rem var(--display);color:var(--fg);font-variant-numeric:tabular-nums}
+.chartbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.chartbox svg{display:block;width:100%;height:auto}
+.dist{display:grid;grid-template-columns:70px 1fr 44px;gap:6px 8px;align-items:center;font-size:.82rem}
+.dist .track{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}.dist .track i{display:block;height:100%;border-radius:4px}
+
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:20;
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs a{text-decoration:none;color:var(--muted);text-align:center;font-size:.68rem;padding:8px 2px 10px;position:relative}
+nav.tabs a i{display:block;font-style:normal;font-family:var(--zh);font-size:1.2rem;line-height:1.2}
+nav.tabs a.on{color:var(--accent);font-weight:600}
+nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--bad);color:#fff;font:600 .62rem var(--mono);border-radius:999px;padding:0 5px;min-width:16px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--line);
+  max-height:82vh;overflow:auto;box-shadow:0 -12px 30px -12px rgba(0,0,0,.4);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 4px}
+.sheet .hw{font-family:var(--zh);font-size:2rem;font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;z-index:60;max-width:90vw}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div><h1>Mandapp</h1><div class="sub" id="subtitle">laddar…</div></div>
+    <button class="chip" id="btnSettings" type="button" aria-label="Inställningar">⚙ Inställningar</button>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+
+  <!-- REPETERA -->
+  <section class="view" id="v-repetera">
+    <div id="reviewArea"></div>
+  </section>
+
+  <!-- LÄGG TILL -->
+  <section class="view" id="v-lagg-till" hidden>
+    <div class="segtabs" role="tablist">
+      <button type="button" id="tabText" class="on">Skriv</button>
+      <button type="button" id="tabFoto">Foto</button>
+    </div>
+    <div id="addText" class="stack">
+      <input type="search" id="q" placeholder="Tecken, pinyin (yinhang) eller engelska" autocomplete="off">
+      <div class="note" id="qNote">Ordboken (CC-CEDICT) laddas första gången och sparas sedan i telefonen.</div>
+      <div class="list" id="results"></div>
+    </div>
+    <div id="addFoto" class="stack" hidden>
+      <div class="card stack">
+        <div>Fota en meny, skylt eller textsida. Claude läser texten och plockar ut orden.</div>
+        <label class="btn primary block" style="text-align:center">Ta foto eller välj bild
+          <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+        </label>
+        <div class="note" id="photoNote"></div>
+      </div>
+      <div id="photoOut" class="stack"></div>
+    </div>
+  </section>
+
+  <!-- IDAG -->
+  <section class="view" id="v-idag" hidden>
+    <div class="segtabs" role="tablist">
+      <button type="button" id="tabIdag" class="on">Idag ska jag…</button>
+      <button type="button" id="tabLas">Läs en text</button>
+    </div>
+    <div id="lasBox" class="stack" hidden>
+      <label class="lbl" for="lasTopic">Ämne</label>
+      <input type="text" id="lasTopic" placeholder="t.ex. mat i Sichuan, en dag på banken, AI">
+      <div class="row">
+        <select id="lasLen" style="width:auto"><option value="150">Kort (~150 tecken)</option><option value="300" selected>Mellan (~300 tecken)</option><option value="500">Lång (~500 tecken)</option></select>
+        <button class="btn primary" id="btnLas" type="button" style="flex:1">Skriv en text till mig</button>
+      </div>
+      <div class="note" id="lasNote">Claude skriver en text där nästan alla ord är sådana du kan, plus några ord du håller på att lära dig. Tryck på ord du inte kan.</div>
+      <div id="lasOut" class="stack"></div>
+    </div>
+    <div class="stack" id="idagBox">
+      <label class="lbl" for="todayText">Idag ska jag…</label>
+      <textarea id="todayText" placeholder="t.ex. gå till banken och öppna ett konto, och fråga om att föra över pengar till Sverige"></textarea>
+      <button class="btn primary" id="btnToday" type="button">Ge mig orden jag behöver</button>
+      <div class="note" id="todayNote"></div>
+    </div>
+    <div id="todayOut" class="stack" data-idag="1"></div>
+  </section>
+
+  <!-- ORD -->
+  <section class="view" id="v-ord" hidden>
+    <div class="row">
+      <input type="search" id="wq" placeholder="Sök i din ordbank" style="flex:1;min-width:0">
+    </div>
+    <div class="row" id="wfilters">
+      <button class="chip on" data-f="alla" type="button">Alla</button>
+      <button class="chip" data-f="ny" type="button">Nya</button>
+      <button class="chip" data-f="lar" type="button">Lär</button>
+      <button class="chip" data-f="mogen" type="button">Mogna</button>
+      <button class="chip" data-f="markerad" type="button">Markerade</button>
+      <button class="chip" data-f="igel" type="button">Iglar</button>
+      <button class="chip" data-f="pausad" type="button">Pausade</button>
+    </div>
+    <div class="note" id="wcount"></div>
+    <div class="list" id="wlist"></div>
+  </section>
+
+  <!-- STATISTIK -->
+  <section class="view" id="v-statistik" hidden>
+    <div id="statsArea" class="stack"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Huvudmeny"><div class="in">
+  <a href="#repetera" data-v="repetera"><i>复</i>Repetera<span class="badge" id="dueBadge" hidden></span></a>
+  <a href="#lagg-till" data-v="lagg-till"><i>+</i>Lägg till</a>
+  <a href="#idag" data-v="idag"><i>今</i>Idag</a>
+  <a href="#ord" data-v="ord"><i>词</i>Ord</a>
+  <a href="#statistik" data-v="statistik"><i>统</i>Utveckling</a>
+</div></nav>
+
+<script src="https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.2/dist/index.umd.js"></script>
+<script src="analysis.js"></script>
+<script>
+"use strict";
+/* ============ helpers ============ */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v);
+    else if (k === "style") e.setAttribute("style", v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : String(k));
+  return e;
+}
+const DAY = 86400000;
+const now = () => Date.now();
+function dayKey(t = now()) { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function toast(msg, ms = 2200) { const t = h("div", { class: "toast", role: "status" }, msg); document.body.append(t); setTimeout(() => t.remove(), ms); }
+function fmtIvl(ms) {
+  if (ms < 60000) return "<1 min";
+  const m = ms / 60000; if (m < 60) return Math.round(m) + " min";
+  const hr = m / 60; if (hr < 24) return Math.round(hr) + " h";
+  const d = hr / 24; if (d < 30) return Math.round(d) + " d";
+  const mo = d / 30.4; if (mo < 12) return (Math.round(mo * 10) / 10).toString().replace(".", ",") + " mån";
+  return (Math.round(d / 36.5) / 10).toString().replace(".", ",") + " år";
+}
+const isCJK = c => /[\u3400-\u9fff\uf900-\ufaff]/.test(c);
+function uid36() { return "w" + now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ============ pinyin ============ */
+const TM = { a: "āáǎàa", e: "ēéěèe", i: "īíǐìi", o: "ōóǒòo", u: "ūúǔùu", "ü": "ǖǘǚǜü" };
+function syl(s) {
+  const m = s.match(/^([A-Za-zü:Üv]+)([1-5])$/);
+  if (!m) return { t: s, tone: 0 };
+  let base = m[1].replace(/u:|v/g, "ü").replace(/U:|V/g, "Ü"); const tone = +m[2];
+  if (tone === 5) return { t: base, tone: 5 };
+  const lo = base.toLowerCase(); let idx = -1;
+  if (lo.includes("a")) idx = lo.indexOf("a"); else if (lo.includes("e")) idx = lo.indexOf("e"); else if (lo.includes("ou")) idx = lo.indexOf("o");
+  else for (let i = lo.length - 1; i >= 0; i--) if ("aeiouü".includes(lo[i])) { idx = i; break; }
+  if (idx < 0) return { t: base, tone };
+  let rep = TM[lo[idx]][tone - 1]; if (base[idx] !== lo[idx]) rep = rep.toUpperCase();
+  return { t: base.slice(0, idx) + rep + base.slice(idx + 1), tone };
+}
+function pinyinNode(p, cls) {
+  const wrap = h("span", { class: cls || "" });
+  (p || "").split(/\s+/).filter(Boolean).forEach((s, i) => {
+    const r = syl(s); if (i) wrap.append(" ");
+    wrap.append(h("span", { class: r.tone ? "t" + r.tone : "" }, r.t));
+  });
+  return wrap;
+}
+function pinyinText(p) { return (p || "").split(/\s+/).filter(Boolean).map(s => syl(s).t).join(" "); }
+function tonesOf(p) { return (p || "").split(/\s+/).map(s => syl(s).tone); }
+const TONE_STRIP = { "ā": "a", "á": "a", "ǎ": "a", "à": "a", "ē": "e", "é": "e", "ě": "e", "è": "e", "ī": "i", "í": "i", "ǐ": "i", "ì": "i", "ō": "o", "ó": "o", "ǒ": "o", "ò": "o", "ū": "u", "ú": "u", "ǔ": "u", "ù": "u", "ǖ": "v", "ǘ": "v", "ǚ": "v", "ǜ": "v", "ü": "v" };
+function normPy(s) { return s.toLowerCase().replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]/g, c => TONE_STRIP[c]).replace(/u:/g, "v").replace(/[^a-z]/g, ""); }
+
+/* ============ dictionary ============ */
+const DICT = { map: new Map(), list: [], ready: false, loading: null };
+let HSK = {};
+const idb = {
+  _db: null,
+  open() { if (this._db) return Promise.resolve(this._db); return new Promise((res, rej) => { const r = indexedDB.open("mandapp", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => { this._db = r.result; res(r.result); }; r.onerror = () => rej(r.error); }); },
+  async get(k) { try { const d = await this.open(); return await new Promise((res, rej) => { const q = d.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); } catch { return undefined; } },
+  async set(k, v) { try { const d = await this.open(); await new Promise((res, rej) => { const t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch { } }
+};
+function loadDict() {
+  if (DICT.loading) return DICT.loading;
+  DICT.loading = (async () => {
+    let txt = await idb.get("cedict-v1");
+    if (!txt) {
+      const r = await fetch("cedict.txt"); if (!r.ok) throw new Error("dict " + r.status);
+      txt = await r.text(); idb.set("cedict-v1", txt);
+    }
+    const lines = txt.split("\n");
+    for (const ln of lines) {
+      const [s, t, p, e] = ln.split("\t"); if (!s) continue;
+      const ent = { s, t: t || s, p, e };
+      DICT.list.push(ent);
+      if (!DICT.map.has(s)) DICT.map.set(s, []); DICT.map.get(s).push(ent);
+      if (t && t !== s) { if (!DICT.map.has(t)) DICT.map.set(t, []); DICT.map.get(t).push(ent); }
+    }
+    try { const r = await fetch("hsk.json"); if (r.ok) HSK = await r.json(); } catch { }
+    DICT.ready = true;
+  })();
+  DICT.loading.catch(() => { DICT.loading = null; });
+  return DICT.loading;
+}
+function lookup(w) { return DICT.map.get(w) || []; }
+function bestEntry(w) {
+  const es = lookup(w); if (!es.length) return null;
+  // prefer lowercase pinyin (not names), and entries not starting with "surname"/"variant"
+  return es.slice().sort((a, b) => score(a) - score(b))[0];
+  function score(e) { let s = 0; if (/^[A-Z]/.test(e.p)) s += 5; if (/^(surname|variant of|old variant|see )/i.test(e.e)) s += 3; if (/^(CL:|used in)/.test(e.e)) s += 1; return s; }
+}
+function cleanDefs(e) { return (e || "").split(" / ").filter(d => !/^(CL:|variant of|old variant)/.test(d)).slice(0, 4).join("; "); }
+function segment(text) {
+  const out = []; let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (!isCJK(c)) { let j = i; while (j < text.length && !isCJK(text[j])) j++; out.push({ t: text.slice(i, j), w: false }); i = j; continue; }
+    let len = Math.min(8, text.length - i), hit = 1;
+    for (; len > 1; len--) { const sub = text.slice(i, i + len); if (DICT.map.has(sub) || STATE.byHanzi.has(sub)) { hit = len; break; } }
+    out.push({ t: text.slice(i, i + hit), w: true }); i += hit;
+  }
+  return out;
+}
+
+/* ============ storage ============ */
+const STATE = { mode: "init", db: null, uid: null, sample: null, downloads: null, words: new Map(), byHanzi: new Map(), profile: {}, profileRef: null, wordsCol: null, logCol: null, logCache: new Map(), canImages: false };
+const PROFILE_DEFAULT = { level: "HSK 4–5", interests: "", goals: "", newPerDay: 15, todayHistory: [] };
+const LOCAL_KEY = "mandapp-local-v1";
+function localLoad() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"); } catch { return {}; } }
+function localSave(o) { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(o)); } catch { } }
+const Store = {
+  async saveWord(w) {
+    w.updated = now();
+    STATE.words.set(w.id, w); indexWords();
+    if (STATE.mode === "db") { await STATE.wordsCol.doc(w.id).set(JSON.parse(JSON.stringify(w))); }
+    else { const o = localLoad(); o.words = o.words || {}; o.words[w.id] = w; localSave(o); }
+  },
+  async deleteWord(id) {
+    STATE.words.delete(id); indexWords();
+    if (STATE.mode === "db") await STATE.wordsCol.doc(id).delete();
+    else { const o = localLoad(); if (o.words) delete o.words[id]; localSave(o); }
+  },
+  async saveProfile(p) {
+    STATE.profile = p;
+    if (STATE.mode === "db") await STATE.profileRef.set(JSON.parse(JSON.stringify(p)));
+    else { const o = localLoad(); o.profile = p; localSave(o); }
+  },
+  _logChain: Promise.resolve(),
+  appendLog(entry) {
+    const key = dayKey(entry.t);
+    this._logChain = this._logChain.then(async () => {
+      let doc = STATE.logCache.get(key);
+      if (!doc) doc = await this.getLog(key);
+      doc = { entries: [...(doc.entries || []), entry] };
+      STATE.logCache.set(key, doc);
+      if (STATE.mode === "db") await STATE.logCol.doc("d" + key).set(doc);
+      else { const o = localLoad(); o.log = o.log || {}; o.log[key] = doc; localSave(o); }
+    }).catch(e => console.warn("log", e));
+    return this._logChain;
+  },
+  async getLog(key) {
+    if (STATE.logCache.has(key)) return STATE.logCache.get(key);
+    let doc = { entries: [] };
+    if (STATE.mode === "db") { const s = await STATE.logCol.doc("d" + key).get(); if (s.exists) doc = s.data(); }
+    else { const o = localLoad(); doc = (o.log && o.log[key]) || doc; }
+    STATE.logCache.set(key, doc); return doc;
+  },
+  async allLogs() {
+    const res = {};
+    if (STATE.mode === "db") { const q = await STATE.logCol.get(); q.docs.forEach(d => { res[d.id.slice(1)] = d.data(); }); }
+    else { Object.assign(res, localLoad().log || {}); }
+    for (const [k, v] of Object.entries(res)) STATE.logCache.set(k, v);
+    return res;
+  }
+};
+function indexWords() { STATE.byHanzi = new Map(); for (const w of STATE.words.values()) STATE.byHanzi.set(w.hanzi, w); }
+
+async function initStorage() {
+  let user = null, db = null;
+  try { [user, db] = await Promise.all([claude.use("user"), claude.use("db")]); } catch { }
+  try { STATE.sample = await claude.use("sample"); } catch { STATE.sample = null; }
+  if (STATE.sample) { const raw = STATE.sample; STATE.sample = { json: (p, o) => { countCall(); return raw.json(p, o); }, limits: () => raw.limits() }; }
+  try { STATE.downloads = await claude.use("downloads"); } catch { }
+  if (STATE.sample) { try { const lim = await STATE.sample.limits(); STATE.canImages = !!lim.images; STATE.imageTypes = lim.images?.mediaTypes; } catch { } }
+  const id = user ? await user.id().catch(() => null) : null;
+  if (db && id) {
+    STATE.mode = "db"; STATE.db = db; STATE.uid = id;
+    const base = "data/users/" + id + "/profile";
+    STATE.profileRef = db.doc(base);
+    STATE.wordsCol = STATE.profileRef.collection("words");
+    STATE.logCol = STATE.profileRef.collection("log");
+    const ps = await STATE.profileRef.get().catch(() => null);
+    STATE.profile = Object.assign({}, PROFILE_DEFAULT, ps && ps.exists ? ps.data() : {});
+    let first = true;
+    const timer = setTimeout(() => { if (first) showBanner("Kan inte nå din ordbank än. Kontrollera nätet."); }, 10000);
+    STATE.wordsCol.onSnapshot(snap => {
+      const m = new Map(); snap.docs.forEach(d => { const w = d.data(); m.set(d.id, Object.assign({ id: d.id }, JSON.parse(JSON.stringify(w)))); });
+      STATE.words = m; indexWords();
+      if (!snap.metadata.fromCache) { clearTimeout(timer); if (first) hideBanner(); first = false; }
+      onWordsChanged();
+    }, err => { clearTimeout(timer); showBanner("Ordbanken kunde inte läsas (" + err.code + ")."); });
+  } else {
+    STATE.mode = "local";
+    const o = localLoad();
+    STATE.profile = Object.assign({}, PROFILE_DEFAULT, o.profile || {});
+    for (const [k, w] of Object.entries(o.words || {})) STATE.words.set(k, w);
+    indexWords();
+    showBanner("Lokalt läge: öppna appen inloggad på claude.ai för att spara i ditt konto och synka mellan enheter.");
+    onWordsChanged();
+  }
+  $("#subtitle").textContent = STATE.mode === "db" ? "synkad med ditt konto" : "lokalt läge";
+}
+function showBanner(t) { const b = $("#banner"); b.textContent = t; b.hidden = false; }
+function hideBanner() { $("#banner").hidden = true; }
+
+/* ============ FSRS ============ */
+const F = FSRS.fsrs(FSRS.generatorParameters({ request_retention: 0.9, enable_fuzz: true, enable_short_term: true }));
+const R = FSRS.Rating;
+function newCardData() { return cardToData(FSRS.createEmptyCard(new Date())); }
+function cardToData(c) { return { due: +new Date(c.due), stability: c.stability, difficulty: c.difficulty, elapsed_days: c.elapsed_days, scheduled_days: c.scheduled_days, learning_steps: c.learning_steps || 0, reps: c.reps, lapses: c.lapses, state: c.state, last_review: c.last_review ? +new Date(c.last_review) : null }; }
+function dataToCard(d) { const c = Object.assign({}, d, { due: new Date(d.due) }); if (d.last_review) c.last_review = new Date(d.last_review); else delete c.last_review; return c; }
+function status(w) {
+  if (w.suspended) return "pausad";
+  const c = w.card || {};
+  if ((c.lapses || 0) >= 6) return "igel";
+  if (c.state === 0 || c.state == null) return "ny";
+  if (c.state === 1 || c.state === 3) return "lar";
+  return (c.stability || 0) >= 21 ? "mogen" : "ung";
+}
+const STATUS_LABEL = { ny: ["Ny", "new"], lar: ["Lär", "learn"], ung: ["Ung", "young"], mogen: ["Mogen", "mature"], igel: ["Igel", "leech"], pausad: ["Pausad", "susp"] };
+function statusPill(w) { const s = status(w); const [l, c] = STATUS_LABEL[s]; return h("span", { class: "pill " + c }, l); }
+
+/* ============ words ============ */
+function makeWord(hanzi, extra = {}) {
+  const e = bestEntry(hanzi);
+  return Object.assign({
+    id: uid36(), hanzi, trad: e && e.t !== hanzi ? e.t : "", pinyin: e ? e.p : "", defs: e ? cleanDefs(e.e) : "", sv: "",
+    hsk: HSK[hanzi] || null, added: now(), source: "", card: newCardData(), suspended: false, flagged: false,
+    sentences: [], sentIdx: 0, collocations: [], note: ""
+  }, extra);
+}
+async function addWord(hanzi, extra) {
+  if (STATE.byHanzi.has(hanzi)) { toast(hanzi + " finns redan"); return STATE.byHanzi.get(hanzi); }
+  await loadDict().catch(() => { });
+  const w = makeWord(hanzi, extra);
+  if (extra && extra.pinyinMarked && !w.pinyin) w.pinyinMarked = extra.pinyinMarked;
+  try { await Store.saveWord(w); toast("La till " + hanzi); } catch (e) { handleDbError(e); }
+  return w;
+}
+function handleDbError(e) {
+  if (e && e.code === "quota_exceeded") showBanner("Databasen är full. Exportera och ta bort gamla ord.");
+  else toast("Kunde inte spara (" + (e && e.code || "fel") + ")");
+}
+function wordPinyinNode(w, cls) { return w.pinyin ? pinyinNode(w.pinyin, cls) : h("span", { class: cls || "" }, w.pinyinMarked || ""); }
+
+/* ============ Claude ============ */
+const SAMPLE_MSG = {
+  not_granted: "Appen har inte fått använda Claude. Du kan tillåta det i artifactens behörigheter.",
+  sampling_disabled: "Claude är inte tillgängligt för ditt konto här.",
+  rate_limited: "För många frågor till Claude just nu, eller din Max-kvot är slut för stunden. Försök igen senare.",
+  session_expired: "Logga in på claude.ai igen.",
+  image_rejected: "Bilden gick inte att använda. Prova en annan bild (JPG eller PNG).",
+  images_unavailable: "Bilder kan inte skickas till Claude här.",
+  refused: "Claude ville inte svara på det här. Formulera om.",
+  invalid_json: "Svaret blev fel. Tryck igen.",
+  empty_completion: "Claude gav inget svar. Prova igen med kortare text.",
+  upstream_error: "Tillfälligt fel hos Claude. Försök igen."
+};
+function callStats() { try { return JSON.parse(localStorage.getItem("mandapp-calls") || "{}"); } catch { return {}; } }
+function countCall() { const c = callStats(); const k = dayKey(); c[k] = (c[k] || 0) + 1; for (const d of Object.keys(c)) if (now() - new Date(d).getTime() > 60 * DAY) delete c[d]; try { localStorage.setItem("mandapp-calls", JSON.stringify(c)); } catch { } }
+function sampleMsg(e) { return SAMPLE_MSG[e && e.code] || ("Något gick fel (" + (e && e.code || "okänt") + ")."); }
+function profileSummary() {
+  const p = STATE.profile; const parts = ["Nivå: " + (p.level || "HSK 4–5")];
+  if (p.interests) parts.push("Intressen: " + p.interests);
+  if (p.goals) parts.push("Mål: " + p.goals);
+  const hard = [...STATE.words.values()].filter(w => (w.card?.lapses || 0) >= 2).sort((a, b) => b.card.lapses - a.card.lapses).slice(0, 8).map(w => w.hanzi);
+  if (hard.length) parts.push("Ord eleven ofta glömmer: " + hard.join("、"));
+  return parts.join(". ");
+}
+function knownSample(n) {
+  const ws = [...STATE.words.values()].filter(w => w.card && w.card.state === 2 && !w.suspended).map(w => w.hanzi);
+  return shuffle(ws).slice(0, n);
+}
+async function genSentences(w) {
+  if (!STATE.sample) throw { code: "not_granted" };
+  const known = knownSample(120);
+  const prompt =
+`Du hjälper en svensk som lär sig kinesiska. ${profileSummary()}.
+Målord: ${w.hanzi} (${pinyinText(w.pinyin) || w.pinyinMarked || ""}; ${w.defs || w.sv}).
+Skriv 5 naturliga och varierade exempelmeningar på förenklad kinesiska som använder målordet i olika vanliga situationer. Varje mening 8–22 tecken. Använd i övrigt främst ord på HSK 1–4-nivå${known.length ? " och gärna några av dessa ord som eleven redan kan: " + known.join("、") : ""}. Anpassa gärna innehållet till elevens intressen.
+Ge också 2–4 vanliga kollokationer med målordet, en kort svensk betydelse av målordet och en kort anteckning på svenska (högst 2 meningar) om nyans, register eller vad det skiljer sig från ett närliggande ord.
+Svara endast med JSON i exakt denna form:
+{"sv":"kort svensk betydelse","sentences":[{"zh":"...","sv":"svensk översättning"}],"collocations":["..."],"note":"..."}`;
+  const r = await STATE.sample.json(prompt, { modelTier: STATE.profile.tierSentences || "quick" });
+  if (!r || !Array.isArray(r.sentences)) throw { code: "invalid_json" };
+  return r;
+}
+
+/* ============ TTS ============ */
+let zhVoice = null;
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); zhVoice = vs.find(v => /zh[-_]CN/i.test(v.lang)) || vs.find(v => /^zh/i.test(v.lang)) || null; } catch { } }
+if ("speechSynthesis" in window) { pickVoice(); try { speechSynthesis.onvoiceschanged = pickVoice; } catch { } }
+function speak(text) {
+  try {
+    if (!("speechSynthesis" in window)) { toast("Uppläsning stöds inte här"); return; }
+    const u = new SpeechSynthesisUtterance(text); u.lang = "zh-CN"; if (zhVoice) u.voice = zhVoice; u.rate = 0.85;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch { toast("Uppläsning fungerade inte"); }
+}
+const speakBtn = text => h("button", { class: "chip", type: "button", "aria-label": "Lyssna", onclick: ev => { ev.stopPropagation(); speak(text); } }, "🔊");
+
+/* ============ tappable text + sheets ============ */
+function zhText(text, target) {
+  const wrap = h("span", { class: "zhline zh" });
+  if (!DICT.ready) { wrap.append(text); loadDict().then(() => { wrap.replaceWith(zhText(text, target)); }).catch(() => { }); return wrap; }
+  for (const s of segment(text)) {
+    if (!s.w) { wrap.append(s.t); continue; }
+    wrap.append(h("span", { class: "seg" + (target && s.t === target ? " target" : ""), role: "button", tabindex: "0", onclick: () => openWordSheet(s.t, text), onkeydown: ev => { if (ev.key === "Enter") openWordSheet(s.t, text); } }, s.t));
+  }
+  return wrap;
+}
+let sheetEls = null;
+function openSheet(content) {
+  closeSheet();
+  const scrim = h("div", { class: "scrim", onclick: closeSheet });
+  const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true" }, h("div", { class: "in" }, h("div", { class: "grab" }), content));
+  document.body.append(scrim, sheet); sheetEls = [scrim, sheet];
+}
+function closeSheet() { if (sheetEls) sheetEls.forEach(e => e.remove()); sheetEls = null; }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+const explainCache = new Map();
+function openWordSheet(word, sentence) {
+  const es = lookup(word); const best = bestEntry(word); const inDeck = STATE.byHanzi.get(word);
+  const box = h("div", { class: "stack" });
+  const head = h("div", { class: "row", style: "justify-content:space-between" },
+    h("div", null, h("span", { class: "hw" }, word), " ", best ? pinyinNode(best.p, "mono") : ""),
+    h("div", { class: "row" }, speakBtn(word), HSK[word] ? h("span", { class: "chip" }, "HSK " + HSK[word]) : null));
+  box.append(head);
+  if (es.length) {
+    const seen = new Set();
+    es.slice(0, 4).forEach(e => { const k = e.p + e.e; if (seen.has(k)) return; seen.add(k); box.append(h("div", { class: "small" }, pinyinNode(e.p, "mono"), " ", cleanDefs(e.e))); });
+  } else box.append(h("div", { class: "muted small" }, "Finns inte i ordboken."));
+  if (inDeck) box.append(h("div", { class: "row" }, h("span", { class: "chip" }, "I din ordbank"), statusPill(inDeck), inDeck.sv ? h("span", { class: "small" }, inDeck.sv) : null));
+  if (best) box.append(pronBlock(best.p, word));
+  // explain in sentence
+  if (sentence && sentence !== word && STATE.sample) {
+    const out = h("div", { class: "ctx" });
+    const key = word + "|" + sentence;
+    const btn = h("button", { class: "btn", type: "button" }, "Förklara i meningen");
+    const render = r => { out.replaceChildren(h("div", { class: "lblrow" }, h("span", null, "I den här meningen"), h("span", null, "Claude")), h("div", { class: "small" }, r.explanation || "")); (r.examples || []).forEach(x => out.append(h("div", { style: "margin-top:6px" }, zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || ""))))); };
+    btn.onclick = async () => {
+      btn.disabled = true; out.replaceChildren(h("span", { class: "thinking" }, "Claude tänker…")); box.append(out);
+      try {
+        const r = await STATE.sample.json(
+`Du hjälper en svensk som lär sig kinesiska. ${profileSummary()}.
+Mening: «${sentence}»
+Förklara kort på svenska (högst 70 ord) vad «${word}» betyder just här och varför det används, och jämför med 1–2 närliggande ord om det är relevant. Ge sedan 2 nya korta exempelmeningar med ordet.
+Svara endast med JSON: {"explanation":"...","examples":[{"zh":"...","sv":"..."}]}`, { modelTier: "default" });
+        explainCache.set(key, r); render(r); btn.remove();
+      } catch (e) { out.replaceChildren(h("span", { class: "note" }, sampleMsg(e))); btn.disabled = false; }
+    };
+    if (explainCache.has(key)) { render(explainCache.get(key)); box.append(out); } else box.append(btn);
+  }
+  // characters
+  if (word.length > 1) {
+    const chars = h("div", { class: "row" });
+    [...word].forEach(c => { if (!isCJK(c)) return; const be = bestEntry(c); chars.append(h("button", { class: "chip", type: "button", onclick: () => openCharSheet(c) }, h("span", { class: "zh" }, c), " ", be ? cleanDefs(be.e).split(";")[0] : "")); });
+    box.append(h("label", { class: "lbl" }, "Tecken"), chars);
+  }
+  const actions = h("div", { class: "row" });
+  if (!inDeck) actions.append(h("button", { class: "btn primary", type: "button", onclick: async () => { await addWord(word, { source: sentence ? "uppslag: " + sentence : "uppslag" }); closeSheet(); } }, "Lägg till i ordbanken"));
+  else actions.append(h("button", { class: "btn", type: "button", onclick: async () => { inDeck.flagged = !inDeck.flagged; await Store.saveWord(inDeck).catch(handleDbError); toast(inDeck.flagged ? "Markerat för extra övning" : "Markering borttagen"); closeSheet(); } }, inDeck.flagged ? "Ta bort markering" : "Markera för extra övning"));
+  box.append(actions);
+  openSheet(box);
+  logLookup(word);
+}
+// Uttalsvy: initial, final, ton och fällor per stavelse (delad kod med skuggningsstudion)
+function pronBlock(pinyin, hanzi) {
+  const d = h("details", { class: "ctx" }, h("summary", { class: "small", style: "cursor:pointer;font-weight:600" }, "Uttal ljud för ljud"));
+  if (!window.MA) return d;
+  const syls = MA.parsePinyin(pinyin); if (!syls.length) return d;
+  const sd = MA.sandhi(syls, hanzi); const chars = [...hanzi].filter(isCJK);
+  syls.forEach((s, i) => {
+    const info = MA.sylInfo(s.syl, sd.tones[i]);
+    d.append(h("div", { style: "margin-top:6px" },
+      h("div", { class: "small" }, h("span", { class: "zh" }, chars[i] || ""), " ", h("b", { class: "mono t" + s.tone }, MA.marked(s.syl, s.tone)), " · initial ", h("b", { class: "mono" }, info.ini || "–"), info.iniKind ? " (" + info.iniKind + ")" : "", " · final ", h("b", { class: "mono" }, info.fin.replace(/v/g, "ü")), " · ton ", h("b", { class: "t" + sd.tones[i] }, sd.tones[i] === 5 ? "neutral" : String(sd.tones[i])), sd.tones[i] !== s.tone ? " (skrivs " + s.tone + ")" : ""),
+      info.iniTip ? h("div", { class: "note" }, info.iniTip) : null,
+      info.traps.length ? h("div", { class: "row", style: "gap:4px;margin-top:2px" }, info.traps.map(t => h("span", { class: "pill flag" }, t))) : null));
+  });
+  if (sd.notes.length) d.append(h("div", { class: "note", style: "margin-top:6px" }, sd.notes.join(". ") + "."));
+  return d;
+}
+function openCharSheet(c) {
+  const box = h("div", { class: "stack" });
+  const es = lookup(c);
+  box.append(h("div", { class: "row", style: "justify-content:space-between" }, h("div", null, h("span", { class: "hw" }, c), " ", es[0] ? pinyinNode(es[0].p, "mono") : ""), speakBtn(c)));
+  es.slice(0, 4).forEach(e => box.append(h("div", { class: "small" }, pinyinNode(e.p, "mono"), " ", cleanDefs(e.e))));
+  const mine = [...STATE.words.values()].filter(w => w.hanzi.includes(c) && w.hanzi !== c).slice(0, 20);
+  box.append(h("label", { class: "lbl" }, "Dina ord med " + c));
+  if (mine.length) { const r = h("div", { class: "row" }); mine.forEach(w => r.append(h("button", { class: "chip", type: "button", onclick: () => openWordSheet(w.hanzi) }, h("span", { class: "zh" }, w.hanzi)))); box.append(r); }
+  else box.append(h("div", { class: "note" }, "Inga ännu."));
+  if (!STATE.byHanzi.has(c)) box.append(h("button", { class: "btn", type: "button", onclick: async () => { await addWord(c, { source: "tecken" }); closeSheet(); } }, "Lägg till tecknet som ord"));
+  openSheet(box);
+}
+const lookupCounts = new Map();
+function logLookup(word) { lookupCounts.set(word, (lookupCounts.get(word) || 0) + 1); Store.appendLog({ k: "lookup", h: word, t: now() }); }
+
+/* ============ REVIEW ============ */
+const RV = { queue: [], cur: null, revealed: false, shownAt: 0, done: 0, newToday: 0, sessionStarted: false, mode: (() => { try { return localStorage.getItem("mandapp-mode") || "tecken"; } catch { return "tecken"; } })() };
+function dueWords() {
+  const t = now(); return [...STATE.words.values()].filter(w => !w.suspended && w.card && w.card.state !== 0 && w.card.due <= t).sort((a, b) => a.card.due - b.card.due);
+}
+async function newIntroducedToday() { const d = await Store.getLog(dayKey()); return (d.entries || []).filter(e => e.k === "rev" && e.s === 0).length; }
+async function buildQueue() {
+  const due = dueWords().map(w => w.id);
+  const limit = Math.max(0, (+STATE.profile.newPerDay || 15) - await newIntroducedToday());
+  const fresh = [...STATE.words.values()].filter(w => !w.suspended && (!w.card || w.card.state === 0)).sort((a, b) => (b.flagged - a.flagged) || (a.added - b.added)).slice(0, limit).map(w => w.id);
+  // interleave new cards among due
+  const q = due.slice(); fresh.forEach((id, i) => q.splice(Math.min(q.length, (i + 1) * 4), 0, id));
+  RV.queue = q; RV.newToday = fresh.length;
+}
+function dueCountForBadge() { return dueWords().length; }
+async function startReview() { await buildQueue(); RV.sessionStarted = true; nextCard(); }
+function nextCard() {
+  // drop ids that no longer exist / not due anymore
+  while (RV.queue.length) {
+    const id = RV.queue[0]; const w = STATE.words.get(id);
+    if (!w || w.suspended) { RV.queue.shift(); continue; }
+    if (w.card.state !== 0 && w.card.due > now() + 60000) { RV.queue.shift(); continue; }
+    break;
+  }
+  RV.cur = RV.queue.length ? STATE.words.get(RV.queue[0]) : null; RV.revealed = false; RV.shownAt = now(); RV.curAudio = Math.random() < 0.4;
+  renderReview();
+  // prefetch sentences for next card (user just acted)
+  const nxt = RV.queue[1] && STATE.words.get(RV.queue[1]);
+  if (nxt && (!nxt.sentences || !nxt.sentences.length)) ensureSentences(nxt, true);
+}
+const pendingSent = new Map();
+function ensureSentences(w, silent) {
+  if (!STATE.sample) return Promise.resolve(null);
+  if (pendingSent.has(w.id)) return pendingSent.get(w.id);
+  const p = genSentences(w).then(async r => {
+    const fresh = STATE.words.get(w.id) || w;
+    fresh.sentences = [...(fresh.sentences || []), ...r.sentences.filter(s => s && s.zh).map(s => ({ zh: String(s.zh), sv: String(s.sv || "") }))].slice(-15);
+    if (r.collocations) fresh.collocations = r.collocations.map(String).slice(0, 5);
+    if (r.note) fresh.note = String(r.note);
+    if (r.sv && !fresh.sv) fresh.sv = String(r.sv);
+    await Store.saveWord(fresh).catch(handleDbError);
+    return fresh;
+  }).catch(e => { if (!silent) throw e; return null; }).finally(() => pendingSent.delete(w.id));
+  pendingSent.set(w.id, p); return p;
+}
+function renderReview() {
+  const area = $("#reviewArea"); area.replaceChildren();
+  if (!RV.sessionStarted) {
+    const due = dueCountForBadge();
+    const newAvail = [...STATE.words.values()].filter(w => !w.suspended && w.card && w.card.state === 0).length;
+    if (!STATE.words.size) {
+      area.append(h("div", { class: "card empty" }, h("b", null, "Din ordbank är tom"), "Lägg till ord genom att skriva, fota eller använda \"Idag ska jag…\".", h("div", { style: "margin-top:14px" }, h("a", { class: "btn primary", href: "#lagg-till", style: "text-decoration:none;display:inline-block" }, "Lägg till ord"))));
+      return;
+    }
+    area.append(h("div", { class: "card stack" },
+      h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, due), "att repetera"), h("div", { class: "tile" }, h("b", null, Math.min(newAvail, +STATE.profile.newPerDay || 15)), "nya idag"), h("div", { class: "tile" }, h("b", null, STATE.words.size), "ord totalt")),
+      h("div", { class: "row" }, h("span", { class: "small muted" }, "Framsida:"),
+        ...[["tecken", "Tecken"], ["ljud", "Ljud"], ["blandat", "Blandat"]].map(([k, l]) => h("button", { class: "chip" + (RV.mode === k ? " on" : ""), type: "button", onclick: () => { RV.mode = k; try { localStorage.setItem("mandapp-mode", k); } catch { } renderReview(); } }, l))),
+      h("button", { class: "btn primary block", type: "button", onclick: startReview }, due || newAvail ? "Starta repetition" : "Inget att repetera just nu"),
+      h("div", { class: "note" }, "Regler för knapparna: Igen = kunde inte. Svårt = fick kämpa. Bra = kom på det inom cirka 3 sekunder. Lätt = används sparsamt.")));
+    return;
+  }
+  const w = RV.cur;
+  if (!w) {
+    const upcoming = [...STATE.words.values()].filter(x => !x.suspended && x.card && x.card.state !== 0).sort((a, b) => a.card.due - b.card.due)[0];
+    area.append(h("div", { class: "card empty" }, h("b", null, "Klart för nu!"), RV.done ? "Du repeterade " + RV.done + " kort." : "", upcoming ? h("div", null, "Nästa kort om " + fmtIvl(upcoming.card.due - now()) + ".") : null,
+      h("div", { class: "row", style: "justify-content:center;margin-top:14px" }, h("a", { class: "btn", href: "#lagg-till", style: "text-decoration:none" }, "Lägg till ord"), h("button", { class: "btn", type: "button", onclick: () => { RV.sessionStarted = false; RV.done = 0; renderReview(); } }, "Tillbaka"))));
+    return;
+  }
+  const total = RV.done + RV.queue.length;
+  area.append(h("div", { class: "progress" }, h("span", null, RV.queue.length + " kvar"), statusPill(w)));
+  area.append(h("div", { class: "bar" }, h("i", { style: "width:" + (total ? Math.round(RV.done / total * 100) : 0) + "%" })));
+  const card = h("div", { class: "card rcard" });
+  const audioFront = !RV.revealed && w.card.state !== 0 && (RV.mode === "ljud" || (RV.mode === "blandat" && RV.curAudio));
+  if (audioFront) {
+    card.append(h("div", { style: "text-align:center;margin-top:20px" }, h("button", { class: "btn", type: "button", style: "font-size:2rem;padding:18px 28px", "aria-label": "Lyssna igen", onclick: () => speak(w.hanzi) }, "🔊")), h("div", { class: "note", style: "text-align:center" }, "Lyssna och försök förstå ordet."));
+    if (RV.spokenFor !== w.id) { RV.spokenFor = w.id; setTimeout(() => speak(w.hanzi), 150); }
+  } else card.append(h("div", { class: "big" }, w.hanzi));
+  if ((w.card.lapses || 0) >= 6) card.append(h("div", { class: "note", style: "text-align:center" }, "Det här ordet är en igel. Prova en minnesbild, jämför med ord du blandar ihop det med, eller pausa det i ordlistan."));
+  if (!RV.revealed) {
+    card.append(h("div", { style: "flex:1" }));
+    card.append(h("button", { class: "btn primary block", type: "button", id: "btnReveal", onclick: reveal }, "Visa svar"));
+  } else {
+    card.append(h("div", { class: "py" }, wordPinyinNode(w), " ", speakBtn(w.hanzi)));
+    card.append(h("div", { class: "mean" }, w.sv ? h("div", null, w.sv) : null, h("span", { class: "en" }, w.defs), w.hsk ? h("span", { class: "chip", style: "margin-top:4px" }, "HSK " + w.hsk) : null));
+    card.append(sentenceBox(w));
+    if (w.collocations && w.collocations.length) card.append(h("div", { class: "ctx" }, h("div", { class: "lblrow" }, h("span", null, "Vanliga kombinationer")), zhText(w.collocations.join(" · "), w.hanzi)));
+    if (w.note) card.append(h("div", { class: "note" }, w.note));
+    card.append(gradeButtons(w));
+    card.append(h("div", { class: "row", style: "justify-content:center" },
+      h("button", { class: "chip", type: "button", onclick: async () => { w.flagged = !w.flagged; await Store.saveWord(w).catch(handleDbError); toast(w.flagged ? "Markerat för senare" : "Markering borttagen"); renderReview(); } }, w.flagged ? "★ Markerad" : "☆ Markera för senare"),
+      h("button", { class: "chip", type: "button", onclick: async () => { w.shadow = !w.shadow; await Store.saveWord(w).catch(handleDbError); toast(w.shadow ? "Med i nästa export till skuggning" : "Borttaget från skuggning"); renderReview(); } }, w.shadow ? "🎙 Ska skuggas" : "🎙 Skugga")));
+    if (w.pinyin) card.append(pronBlock(w.pinyin, w.hanzi));
+  }
+  area.append(card);
+}
+function reveal() { RV.revealed = true; RV.revealMs = now() - RV.shownAt; renderReview(); const w = RV.cur; if (w && (!w.sentences || !w.sentences.length)) { ensureSentences(w, false).then(f => { if (f && RV.cur && RV.cur.id === w.id) { RV.cur = f; renderReview(); } }).catch(e => { const n = $("#sentNote"); if (n) n.textContent = sampleMsg(e); }); } }
+function sentenceBox(w) {
+  const box = h("div", { class: "ctx" });
+  const list = w.sentences || [];
+  const lbl = h("div", { class: "lblrow" }, h("span", null, list.length ? "Exempelmening " + ((w.sentIdx || 0) % list.length + 1) + "/" + list.length : "Exempelmening"));
+  if (STATE.sample) lbl.append(h("button", { class: "chip", type: "button", onclick: async ev => { ev.target.disabled = true; ev.target.textContent = "…"; try { const f = await ensureSentences(w, false); if (f) { f.sentIdx = (f.sentences.length - 5); RV.cur = f; renderReview(); } } catch (e) { toast(sampleMsg(e)); ev.target.disabled = false; ev.target.textContent = "↻ Nya"; } } }, "↻ Nya"));
+  box.append(lbl);
+  if (list.length) { const s = list[(w.sentIdx || 0) % list.length]; box.append(zhText(s.zh, w.hanzi), h("div", { class: "sv" }, s.sv), h("div", { class: "row", style: "margin-top:4px" }, speakBtn(s.zh))); }
+  else box.append(h("div", { class: "thinking", id: "sentNote" }, STATE.sample ? (pendingSent.has(w.id) ? "Claude skriver meningar…" : "Claude skriver meningar…") : "Exempelmeningar kräver att appen öppnas inloggad på claude.ai."));
+  return box;
+}
+function gradeButtons(w) {
+  const prev = F.repeat(dataToCard(w.card), new Date());
+  const g = h("div", { class: "grades" });
+  const labels = [[R.Again, "Igen", "g1"], [R.Hard, "Svårt", "g2"], [R.Good, "Bra", "g3"], [R.Easy, "Lätt", "g4"]];
+  for (const [r, l, c] of labels) {
+    const due = +new Date(prev[r].card.due);
+    const b = h("button", { type: "button", class: c, onclick: () => grade(w, r) }, l, h("small", null, fmtIvl(due - now())));
+    if (r === R.Hard && (RV.revealMs || 0) > 3000 && w.card.state !== 0) b.classList.add("suggest");
+    g.append(b);
+  }
+  return g;
+}
+async function grade(w, rating) {
+  const before = w.card.state; const t = now();
+  const rec = F.next(dataToCard(w.card), new Date(t), rating);
+  w.card = cardToData(rec.card); w.sentIdx = (w.sentIdx || 0) + 1;
+  RV.queue.shift(); RV.done++;
+  if (w.card.due - t < 20 * 60000) RV.queue.splice(Math.min(RV.queue.length, 3), 0, w.id);
+  Store.saveWord(w).catch(handleDbError);
+  Store.appendLog({ k: "rev", w: w.id, h: w.hanzi, r: rating, s: before, ms: RV.revealMs || 0, t });
+  nextCard();
+}
+document.addEventListener("keydown", e => {
+  if (location.hash.slice(1) !== "repetera" && location.hash) return;
+  if (sheetEls || !RV.cur || e.target.matches("input,textarea")) return;
+  if (!RV.revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); reveal(); }
+  else if (RV.revealed && ["1", "2", "3", "4"].includes(e.key)) grade(RV.cur, +e.key);
+});
+
+/* ============ ADD: text ============ */
+let qTimer = null;
+$("#q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(runSearch, 220); });
+$("#q").addEventListener("focus", () => { loadDict().then(() => { $("#qNote").textContent = DICT.list.length.toLocaleString("sv") + " ord i ordboken."; }).catch(() => { $("#qNote").textContent = "Ordboken kunde inte laddas."; }); });
+async function runSearch() {
+  const q = $("#q").value.trim(); const out = $("#results"); out.replaceChildren();
+  if (!q) return;
+  if (!DICT.ready) { out.append(h("div", { class: "note" }, "Laddar ordboken…")); await loadDict().catch(() => { }); if ($("#q").value.trim() !== q) return; out.replaceChildren(); }
+  let res = [];
+  if ([...q].some(isCJK)) {
+    const exact = lookup(q); const seen = new Set();
+    for (const e of exact) { if (!seen.has(e.s)) { res.push(e); seen.add(e.s); } }
+    for (const e of DICT.list) { if (res.length > 40) break; if (e.s !== q && e.s.startsWith(q) && !seen.has(e.s)) { res.push(e); seen.add(e.s); } }
+    if (!exact.length && q.length > 1) { for (const s of segment(q)) if (s.w && !seen.has(s.t)) { const be = bestEntry(s.t); if (be) { res.push(be); seen.add(s.t); } } }
+  } else {
+    const n = normPy(q); const ql = q.toLowerCase(); const ex = [], pre = [], en = [];
+    for (const e of DICT.list) {
+      const np = normPy(e.p);
+      if (np === n) ex.push(e); else if (n.length >= 2 && np.startsWith(n) && pre.length < 25) pre.push(e);
+      else if (ql.length >= 3 && en.length < 25 && (" " + e.e.toLowerCase() + " ").includes(" " + ql)) en.push(e);
+    }
+    const rank = e => (HSK[e.s] ? HSK[e.s] : 9) + (/^[A-Z]/.test(e.p) ? 5 : 0);
+    ex.sort((a, b) => rank(a) - rank(b)); pre.sort((a, b) => rank(a) - rank(b)); en.sort((a, b) => rank(a) - rank(b));
+    res = [...ex, ...pre, ...en].slice(0, 40);
+  }
+  if (!res.length) { out.append(h("div", { class: "note" }, "Inga träffar."), [...q].some(isCJK) ? h("button", { class: "btn", type: "button", onclick: () => addWord(q, { source: "manuellt" }).then(runSearch) }, "Lägg till «" + q + "» ändå") : null); return; }
+  for (const e of res) out.append(resultRow(e));
+}
+function resultRow(e) {
+  const has = STATE.byHanzi.has(e.s);
+  const btn = h("button", { class: "add" + (has ? " done" : ""), type: "button", "aria-label": has ? "Finns redan" : "Lägg till " + e.s }, has ? "✓" : "+");
+  if (!has) btn.onclick = async ev => { ev.stopPropagation(); btn.disabled = true; await addWord(e.s, { source: "sökning", pinyin: e.p, defs: cleanDefs(e.e) }); btn.textContent = "✓"; btn.classList.add("done"); };
+  return h("div", { class: "item", role: "button", tabindex: "0", onclick: () => openWordSheet(e.s) },
+    h("div", { class: "w" }, h("span", { class: "hz" }, e.s), e.t !== e.s ? h("span", { class: "muted small zh" }, " " + e.t) : null, pinyinNode(e.p, "pyi"), HSK[e.s] ? h("span", { class: "pill new", style: "margin-left:6px" }, "HSK " + HSK[e.s]) : null, h("span", { class: "def" }, cleanDefs(e.e))), btn);
+}
+$("#tabText").onclick = () => { $("#tabText").classList.add("on"); $("#tabFoto").classList.remove("on"); $("#addText").hidden = false; $("#addFoto").hidden = true; };
+$("#tabFoto").onclick = () => { $("#tabFoto").classList.add("on"); $("#tabText").classList.remove("on"); $("#addText").hidden = true; $("#addFoto").hidden = false; };
+
+/* ============ ADD: photo ============ */
+$("#photoInput").addEventListener("change", async ev => {
+  const file = ev.target.files && ev.target.files[0]; ev.target.value = "";
+  const out = $("#photoOut"); const note = $("#photoNote"); out.replaceChildren();
+  if (!file) return;
+  if (!STATE.sample) { note.textContent = "Foto kräver att appen öppnas inloggad på claude.ai."; return; }
+  if (!STATE.canImages) { note.textContent = SAMPLE_MSG.images_unavailable; return; }
+  const url = URL.createObjectURL(file);
+  out.append(h("img", { src: url, alt: "Ditt foto", style: "border-radius:12px;max-height:220px;object-fit:cover;width:100%" }));
+  note.textContent = "Claude läser bilden… (kan ta upp till en minut)";
+  try {
+    await loadDict().catch(() => { });
+    const r = await STATE.sample.json(
+`Bilden innehåller kinesisk text, till exempel en meny, skylt eller boksida. ${profileSummary()}.
+Skriv av all läsbar kinesisk text. Lista sedan de ord och uttryck i texten som är användbara att lära sig, högst 25, i den ordning de förekommer. Dela upp i ord, inte enstaka tecken (om tecknet inte är ett eget ord). Hoppa över namn och siffror.
+Svara endast med JSON: {"text":"all text","words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"kort svensk betydelse"}]}`, { images: file, modelTier: "default" });
+    note.textContent = "";
+    const words = (r && Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(x => ({ hanzi: String(x.hanzi).trim(), pinyin: String(x.pinyin || ""), sv: String(x.sv || "") }));
+    if (r && r.text) out.append(h("div", { class: "ctx" }, h("div", { class: "lblrow" }, h("span", null, "Text i bilden · tryck på ett ord")), zhText(String(r.text))));
+    if (!words.length) { out.append(h("div", { class: "note" }, "Hittade inga ord.")); return; }
+    renderPickList(out, words, "foto");
+  } catch (e) { note.textContent = sampleMsg(e); }
+});
+function renderPickList(out, words, source) {
+  const known = words.filter(w => STATE.byHanzi.has(w.hanzi)).length;
+  out.append(h("div", { class: "note" }, "Hittade " + words.length + " ord. " + (known ? known + " finns redan i din ordbank." : "")));
+  const list = h("div", { class: "list" }); const checks = [];
+  for (const w of words) {
+    const has = STATE.byHanzi.has(w.hanzi); const lvl = HSK[w.hanzi];
+    const cb = h("input", { type: "checkbox", class: "check", "aria-label": "Välj " + w.hanzi });
+    cb.checked = !has && !(lvl && lvl <= 3); cb.disabled = has;
+    checks.push([cb, w]);
+    const be = bestEntry(w.hanzi);
+    list.append(h("label", { class: "item" }, cb,
+      h("div", { class: "w" }, h("span", { class: "hz zh" }, w.hanzi), be ? pinyinNode(be.p, "pyi") : h("span", { class: "pyi" }, w.pinyin), lvl ? h("span", { class: "pill new", style: "margin-left:6px" }, "HSK " + lvl) : null, h("span", { class: "def" }, w.sv || (be ? cleanDefs(be.e) : ""))),
+      has ? h("span", { class: "pill young" }, "Har") : null));
+  }
+  out.append(list);
+  const btn = h("button", { class: "btn primary block", type: "button" }, "Lägg till valda ord");
+  btn.onclick = async () => { btn.disabled = true; let n = 0; for (const [cb, w] of checks) if (cb.checked && !cb.disabled) { await addWord(w.hanzi, { sv: w.sv, source, pinyinMarked: w.pinyin }); cb.disabled = true; n++; } toast(n ? "La till " + n + " ord" : "Inga ord valda"); btn.disabled = false; };
+  out.append(btn);
+}
+
+/* ============ IDAG ============ */
+$("#btnToday").onclick = async () => {
+  const text = $("#todayText").value.trim(); const note = $("#todayNote"); const out = $("#todayOut");
+  if (!text) { note.textContent = "Skriv vad du ska göra först."; return; }
+  if (!STATE.sample) { note.textContent = "Den här funktionen kräver att appen öppnas inloggad på claude.ai."; return; }
+  $("#btnToday").disabled = true; note.textContent = "Claude tänker… (kan ta upp till en minut)"; out.replaceChildren();
+  try {
+    await loadDict().catch(() => { });
+    const mine = [...STATE.words.keys()].map(id => STATE.words.get(id).hanzi).slice(0, 400);
+    const r = await STATE.sample.json(
+`En svensk som lär sig kinesiska skriver vad hen ska göra idag: «${text}». ${profileSummary()}.
+Ge de 12 mest användbara orden och uttrycken för situationen som eleven troligen inte kan än. Hoppa över grundord på HSK 1–3${mine.length ? " och dessa ord eleven redan har: " + mine.join("、") : ""}.
+Ge också 4 fraser eleven kan säga, och en kort realistisk dialog med 6 repliker (A = eleven, B = den andra personen).
+Svara endast med JSON: {"words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"svensk betydelse","note":"kort tips eller tom"}],"phrases":[{"zh":"...","sv":"..."}],"dialogue":[{"who":"A","zh":"...","sv":"..."}]}`, { modelTier: "default" });
+    note.textContent = "";
+    renderToday(r, text);
+    const p = Object.assign({}, STATE.profile); p.todayHistory = [{ date: dayKey(), text, words: (r.words || []).map(w => String(w.hanzi)).slice(0, 15) }, ...(p.todayHistory || [])].slice(0, 20);
+    Store.saveProfile(p).catch(() => { });
+  } catch (e) { note.textContent = sampleMsg(e); }
+  $("#btnToday").disabled = false;
+};
+function renderToday(r, text) {
+  const out = $("#todayOut"); out.replaceChildren();
+  const words = (Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(x => ({ hanzi: String(x.hanzi).trim(), pinyin: String(x.pinyin || ""), sv: String(x.sv || ""), note: String(x.note || "") }));
+  if (words.length) { out.append(h("h2", null, "Ord")); renderPickList(out, words, "idag: " + text); out.append(h("button", { class: "btn block", type: "button", onclick: () => cram(words) }, "Plugga dem nu (10 min)")); }
+  if (Array.isArray(r.phrases) && r.phrases.length) {
+    out.append(h("h2", null, "Säg så här"));
+    r.phrases.forEach(x => out.append(h("div", { class: "ctx" }, zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || "")), h("div", { class: "row", style: "margin-top:4px" }, speakBtn(String(x.zh || ""))))));
+  }
+  if (Array.isArray(r.dialogue) && r.dialogue.length) {
+    out.append(h("h2", null, "Dialog"));
+    r.dialogue.forEach(x => out.append(h("div", { class: "ctx", style: x.who === "A" ? "border-color:var(--accent)" : "" }, h("div", { class: "lblrow" }, h("span", null, x.who === "A" ? "Du" : "Den andra"), speakBtn(String(x.zh || ""))), zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || "")))));
+  }
+}
+function cram(words) {
+  let q = words.slice(); let shown = false;
+  const box = h("div", { class: "stack" });
+  const draw = () => {
+    box.replaceChildren();
+    if (!q.length) { box.append(h("div", { class: "empty" }, h("b", null, "Alla ord klara!"), "Lägg till de ord du vill behålla i ordbanken.")); box.append(h("button", { class: "btn block", type: "button", onclick: closeSheet }, "Stäng")); return; }
+    const w = q[0]; const be = bestEntry(w.hanzi);
+    box.append(h("div", { class: "progress" }, h("span", null, "Intensivplugg"), h("span", null, q.length + " kvar")));
+    box.append(h("div", { class: "big" }, w.hanzi));
+    if (!shown) box.append(h("button", { class: "btn primary block", type: "button", onclick: () => { shown = true; draw(); } }, "Visa"));
+    else {
+      box.append(h("div", { class: "py" }, be ? pinyinNode(be.p) : w.pinyin, " ", speakBtn(w.hanzi)), h("div", { class: "mean" }, w.sv, w.note ? h("span", { class: "en" }, w.note) : null));
+      box.append(h("div", { class: "grades", style: "grid-template-columns:1fr 1fr" },
+        h("button", { class: "g1", type: "button", onclick: () => { q.push(q.shift()); shown = false; draw(); } }, "Igen"),
+        h("button", { class: "g3", type: "button", onclick: () => { q.shift(); shown = false; draw(); } }, "Kunde")));
+    }
+  };
+  draw(); openSheet(box);
+}
+
+/* ============ LÄS ============ */
+$("#tabIdag").onclick = () => { $("#tabIdag").classList.add("on"); $("#tabLas").classList.remove("on"); $("#idagBox").hidden = false; $("#todayOut").hidden = false; $("#lasBox").hidden = true; };
+$("#tabLas").onclick = () => { $("#tabLas").classList.add("on"); $("#tabIdag").classList.remove("on"); $("#idagBox").hidden = true; $("#todayOut").hidden = true; $("#lasBox").hidden = false; if (!$("#lasTopic").value && STATE.profile.interests) $("#lasTopic").placeholder = STATE.profile.interests; };
+$("#btnLas").onclick = async () => {
+  const note = $("#lasNote"), out = $("#lasOut"), btn = $("#btnLas");
+  if (!STATE.sample) { note.textContent = "Läsläget kräver att appen öppnas inloggad på claude.ai."; return; }
+  const topic = $("#lasTopic").value.trim() || STATE.profile.interests || "vardagsliv i Kina";
+  const len = +$("#lasLen").value;
+  const known = knownSample(250);
+  const learning = [...STATE.words.values()].filter(w => !w.suspended && w.card && (w.card.state === 1 || w.card.state === 3 || (w.card.state === 2 && w.card.due <= now() + DAY))).slice(0, 12).map(w => w.hanzi);
+  btn.disabled = true; note.textContent = "Claude skriver… (kan ta upp till en minut)"; out.replaceChildren();
+  try {
+    await loadDict().catch(() => { });
+    const r = await STATE.sample.json(
+`Skriv en sammanhängande, intressant text på förenklad kinesiska för en svensk som lär sig kinesiska. ${profileSummary()}.
+Ämne: ${topic}. Längd: cirka ${len} tecken.
+Viktigt (Hacking Chinese: läs texter där 95–98 % av orden är kända): använd i första hand ord på HSK 1–4-nivå${known.length ? " och ord eleven redan kan, till exempel: " + known.join("、") : ""}.${learning.length ? " Väv in så många som möjligt av dessa ord som eleven håller på att lära sig: " + learning.join("、") + "." : ""} Undvik ovanliga ord.
+Ge också en svensk översättning och 3 förståelsefrågor på kinesiska med korta svar.
+Svara endast med JSON: {"title":"kinesisk titel","text":"...","sv":"svensk översättning","questions":[{"q":"...","a":"..."}]}`, { modelTier: "default" });
+    note.textContent = "Tryck på ord du inte kan. Ord du slår upp ofta syns under Utveckling.";
+    const text = String(r.text || "");
+    const used = learning.filter(wd => text.includes(wd));
+    out.append(h("div", { class: "card stack" },
+      h("div", { class: "row", style: "justify-content:space-between" }, h("b", { class: "zh", style: "font-size:1.15rem" }, String(r.title || "")), h("button", { class: "chip", type: "button", onclick: () => speak(text) }, "🔊 Läs upp")),
+      h("div", { style: "font-size:1.15rem;line-height:2" }, zhText(text)),
+      used.length ? h("div", { class: "note" }, "Ord från din ordbank i texten: ", h("span", { class: "zh" }, used.join("、"))) : null,
+      (() => { const d = h("details", null, h("summary", { class: "small", style: "cursor:pointer" }, "Visa översättning")); d.append(h("div", { class: "small muted", style: "margin-top:6px" }, String(r.sv || ""))); return d; })()));
+    if (Array.isArray(r.questions) && r.questions.length) {
+      out.append(h("h2", null, "Frågor"));
+      r.questions.forEach(q => { const d = h("details", { class: "ctx" }, h("summary", { style: "cursor:pointer" }, zhText(String(q.q || "")))); d.append(h("div", { class: "small", style: "margin-top:4px" }, zhText(String(q.a || "")))); out.append(d); });
+    }
+    Store.appendLog({ k: "read", h: String(r.title || ""), n: text.length, t: now() });
+  } catch (e) { note.textContent = sampleMsg(e); }
+  btn.disabled = false;
+};
+
+/* ============ SKUGGNING (export/import) ============ */
+const STUDIO_URL = "";
+function sentencePinyin(zh) {
+  const parts = []; for (const s of segment(zh)) { if (!s.w) { if ([...s.t].some(isCJK)) return null; continue; } const e = bestEntry(s.t); if (!e) return null; const ps = e.p.split(/\s+/); if (ps.length !== [...s.t].length) return null; parts.push(...ps.map(p => p.toLowerCase())); }
+  return parts.join(" ");
+}
+async function exportToStudio() {
+  await loadDict().catch(() => { });
+  let ws = [...STATE.words.values()].filter(w => w.shadow || w.flagged);
+  if (ws.length < 5) ws = ws.concat([...STATE.words.values()].filter(w => !ws.includes(w)).sort((a, b) => b.added - a.added).slice(0, 30 - ws.length));
+  const items = [];
+  for (const w of ws) {
+    if (w.pinyin) items.push({ zh: w.hanzi, pinyin: w.pinyin.toLowerCase(), sv: w.sv || (w.defs || "").split(";")[0] });
+    const s = (w.sentences || [])[(w.sentIdx || 0) % Math.max(1, (w.sentences || []).length)];
+    if (s && s.zh) { const p = sentencePinyin(s.zh); if (p) items.push({ zh: s.zh, pinyin: p, sv: s.sv || "" }); }
+  }
+  const data = JSON.stringify({ app: "mandapp-studio-import", version: 1, exported: new Date().toISOString(), items });
+  if (STATE.downloads) { try { await STATE.downloads.save({ filename: "till-skuggning-" + dayKey() + ".json", data }); toast(items.length + " fraser sparade"); return; } catch (e) { if (e && e.code === "cancelled") return; } }
+  const ta = h("textarea", { style: "min-height:160px", readonly: true }); ta.value = data;
+  openSheet(h("div", { class: "stack" }, h("div", null, "Kopiera och klistra in under Bibliotek i skuggningsstudion:"), ta, h("button", { class: "btn", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { ta.select(); } } }, "Kopiera")));
+}
+async function importPron(o) {
+  const p = Object.assign({}, STATE.profile);
+  p.pron = { imported: now(), perTone: o.perTone || {}, conf: o.conf || {}, asp: o.asp || {}, sib: o.sib || {}, listen: o.listen || {}, attempts: (o.attempts || []).slice(-150).map(a => ({ t: a.t, s: a.toneScore, i: a.iniScore })) };
+  await Store.saveProfile(p); toast("Uttalsstatistik importerad");
+}
+
+/* ============ ORD ============ */
+let wFilter = "alla";
+$("#wfilters").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; wFilter = b.dataset.f; [...$("#wfilters").children].forEach(c => c.classList.toggle("on", c === b)); renderWords(); });
+$("#wq").addEventListener("input", () => renderWords());
+function renderWords() {
+  const q = $("#wq").value.trim().toLowerCase(); const nq = normPy(q);
+  let ws = [...STATE.words.values()];
+  if (wFilter === "markerad") ws = ws.filter(w => w.flagged);
+  else if (wFilter === "ung" || wFilter === "lar") ws = ws.filter(w => ["lar", "ung"].includes(status(w)));
+  else if (wFilter !== "alla") ws = ws.filter(w => status(w) === wFilter);
+  if (q) ws = ws.filter(w => w.hanzi.includes(q) || (nq && normPy(w.pinyin || w.pinyinMarked || "").includes(nq)) || (w.sv || "").toLowerCase().includes(q) || (w.defs || "").toLowerCase().includes(q));
+  ws.sort((a, b) => b.added - a.added);
+  $("#wcount").textContent = ws.length + " ord";
+  const list = $("#wlist"); list.replaceChildren();
+  ws.slice(0, 300).forEach(w => list.append(h("button", { class: "item", type: "button", onclick: () => openWordDetail(w.id) },
+    h("div", { class: "w" }, h("span", { class: "hz" }, w.hanzi), wordPinyinNode(w, "pyi"), h("span", { class: "def" }, w.sv || w.defs)),
+    h("div", { class: "row", style: "flex:none" }, w.flagged ? h("span", { class: "pill flag" }, "★") : null, statusPill(w)))));
+  if (ws.length > 300) list.append(h("div", { class: "note" }, "Visar de 300 senaste. Sök för att hitta fler."));
+}
+function openWordDetail(id) {
+  const w = STATE.words.get(id); if (!w) return;
+  const box = h("div", { class: "stack" });
+  box.append(h("div", { class: "row", style: "justify-content:space-between" }, h("div", null, h("span", { class: "hw" }, w.hanzi), " ", wordPinyinNode(w, "mono")), h("div", { class: "row" }, speakBtn(w.hanzi), statusPill(w))));
+  box.append(h("div", { class: "small muted" }, w.defs));
+  const sv = h("input", { type: "text", id: "svEdit", value: w.sv || "", placeholder: "Svensk betydelse" });
+  box.append(h("label", { class: "lbl", for: "svEdit" }, "Svensk betydelse"), sv);
+  const c = w.card || {};
+  box.append(h("div", { class: "small muted" },
+    "Tillagd " + new Date(w.added).toLocaleDateString("sv") + (w.source ? " · " + w.source : "") + " · repetitioner " + (c.reps || 0) + " · missar " + (c.lapses || 0) + (c.state ? " · nästa " + (c.due > now() ? "om " + fmtIvl(c.due - now()) : "nu") : "")));
+  if (w.sentences && w.sentences.length) { const s = w.sentences[(w.sentIdx || 0) % w.sentences.length]; box.append(h("div", { class: "ctx" }, zhText(s.zh, w.hanzi), h("div", { class: "sv" }, s.sv))); }
+  const del = h("button", { class: "btn danger", type: "button" }, "Ta bort");
+  del.onclick = async () => { if (del.dataset.arm) { await Store.deleteWord(w.id).catch(handleDbError); closeSheet(); toast("Borttaget"); } else { del.dataset.arm = "1"; del.textContent = "Tryck igen för att ta bort"; } };
+  box.append(h("div", { class: "row" },
+    h("button", { class: "btn primary", type: "button", onclick: async () => { w.sv = sv.value.trim(); await Store.saveWord(w).catch(handleDbError); closeSheet(); toast("Sparat"); } }, "Spara"),
+    h("button", { class: "btn", type: "button", onclick: async () => { w.suspended = !w.suspended; await Store.saveWord(w).catch(handleDbError); closeSheet(); } }, w.suspended ? "Återuppta" : "Pausa"),
+    h("button", { class: "btn", type: "button", onclick: async () => { w.flagged = !w.flagged; await Store.saveWord(w).catch(handleDbError); closeSheet(); } }, w.flagged ? "Ta bort markering" : "Markera"),
+    h("button", { class: "btn ghost", type: "button", onclick: async () => { w.card = newCardData(); await Store.saveWord(w).catch(handleDbError); closeSheet(); toast("Kortet börjar om"); } }, "Börja om"),
+    del));
+  openSheet(box);
+}
+
+/* ============ STATISTIK ============ */
+async function renderStats() {
+  const area = $("#statsArea"); area.replaceChildren(h("div", { class: "note" }, "Räknar…"));
+  let logs = {}; try { logs = await Store.allLogs(); } catch { }
+  const ws = [...STATE.words.values()];
+  const counts = { ny: 0, lar: 0, ung: 0, mogen: 0, igel: 0, pausad: 0 }; ws.forEach(w => counts[status(w)]++);
+  const days = Object.keys(logs).sort();
+  const revByDay = {}; let mature = 0, matureOk = 0; const btn = { 1: 0, 2: 0, 3: 0, 4: 0 }; let msSum = 0, msN = 0;
+  const cutoff = now() - 30 * DAY;
+  for (const d of days) for (const e of (logs[d].entries || [])) {
+    if (e.k !== "rev") continue;
+    revByDay[d] = (revByDay[d] || 0) + 1;
+    if (e.t >= cutoff) { btn[e.r] = (btn[e.r] || 0) + 1; if (e.s === 2) { mature++; if (e.r > 1) matureOk++; } if (e.ms && e.s === 2) { msSum += Math.min(e.ms, 20000); msN++; } }
+  }
+  // streak
+  let streak = 0; for (let t = now(); ; t -= DAY) { if (revByDay[dayKey(t)]) streak++; else if (dayKey(t) === dayKey()) continue; else break; if (streak > 3650) break; }
+  const today = revByDay[dayKey()] || 0;
+  area.replaceChildren();
+  area.append(h("div", { class: "tiles" },
+    h("div", { class: "tile" }, h("b", null, counts.mogen), "mogna ord"),
+    h("div", { class: "tile" }, h("b", null, mature ? Math.round(matureOk / mature * 100) + " %" : "–"), "minne (30 d)"),
+    h("div", { class: "tile" }, h("b", null, streak + " d"), "svit")));
+  area.append(h("div", { class: "tiles" },
+    h("div", { class: "tile" }, h("b", null, ws.length), "ord totalt"),
+    h("div", { class: "tile" }, h("b", null, today), "repetitioner idag"),
+    h("div", { class: "tile" }, h("b", null, msN ? (msSum / msN / 1000).toFixed(1).replace(".", ",") + " s" : "–"), "svarstid")));
+  // words over time (cumulative added)
+  area.append(h("h2", null, "Ordbanken över tid"));
+  area.append(chartBox(cumulativeAdded(ws), "ord"));
+  area.append(h("h2", null, "Repetitioner per dag (30 d)"));
+  area.append(barChart(revByDay));
+  area.append(h("h2", null, "Status"));
+  area.append(distBlock([["Nya", counts.ny, "var(--muted)"], ["Lär", counts.lar, "var(--warn)"], ["Unga", counts.ung, "var(--accent)"], ["Mogna", counts.mogen, "var(--accent)"], ["Iglar", counts.igel, "var(--bad)"], ["Pausade", counts.pausad, "var(--muted)"]], ws.length));
+  const tot = btn[1] + btn[2] + btn[3] + btn[4];
+  area.append(h("h2", null, "Knappar (30 d)"));
+  area.append(distBlock([["Igen", btn[1], "var(--bad)"], ["Svårt", btn[2], "var(--warn)"], ["Bra", btn[3], "var(--accent)"], ["Lätt", btn[4], "var(--blue)"]], tot, true));
+  area.append(h("div", { class: "note" }, "Sikta på runt 90 % minne på mogna kort. Mycket högre kan betyda att du är för snäll mot dig själv, mycket lägre att du är för sträng eller lägger till för många nya ord."));
+  // forecast
+  const fc = []; for (let i = 0; i < 7; i++) { const end = new Date(); end.setHours(23, 59, 59, 999); const lim = +end + i * DAY; const start = i ? +end + (i - 1) * DAY : 0; fc.push(ws.filter(w => !w.suspended && w.card && w.card.state !== 0 && w.card.due > start && w.card.due <= lim).length); }
+  area.append(h("h2", null, "Prognos kommande 7 dagar"));
+  area.append(h("div", { class: "row" }, ...fc.map((n, i) => h("span", { class: "chip" }, (i ? new Date(now() + i * DAY).toLocaleDateString("sv", { weekday: "short" }) : "idag") + " " + n))));
+  // hardest + looked up
+  const hard = ws.filter(w => (w.card?.lapses || 0) > 0).sort((a, b) => b.card.lapses - a.card.lapses).slice(0, 10);
+  if (hard.length) { area.append(h("h2", null, "Svåraste orden")); const r = h("div", { class: "row" }); hard.forEach(w => r.append(h("button", { class: "chip", type: "button", onclick: () => openWordDetail(w.id) }, h("span", { class: "zh" }, w.hanzi), " ×" + w.card.lapses))); area.append(r); }
+  const looks = {}; for (const d of days) for (const e of (logs[d].entries || [])) if (e.k === "lookup" && !STATE.byHanzi.has(e.h)) looks[e.h] = (looks[e.h] || 0) + 1;
+  const topLooks = Object.entries(looks).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  if (topLooks.length) { area.append(h("h2", null, "Slår ofta upp men har inte lagt till")); const r = h("div", { class: "row" }); topLooks.forEach(([w, n]) => r.append(h("button", { class: "chip", type: "button", onclick: () => openWordSheet(w) }, h("span", { class: "zh" }, w), " ×" + n))); area.append(r); }
+  // uttal
+  const P = STATE.profile.pron;
+  area.append(h("h2", null, "Uttal"));
+  if (P) {
+    const at = P.attempts || []; const avg = a => { const v = a.map(x => x.s).filter(x => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
+    const f = avg(at.slice(0, 10)), l = avg(at.slice(-10));
+    const pc = o => o && o.n ? Math.round(o.ok / o.n * 100) : null;
+    area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, at.length), "inspelningar"), h("div", { class: "tile" }, h("b", null, f == null ? "–" : f + " %"), "toner i början"), h("div", { class: "tile" }, h("b", null, l == null ? "–" : l + " %"), "toner nu")));
+    area.append(distBlock([1, 2, 3, 4].map(t => ["Ton " + t, pc(P.perTone[t]) || 0, "var(--t" + t + ")"]), 100, true));
+    const rows = [["Aspirerade", pc(P.asp.asp)], ["Oaspirerade", pc(P.asp.unasp)], ["s", pc(P.sib.s)], ["sh", pc(P.sib.sh)], ["x", pc(P.sib.x)]].filter(r => r[1] != null);
+    if (rows.length) area.append(distBlock(rows.map(([k, v]) => [k, v, "var(--accent)"]), 100, true));
+    const lt = P.listen && P.listen.tones || {}; const lr = [1, 2, 3, 4, 5].filter(t => lt[t]).map(t => ["Hör ton " + (t === 5 ? "0" : t), pc(lt[t]), "var(--blue)"]);
+    if (lr.length) area.append(h("label", { class: "lbl" }, "Hörträning"), distBlock(lr, 100, true));
+    const conf = Object.entries(P.conf || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (conf.length) area.append(h("div", { class: "note" }, "Vanligaste tonförväxlingar när du talar: " + conf.map(([k, n]) => k + " (" + n + ")").join(", ") + "."));
+    area.append(h("div", { class: "note" }, "Importerad " + new Date(P.imported).toLocaleDateString("sv") + " från skuggningsstudion."));
+  } else area.append(h("div", { class: "note" }, "Ingen uttalsstatistik än. Öva i skuggningsstudion och importera statistiken under Inställningar."));
+  // veckorapport
+  area.append(h("h2", null, "Veckorapport"));
+  const repBox = h("div", { class: "stack" }); area.append(repBox);
+  const showRep = r => { repBox.replaceChildren(h("div", { class: "ctx small stack" }, h("div", { class: "note" }, "Vecka till " + r.date), h("div", null, r.summary || ""), (r.wins || []).length ? h("div", null, h("b", null, "Bra: "), r.wins.join(" · ")) : null, (r.focus || []).length ? h("div", null, h("b", null, "Fokus: "), r.focus.join(" · ")) : null, r.plan ? h("div", null, h("b", null, "Nästa vecka: "), r.plan) : null)); };
+  const reps = STATE.profile.reports || []; if (reps[0]) showRep(reps[0]);
+  if (STATE.sample) {
+    const rb = h("button", { class: "btn", type: "button" }, reps[0] && reps[0].date === dayKey() ? "Gör om veckorapporten" : "Gör veckorapport med Claude");
+    rb.onclick = async () => {
+      rb.disabled = true; rb.textContent = "Claude skriver…";
+      const wk = now() - 7 * DAY; let rv = 0, ok = 0, lapsesN = 0; const days = new Set(); let reads = 0, looks = 0;
+      for (const d of Object.keys(logs)) for (const e of (logs[d].entries || [])) { if (e.t < wk) continue; if (e.k === "rev") { rv++; days.add(d); if (e.r > 1) ok++; else lapsesN++; } if (e.k === "read") reads++; if (e.k === "lookup") looks++; }
+      const added = ws.filter(w => w.added >= wk).map(w => w.hanzi);
+      const facts = { repetitioner: rv, dagarMedRepetition: days.size, andelRatt: rv ? Math.round(ok / rv * 100) : null, nyaOrd: added.length, exempelNyaOrd: added.slice(0, 15), mognaOrd: counts.mogen, totaltOrd: ws.length, iglar: ws.filter(w => status(w) === "igel").map(w => w.hanzi).slice(0, 8), svaraste: hard.map(w => w.hanzi).slice(0, 8), lastaTexter: reads, uppslag: looks, svit: streak, uttal: P ? { tonerProcentPerTon: Object.fromEntries([1, 2, 3, 4].map(t => [t, P.perTone[t] && P.perTone[t].n ? Math.round(P.perTone[t].ok / P.perTone[t].n * 100) : null])), forvaxlingar: P.conf } : null };
+      try {
+        const r = await STATE.sample.json(
+`Du är en uppmuntrande men ärlig kinesisklärare som följer råden på Hacking Chinese. ${profileSummary()}.
+Här är elevens siffror för senaste veckan (JSON): ${JSON.stringify(facts)}
+Skriv en kort veckorapport på svenska: en sammanfattning (högst 60 ord), 2–3 saker som gått bra, 2–3 konkreta saker att fokusera på (t.ex. vissa ord, toner, mer läsning, färre nya ord om andelen rätt är låg), och en plan för nästa vecka i en mening.
+Svara endast med JSON: {"summary":"...","wins":["..."],"focus":["..."],"plan":"..."}`, { modelTier: "default" });
+        const rep = { date: dayKey(), summary: String(r.summary || ""), wins: (r.wins || []).map(String).slice(0, 4), focus: (r.focus || []).map(String).slice(0, 4), plan: String(r.plan || "") };
+        const p = Object.assign({}, STATE.profile); p.reports = [rep, ...(p.reports || []).filter(x => x.date !== rep.date)].slice(0, 8);
+        await Store.saveProfile(p).catch(handleDbError); showRep(rep); repBox.append(rb); rb.textContent = "Gör om veckorapporten";
+      } catch (e) { toast(sampleMsg(e)); rb.textContent = "Försök igen"; }
+      rb.disabled = false;
+    };
+    repBox.append(rb);
+  }
+  // kvot
+  const cs = callStats(); const c7 = Object.entries(cs).filter(([d]) => now() - new Date(d).getTime() < 7 * DAY).reduce((s, [, n]) => s + n, 0);
+  area.append(h("h2", null, "Claude-användning"));
+  area.append(h("div", { class: "note" }, "Idag " + (cs[dayKey()] || 0) + " anrop, senaste 7 dagarna " + c7 + ". Anropen går på din Max-kvot. Exempelmeningar sparas och återanvänds, så kvoten används mest när du lägger till nya ord. Räknas per enhet."));
+  // memory
+  area.append(h("h2", null, "Det appen minns om dig"));
+  area.append(h("div", { class: "ctx small" }, profileSummary(), h("div", { style: "margin-top:6px" }, h("button", { class: "chip", type: "button", onclick: openSettings }, "Redigera"))));
+}
+function cumulativeAdded(ws) {
+  if (!ws.length) return [];
+  const sorted = ws.map(w => w.added).sort((a, b) => a - b);
+  const start = sorted[0]; const end = now(); const pts = []; const steps = 20;
+  for (let i = 0; i <= steps; i++) { const t = start + (end - start) * i / steps; pts.push([t, sorted.filter(x => x <= t).length]); }
+  return pts;
+}
+function chartBox(pts, unit) {
+  const box = h("div", { class: "chartbox" });
+  if (pts.length < 2) { box.append(h("div", { class: "note" }, "Visas när du har lagt till ord.")); return box; }
+  const W = 320, H = 130, L = 34, B = 18, T = 8, Rr = 8;
+  const maxY = Math.max(5, ...pts.map(p => p[1])); const niceMax = Math.ceil(maxY / 5) * 5;
+  const x = t => L + (t - pts[0][0]) / ((pts[pts.length - 1][0] - pts[0][0]) || 1) * (W - L - Rr);
+  const y = v => T + (1 - v / niceMax) * (H - T - B);
+  const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Antal ord över tid");
+  const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  [0, niceMax / 2, niceMax].forEach(v => { svg.append(mk("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t.textContent = Math.round(v); svg.append(t); });
+  const d = pts.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1)).join(" ");
+  svg.append(mk("path", { d: d + ` L${x(pts[pts.length - 1][0])} ${y(0)} L${x(pts[0][0])} ${y(0)} Z`, fill: "var(--accent)", opacity: ".12" }));
+  svg.append(mk("path", { d, fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round" }));
+  const last = pts[pts.length - 1]; svg.append(mk("circle", { cx: x(last[0]), cy: y(last[1]), r: 3.5, fill: "var(--accent)" }));
+  [[pts[0][0], "start"], [last[0], "end"]].forEach(([t, anc]) => { const e = mk("text", { x: x(t), y: H - 4, "text-anchor": anc, "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); e.textContent = new Date(t).toLocaleDateString("sv", { day: "numeric", month: "short" }); svg.append(e); });
+  box.append(svg); return box;
+}
+function barChart(byDay) {
+  const box = h("div", { class: "chartbox" });
+  const W = 320, H = 110, L = 26, B = 16, T = 6; const n = 30;
+  const vals = []; for (let i = n - 1; i >= 0; i--) vals.push(byDay[dayKey(now() - i * DAY)] || 0);
+  const maxV = Math.max(5, ...vals); const nice = Math.ceil(maxV / 5) * 5;
+  const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Repetitioner per dag");
+  const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const y = v => T + (1 - v / nice) * (H - T - B); const bw = (W - L - 4) / n;
+  [0, nice].forEach(v => { svg.append(mk("line", { x1: L, x2: W - 4, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t.textContent = v; svg.append(t); });
+  vals.forEach((v, i) => { if (v) svg.append(mk("rect", { x: L + i * bw + 1, y: y(v), width: Math.max(1, bw - 2), height: y(0) - y(v), rx: 1.5, fill: i === n - 1 ? "var(--accent)" : "var(--accent)", opacity: i === n - 1 ? 1 : .55 })); });
+  const t1 = mk("text", { x: L, y: H - 3, "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t1.textContent = "30 d sedan"; svg.append(t1);
+  const t2 = mk("text", { x: W - 4, y: H - 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t2.textContent = "idag"; svg.append(t2);
+  box.append(svg); return box;
+}
+function distBlock(rows, total, pct) {
+  const d = h("div", { class: "dist" });
+  rows.forEach(([l, v, c]) => d.append(h("span", null, l), h("span", { class: "track" }, h("i", { style: `width:${total ? Math.round(v / total * 100) : 0}%;background:${c}` })), h("span", { class: "mono", style: "text-align:right" }, pct ? (total ? Math.round(v / total * 100) + " %" : "–") : v)));
+  return d;
+}
+
+/* ============ SETTINGS / EXPORT / IMPORT ============ */
+function openSettings() {
+  const p = STATE.profile;
+  const level = h("input", { type: "text", id: "sLevel", value: p.level || "" });
+  const interests = h("input", { type: "text", id: "sInt", value: p.interests || "", placeholder: "t.ex. mat, ekonomi, resor" });
+  const goals = h("input", { type: "text", id: "sGoals", value: p.goals || "", placeholder: "t.ex. klara HSK 5 i juni" });
+  const npd = h("input", { type: "number", id: "sNew", value: p.newPerDay || 15, min: 0, max: 100 });
+  const tier = h("select", { id: "sTier" }, h("option", { value: "quick" }, "Snabb (sparar kvot)"), h("option", { value: "default" }, "Standard (bättre, långsammare)"));
+  tier.value = p.tierSentences || "quick";
+  const theme = h("select", { id: "sTheme" }, h("option", { value: "" }, "Följ systemet"), h("option", { value: "light" }, "Ljust"), h("option", { value: "dark" }, "Mörkt"));
+  try { theme.value = localStorage.getItem("mandapp-theme") || ""; } catch { }
+  const fileIn = h("input", { type: "file", accept: ".json,.txt,.tsv,.csv,text/plain,application/json", hidden: true });
+  fileIn.onchange = () => { const f = fileIn.files[0]; if (f) importFile(f); };
+  const box = h("div", { class: "stack" },
+    h("h2", { style: "margin-top:0" }, "Inställningar och minne"),
+    h("label", { class: "lbl", for: "sLevel" }, "Nivå"), level,
+    h("label", { class: "lbl", for: "sInt" }, "Intressen (används i exempelmeningar)"), interests,
+    h("label", { class: "lbl", for: "sGoals" }, "Mål"), goals,
+    h("label", { class: "lbl", for: "sNew" }, "Nya ord per dag"), npd,
+    h("label", { class: "lbl", for: "sTier" }, "Claude-nivå för exempelmeningar"), tier,
+    h("label", { class: "lbl", for: "sTheme" }, "Tema"), theme,
+    h("button", { class: "btn primary", type: "button", onclick: async () => {
+      const np = Object.assign({}, STATE.profile, { level: level.value.trim(), interests: interests.value.trim(), goals: goals.value.trim(), newPerDay: Math.max(0, Math.min(100, +npd.value || 0)), tierSentences: tier.value });
+      try { localStorage.setItem("mandapp-theme", theme.value); } catch { }
+      applyTheme();
+      await Store.saveProfile(np).catch(handleDbError); closeSheet(); toast("Sparat");
+    } }, "Spara"),
+    h("h2", null, "Backup"),
+    h("div", { class: "row" },
+      h("button", { class: "btn", type: "button", onclick: exportData }, "Exportera allt (JSON)"),
+      h("label", { class: "btn" }, "Importera", fileIn)),
+    h("div", { class: "note" }, "Import tar emot en Mandapp-backup (JSON), statistik från skuggningsstudion, eller en textfil med ett ord per rad (Pleco/Anki: tecken, tab, pinyin, tab, betydelse)."),
+    h("h2", null, "Skuggning och uttal"),
+    h("div", { class: "row" },
+      h("button", { class: "btn", type: "button", onclick: exportToStudio }, "Skicka till skuggning"),
+      STUDIO_URL ? h("a", { class: "btn", href: STUDIO_URL, target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Öppna skuggningsstudion") : null),
+    h("div", { class: "note" }, "Skickar ord du markerat med 🎙 Skugga eller ★ (annars de senaste 30) plus deras exempelmeningar, med pinyin. Öppna filen under Bibliotek i studion. Studions statistik importerar du tillbaka med Importera ovan."),
+    h("div", { class: "note" }, "Lagring: " + (STATE.mode === "db" ? "ditt konto på claude.ai (synkas mellan enheter)." : "bara den här webbläsaren.") + " Uppläsning: " + (zhVoice ? zhVoice.name : "ingen kinesisk röst hittades på enheten") + ".")
+  );
+  openSheet(box);
+}
+async function exportData() {
+  const logs = await Store.allLogs().catch(() => ({}));
+  const data = JSON.stringify({ app: "mandapp", version: 1, exported: new Date().toISOString(), profile: STATE.profile, words: [...STATE.words.values()], logs }, null, 1);
+  const name = "mandapp-backup-" + dayKey() + ".json";
+  if (STATE.downloads) { try { await STATE.downloads.save({ filename: name, data }); toast("Backup sparad"); return; } catch (e) { if (e && e.code === "cancelled") return; } }
+  // fallback: show text to copy
+  const ta = h("textarea", { style: "min-height:200px", readonly: true }); ta.value = data;
+  openSheet(h("div", { class: "stack" }, h("div", null, "Kopiera texten och spara den som en fil:"), ta, h("button", { class: "btn", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { ta.select(); } } }, "Kopiera")));
+}
+async function importFile(f) {
+  const txt = await f.text(); await loadDict().catch(() => { });
+  let n = 0;
+  try {
+    if (/^\s*\{/.test(txt)) {
+      const o = JSON.parse(txt);
+      if (o.app === "mandapp-studio-stats") { await importPron(o); closeSheet(); return; }
+      for (const w of (o.words || [])) { if (!w || !w.hanzi || STATE.byHanzi.has(w.hanzi)) continue; const nw = Object.assign(makeWord(w.hanzi), w, { id: w.id || uid36() }); await Store.saveWord(nw); n++; }
+      if (o.profile) await Store.saveProfile(Object.assign({}, STATE.profile, o.profile));
+      if (o.logs && STATE.mode === "db") for (const [k, v] of Object.entries(o.logs)) { const cur = await Store.getLog(k); if (!(cur.entries || []).length) { await STATE.logCol.doc("d" + k).set(v); STATE.logCache.set(k, v); } }
+    } else {
+      for (const line of txt.split(/\r?\n/)) {
+        const parts = line.split(/\t|,(?=[^,]*$)/); const hz = (parts[0] || "").trim().split(/[\[［(]/)[0].trim();
+        if (!hz || !/[\u3400-\u9fff]/.test(hz) || STATE.byHanzi.has(hz)) continue;
+        await Store.saveWord(makeWord(hz, { source: "import", sv: (parts[2] || "").trim().slice(0, 120) })); n++;
+      }
+    }
+    closeSheet(); toast("Importerade " + n + " ord");
+  } catch (e) { toast("Importen misslyckades"); console.warn(e); }
+}
+function applyTheme() { let t = ""; try { t = localStorage.getItem("mandapp-theme") || ""; } catch { } if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+$("#btnSettings").onclick = openSettings;
+
+/* ============ routing ============ */
+const VIEWS = ["repetera", "lagg-till", "idag", "ord", "statistik"];
+function route() {
+  let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "repetera";
+  VIEWS.forEach(n => { $("#v-" + n).hidden = n !== v; });
+  document.querySelectorAll("nav.tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === v));
+  closeSheet();
+  if (v === "ord") renderWords();
+  if (v === "statistik") renderStats();
+  if (v === "repetera" && !RV.sessionStarted) renderReview();
+  if (v === "lagg-till") loadDict().catch(() => { });
+}
+window.addEventListener("hashchange", route);
+function onWordsChanged() {
+  const n = dueCountForBadge(); const b = $("#dueBadge"); b.textContent = n; b.hidden = !n;
+  const v = location.hash.slice(1) || "repetera";
+  if (v === "ord" && !sheetEls) renderWords();
+  if ((v === "repetera" || !VIEWS.includes(v)) && !RV.sessionStarted) renderReview();
+}
+setInterval(() => { const n = dueCountForBadge(); const b = $("#dueBadge"); b.textContent = n; b.hidden = !n; }, 60000);
+
+/* ============ boot ============ */
+applyTheme();
+route();
+initStorage().then(() => { route(); loadDict().catch(() => { }); }).catch(e => { console.error(e); showBanner("Appen kunde inte starta lagringen."); });
+</script>
