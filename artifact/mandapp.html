@@ -928,7 +928,7 @@ Svara endast med JSON: {"title":"kinesisk titel","text":"...","sv":"svensk över
 };
 
 /* ============ SKUGGNING (export/import) ============ */
-const STUDIO_URL = "";
+const STUDIO_URL = "https://masandev.github.io/mandapp/";
 function sentencePinyin(zh) {
   const parts = []; for (const s of segment(zh)) { if (!s.w) { if ([...s.t].some(isCJK)) return null; continue; } const e = bestEntry(s.t); if (!e) return null; const ps = e.p.split(/\s+/); if (ps.length !== [...s.t].length) return null; parts.push(...ps.map(p => p.toLowerCase())); }
   return parts.join(" ");
