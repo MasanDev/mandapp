@@ -60,6 +60,9 @@ def main():
         for s in page.get("data", []):
             seen += 1
             sid = s.get("id"); text = (s.get("text") or "").strip()
+            if s.get("script") == "Hant":
+                alt = [t.get("text") for t in (s.get("transcriptions") or []) if t.get("type") == "altscript" and t.get("script") == "Hans"]
+                if alt and alt[0]: text = alt[0].strip()
             if sid in items:
                 continue
             chars = CJK.findall(text)
@@ -68,7 +71,7 @@ def main():
             py = pinyin_for(s, len(chars))
             if not py:
                 skipped["pinyin"] += 1; continue
-            auds = [a for a in (s.get("audios") or []) if (a.get("licence") or "").strip()]
+            auds = [a for a in (s.get("audios") or []) if (a.get("license") or a.get("licence") or "").strip()]
             if not auds:
                 skipped["licence"] += 1; continue
             a = auds[0]
@@ -86,7 +89,7 @@ def main():
                 if lg in ("eng", "swe") and lg not in tr:
                     tr[lg] = t.get("text")
             items[sid] = {"id": sid, "zh": text, "pinyin": py, "en": tr.get("eng", ""), "sv": tr.get("swe", ""),
-                          "audio": f"{a['id']}.mp3", "author": a.get("author") or "", "licence": a.get("licence"),
+                          "audio": f"{a['id']}.mp3", "author": a.get("author") or "", "licence": a.get("license") or a.get("licence"),
                           "attribution": a.get("attribution_url") or f"https://tatoeba.org/sentences/show/{sid}"}
             if len(items) >= MAX:
                 break

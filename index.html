@@ -718,9 +718,10 @@ async function tqLive(q, list) {
     const r = await fetch(url); const j = await r.json(); let n = 0;
     for (const s of j.data || []) {
       const chars = [...(s.text || "")].filter(c => /[\u3400-\u9fff]/.test(c)); const py = parseTatoebaPinyin(s, chars.length);
-      const a = (s.audios || []).find(a => (a.licence || "").trim()); if (!py || !a) continue;
+      const a = (s.audios || []).find(a => (a.license || a.licence || "").trim()); if (!py || !a) continue;
+      if (s.script === "Hant") { const alt = (s.transcriptions || []).find(t => t.type === "altscript" && t.script === "Hans"); if (alt && alt.text) s.text = alt.text; }
       const tr = {}; (s.translations || []).forEach(t => { if ((t.lang === "eng" || t.lang === "swe") && !tr[t.lang]) tr[t.lang] = t.text; });
-      list.append(tqRow({ zh: s.text, pinyin: py, en: tr.eng || "", sv: tr.swe || "", author: a.author, licence: a.licence, attribution: a.attribution_url, audioUrl: a.download_url || "https://api.tatoeba.org/v1/audios/" + a.id + "/file" }, false)); n++;
+      list.append(tqRow({ zh: s.text, pinyin: py, en: tr.eng || "", sv: tr.swe || "", author: a.author, licence: a.license || a.licence, attribution: a.attribution_url, audioUrl: a.download_url || "https://api.tatoeba.org/v1/audios/" + a.id + "/file" }, false)); n++;
     }
     if (!n) list.append(h("div", { class: "note" }, "Inga fler meningar med fritt ljud hittades."));
   } catch (e) { list.append(h("div", { class: "note" }, "Kunde inte nå Tatoeba direkt från webbläsaren. De sparade meningarna fungerar ändå.")); }
