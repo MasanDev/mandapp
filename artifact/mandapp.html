@@ -557,6 +557,7 @@ function openWordSheet(word, sentence) {
   } else box.append(h("div", { class: "muted small" }, "Finns inte i ordboken."));
   if (inDeck) box.append(h("div", { class: "row" }, h("span", { class: "chip" }, "I din ordbank"), statusPill(inDeck), inDeck.sv ? h("span", { class: "small" }, inDeck.sv) : null));
   if (best) box.append(pronBlock(best.p, word));
+  { const sl = shadowLink(word); if (sl) box.append(sl); }
   // explain in sentence
   if (sentence && sentence !== word && STATE.sample) {
     const out = h("div", { class: "ctx" });
@@ -713,6 +714,7 @@ function renderReview() {
       h("button", { class: "chip", type: "button", onclick: async () => { w.flagged = !w.flagged; await Store.saveWord(w).catch(handleDbError); toast(w.flagged ? "Markerat för senare" : "Markering borttagen"); renderReview(); } }, w.flagged ? "★ Markerad" : "☆ Markera för senare"),
       h("button", { class: "chip", type: "button", onclick: async () => { w.shadow = !w.shadow; await Store.saveWord(w).catch(handleDbError); toast(w.shadow ? "Med i nästa export till skuggning" : "Borttaget från skuggning"); renderReview(); } }, w.shadow ? "🎙 Ska skuggas" : "🎙 Skugga")));
     if (w.pinyin) card.append(pronBlock(w.pinyin, w.hanzi));
+    { const sl = shadowLink(w.hanzi); if (sl) card.append(sl); }
   }
   area.append(card);
 }
@@ -929,6 +931,14 @@ Svara endast med JSON: {"title":"kinesisk titel","text":"...","sv":"svensk över
 
 /* ============ SKUGGNING (export/import) ============ */
 const STUDIO_URL = "https://masandev.github.io/mandapp/";
+// Meningar med native-ljud som finns i skuggningsstudion (bara texten), för länkar från glosorna
+let SHADOW_SENT = [];
+fetch("skuggmeningar.json").then(r => r.ok ? r.json() : []).then(a => { SHADOW_SENT = Array.isArray(a) ? a : []; }).catch(() => { });
+function shadowLink(word) {
+  if (!word || !SHADOW_SENT.length) return null;
+  const n = SHADOW_SENT.filter(z => z.includes(word) && z !== word).length; if (!n) return null;
+  return h("a", { class: "btn", href: STUDIO_URL + "#ova?q=" + encodeURIComponent(word), target: "_blank", rel: "noopener", style: "text-decoration:none;text-align:center", onclick: ev => ev.stopPropagation() }, "🎙 Skugga " + n + (n === 1 ? " mening" : " meningar") + " med " + word);
+}
 function sentencePinyin(zh) {
   const parts = []; for (const s of segment(zh)) { if (!s.w) { if ([...s.t].some(isCJK)) return null; continue; } const e = bestEntry(s.t); if (!e) return null; const ps = e.p.split(/\s+/); if (ps.length !== [...s.t].length) return null; parts.push(...ps.map(p => p.toLowerCase())); }
   return parts.join(" ");
