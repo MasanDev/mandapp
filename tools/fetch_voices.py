@@ -16,11 +16,11 @@ XIAN = ["西安", "陕西"]
 REGION_SV = {"北京": "Peking", "天津": "Tianjin", "河北": "Hebei", "承德": "Chengde", "黑龙江": "Heilongjiang", "哈尔滨": "Harbin", "吉林": "Jilin", "长春": "Changchun", "辽宁": "Liaoning", "沈阳": "Shenyang", "大连": "Dalian", "西安": "Xi'an", "陕西": "Shaanxi"}
 
 hsk = json.load(open("artifact/hsk.json", encoding="utf-8"))
-ok_chars = set(c for w, l in hsk.items() if l <= 5 for c in w)
+ok_chars = set(c for w, l in hsk.items() if l <= 6 for c in w)
 CJK = re.compile(r"[㐀-鿿]")
 def good(t):
     ch = CJK.findall(t)
-    return 4 <= len(ch) <= 20 and not re.search(r"[A-Za-z0-9０-９]", t) and all(c in ok_chars for c in ch)
+    return 4 <= len(ch) <= 24 and not re.search(r"[A-Za-z0-9０-９]", t) and sum(c not in ok_chars for c in ch) <= 1
 def meta(raw):
     d = {}
     for line in raw.decode("utf-8", "ignore").splitlines():
@@ -77,7 +77,7 @@ def main():
             seen[s].add(text); got[s].append({"id": base, "zh": text, "pinyin": py, "audio": base + ".mp3", "speaker": s})
         if len(pending) > 5000: pending.clear()
     print("Män per födelseort (topp 30):", males.most_common(30))
-    def pick(g, k): return sorted([s for s in got if spk[s] and spk[s]["group"] == g], key=lambda s: -len(got[s]))[:k]
+    def pick(g, k): return sorted([s for s in got if spk[s] and spk[s]["group"] == g and got[s]], key=lambda s: -len(got[s]))[:k]
     chosen = pick("std", N_STD) + pick("xian", N_XIAN)
     if os.path.isdir(OUT): shutil.rmtree(OUT)
     os.makedirs(OUT); items = []; voices = []

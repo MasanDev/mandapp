@@ -4,7 +4,7 @@ on:
     inputs:
       standard:
         description: "Antal talare från Peking/norr"
-        default: "4"
+        default: "6"
       xian:
         description: "Antal talare från Xi'an/Shaanxi"
         default: "2"
