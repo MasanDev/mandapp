@@ -1,0 +1,39 @@
+name: Hämta utvalda manliga röster (ST-CMDS)
+on:
+  workflow_dispatch:
+    inputs:
+      standard:
+        description: "Antal talare från Peking/norr"
+        default: "4"
+      xian:
+        description: "Antal talare från Xi'an/Shaanxi"
+        default: "2"
+      per:
+        description: "Max meningar per talare"
+        default: "120"
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && pip install -q pypinyin
+      - name: Hämta röster
+        env:
+          N_STANDARD: ${{ github.event.inputs.standard }}
+          N_XIAN: ${{ github.event.inputs.xian }}
+          PER_SPEAKER: ${{ github.event.inputs.per }}
+        run: python tools/fetch_voices.py
+      - name: Spara i repot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio/rost audio/rost.json
+          git diff --cached --quiet || git commit -m "Utvalda manliga röster med native-ljud (ST-CMDS)"
+          git pull --rebase -q || true
+          git push
