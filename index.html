@@ -130,6 +130,7 @@ details summary{cursor:pointer;font-weight:600}
       <canvas id="live" width="600" height="160" aria-label="Tonhöjd live"></canvas>
       <div class="note" id="recNote">Tryck på Spela in och säg frasen. Tryck igen när du är klar.</div>
     </div>
+    <div id="related" class="stack"></div>
     <div id="result" class="stack"></div>
   </section>
 
@@ -157,6 +158,12 @@ details summary{cursor:pointer;font-weight:600}
       <input type="text" id="nSv" placeholder="Svenska (valfritt)">
       <label class="small">Förlaga (ljudfil, valfritt) <input type="file" id="nAudio" accept="audio/*,video/*"></label>
       <button class="btn primary" id="nAdd">Lägg till</button>
+    </div>
+    <div class="card stack">
+      <label class="lbl">Meningar med ljud (Tatoeba)</label>
+      <div class="row"><input type="text" id="tqQ" placeholder="Sök ord, t.ex. 银行" style="flex:1;min-width:0"><button class="btn" id="tqBtn">Sök</button></div>
+      <div class="note" id="tqNote"></div>
+      <div class="stack" id="tqList"></div>
     </div>
     <div class="note" id="libCount"></div>
     <div class="stack" id="libList"></div>
@@ -280,7 +287,7 @@ function renderItem() {
     $("#modelNote").textContent = "Ingen riktig förlaga än. Jämförelsen görs mot idealkurvor för tonerna. Lägg till en ljudfil eller spela in en kinesisktalande vän under Bibliotek för bäst resultat.";
   }
   mr.append(h("button", { class: "btn", onclick: () => recordModel() }, "● Spela in förlaga"));
-  renderHistory();
+  renderHistory(); renderRelated();
 }
 async function analyzeModel(it) {
   try { const ab = await it.audio.arrayBuffer(); const x = await MA.toMono16k(ab); const an = MA.analyze(x, itemSyls(it).length); if (CUR && CUR.id === it.id) { modelAn = an.ok ? an : null; modelAnFor = it.id; } } catch (e) { console.warn(e); }
@@ -676,9 +683,60 @@ async function pairQuiz(keys) {
 }
 $("#tpMix").onclick = async () => { const tp = await tonparData(); pairQuiz(Object.keys(tp)); };
 
+/* ---------- Tatoeba ---------- */
+let TQ = null;
+async function tatoebaPack() { if (TQ) return TQ; try { const r = await fetch("audio/tatoeba.json"); TQ = r.ok ? await r.json() : []; } catch { TQ = []; } return TQ; }
+function tqRow(x, local) {
+  const play = () => { tpAudio.src = local ? "audio/tatoeba/" + x.audio : x.audioUrl; tpAudio.play().catch(() => toast("Kunde inte spela upp")); };
+  return h("div", { class: "item" },
+    h("div", { style: "min-width:0;flex:1" }, h("div", { class: "zh" }, x.zh), h("div", { class: "note mono" }, pyNode(MA.parsePinyin(x.pinyin))), x.sv || x.en ? h("div", { class: "note" }, x.sv || x.en) : null,
+      h("div", { class: "note", style: "font-size:.7rem" }, "Ljud: ", h("a", { href: x.attribution, target: "_blank", rel: "noopener" }, x.author || "Tatoeba"), " · " + (x.licence || ""))),
+    h("div", { class: "row", style: "flex:none" }, h("button", { class: "chip", "aria-label": "Lyssna", onclick: play }, "▶"),
+      h("button", { class: "chip", onclick: async () => { const it = await tqItem(x, local); if (it) { await selectItem(it.id); location.hash = "ova"; } } }, "Skugga")));
+}
+async function tqItem(x, local) {
+  let it = ITEMS.find(i => i.zh === x.zh);
+  if (!it) it = { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, added: Date.now(), source: "tatoeba", credit: (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") };
+  if (!it.audio) { try { const r = await fetch(local ? "audio/tatoeba/" + x.audio : x.audioUrl); if (r.ok) it.audio = await r.blob(); } catch { } if (!it.audio) toast("Ljudet kunde inte hämtas, frasen sparas utan förlaga"); }
+  await DB.put("items", it); await loadItems(); return ITEMS.find(i => i.id === it.id);
+}
+function parseTatoebaPinyin(s, n) { for (const t of s.transcriptions || []) { let txt = (t.text || "").toLowerCase().replace(/u:/g, "v").replace(/\[[^|\]]*\|([^\]]*)\]/g, "$1"); const m = txt.match(/[a-zü:v]+[1-5]/g) || []; if (m.length === n) return m.join(" "); } return null; }
+async function tqSearch() {
+  const q = $("#tqQ").value.trim(); const list = $("#tqList"); const note = $("#tqNote"); list.replaceChildren();
+  const pack = await tatoebaPack();
+  const hits = q ? pack.filter(x => x.zh.includes(q)) : pack.slice().sort(() => Math.random() - 0.5);
+  note.textContent = pack.length ? (q ? hits.length + " av " + pack.length + " sparade meningar innehåller «" + q + "»." : pack.length + " sparade meningar. Visar 20 slumpvis.") : "Inga sparade meningar än.";
+  hits.slice(0, 20).forEach(x => list.append(tqRow(x, true)));
+  if (q && hits.length < 5) {
+    const more = h("button", { class: "btn", onclick: async () => { more.disabled = true; more.textContent = "Söker…"; await tqLive(q, list); more.remove(); } }, "Sök fler direkt på Tatoeba");
+    list.append(more);
+  }
+}
+async function tqLive(q, list) {
+  const url = "https://api.tatoeba.org/v1/sentences?" + new URLSearchParams({ lang: "cmn", q, has_audio: "yes", sort: "relevance", limit: "20", include: "audios,transcriptions", showtrans: "all" });
+  try {
+    const r = await fetch(url); const j = await r.json(); let n = 0;
+    for (const s of j.data || []) {
+      const chars = [...(s.text || "")].filter(c => /[\u3400-\u9fff]/.test(c)); const py = parseTatoebaPinyin(s, chars.length);
+      const a = (s.audios || []).find(a => (a.licence || "").trim()); if (!py || !a) continue;
+      const tr = {}; (s.translations || []).forEach(t => { if ((t.lang === "eng" || t.lang === "swe") && !tr[t.lang]) tr[t.lang] = t.text; });
+      list.append(tqRow({ zh: s.text, pinyin: py, en: tr.eng || "", sv: tr.swe || "", author: a.author, licence: a.licence, attribution: a.attribution_url, audioUrl: a.download_url || "https://api.tatoeba.org/v1/audios/" + a.id + "/file" }, false)); n++;
+    }
+    if (!n) list.append(h("div", { class: "note" }, "Inga fler meningar med fritt ljud hittades."));
+  } catch (e) { list.append(h("div", { class: "note" }, "Kunde inte nå Tatoeba direkt från webbläsaren. De sparade meningarna fungerar ändå.")); }
+}
+$("#tqBtn").onclick = tqSearch; $("#tqQ").addEventListener("keydown", e => { if (e.key === "Enter") tqSearch(); });
+async function renderRelated() {
+  const box = $("#related"); box.replaceChildren(); if (!CUR) return;
+  const chars = [...CUR.zh].filter(c => /[\u3400-\u9fff]/.test(c)); if (chars.length > 4 || chars.length < 1) return;
+  const pack = await tatoebaPack(); const hits = pack.filter(x => x.zh.includes(CUR.zh) && x.zh !== CUR.zh).slice(0, 4);
+  if (!hits.length) return;
+  box.append(h("details", { class: "card" }, h("summary", null, "Meningar med " + CUR.zh + " (riktigt ljud)"), h("div", { class: "stack", style: "margin-top:8px" }, hits.map(x => tqRow(x, true)))));
+}
+
 /* ---------- routing ---------- */
 const VIEWS = ["ova", "tonpar", "bibliotek", "hor", "stat"];
-function route() { let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "ova"; VIEWS.forEach(n => $("#v-" + n).hidden = n !== v); document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.v === v)); if (v === "bibliotek") renderLib(); if (v === "tonpar") renderTonpar(); if (v === "stat") renderStats(); if (v === "hor") nextListen(); if (REC.on && v !== "ova") stopRec(); }
+function route() { let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "ova"; VIEWS.forEach(n => $("#v-" + n).hidden = n !== v); document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.v === v)); if (v === "bibliotek") { renderLib(); if (!$("#tqList").childNodes.length) tqSearch(); } if (v === "tonpar") renderTonpar(); if (v === "stat") renderStats(); if (v === "hor") nextListen(); if (REC.on && v !== "ova") stopRec(); }
 window.addEventListener("hashchange", route);
 
 (async () => {
