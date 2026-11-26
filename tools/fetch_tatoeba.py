@@ -20,6 +20,7 @@ def get(url, binary=False, tries=4):
                 return data if binary else json.loads(data.decode("utf-8"))
         except urllib.error.HTTPError as e:
             if e.code in (403, 404):
+                print("HTTP", e.code, url, file=sys.stderr)
                 return None
             print("HTTP", e.code, url, file=sys.stderr)
         except Exception as e:
@@ -78,7 +79,10 @@ def main():
             dl = a.get("download_url") or f"https://api.tatoeba.org/v1/audios/{a['id']}/file"
             fn = f"{OUT_DIR}/{a['id']}.mp3"
             if not os.path.exists(fn):
-                data = get(dl, binary=True)
+                data = None
+                for u in (dl, f"https://api.tatoeba.org/v1/audios/{a['id']}/file", f"https://tatoeba.org/audio/download/{a['id']}"):
+                    data = get(u, binary=True, tries=2)
+                    if data and len(data) >= 1000: break
                 if not data or len(data) < 1000:
                     skipped["dl"] += 1; continue
                 open(fn, "wb").write(data)
