@@ -683,6 +683,11 @@ $("#impFile").onchange = async e => { const f = e.target.files[0]; if (f) import
 $("#impPasteBtn").onclick = () => { const t = $("#impPaste"); if (t.hidden) { t.hidden = false; t.focus(); $("#impPasteBtn").textContent = "Importera"; } else { importText(t.value); t.value = ""; t.hidden = true; $("#impPasteBtn").textContent = "Klistra in"; } };
 
 /* ---------- HÖRTRÄNING ---------- */
+// Native-ljud för hörträningen: ord från audio-cmn (lokalt för tonpar, annars GitHub), stavelser från audio-cmns stavelsesamling. Syntetisk röst bara som reserv.
+const hearEl = new Audio();
+function playUrls(urls, fallback) { return new Promise(res => { let i = 0; const next = () => { if (i >= urls.length) { speak(fallback, 0.8).then(res); return; } hearEl.src = urls[i++]; hearEl.onended = res; hearEl.onerror = next; hearEl.play().catch(next); }; next(); }); }
+function playWord(zh) { return playUrls(["audio/tonpar/" + encodeURIComponent(zh) + ".mp3", ACMN + encodeURIComponent(zh) + ".mp3"], zh); }
+function playSyl(py, zh) { return playUrls(["https://raw.githubusercontent.com/hugolpz/audio-cmn/master/64k/syllabs/cmn-" + py.toLowerCase().replace("u:", "v") + ".mp3"], zh); }
 const TONE_WORDS = [["银行","yin2 hang2"],["中国","zhong1 guo2"],["老师","lao3 shi1"],["电脑","dian4 nao3"],["咖啡","ka1 fei1"],["学生","xue2 sheng1"],["工作","gong1 zuo4"],["朋友","peng2 you5"],["可以","ke3 yi3"],["喜欢","xi3 huan5"],["音乐","yin1 yue4"],["时间","shi2 jian1"],["问题","wen4 ti2"],["医院","yi1 yuan4"],["机场","ji1 chang3"],["火车","huo3 che1"],["面包","mian4 bao1"],["米饭","mi3 fan4"],["方便","fang1 bian4"],["容易","rong2 yi4"],["价格","jia4 ge2"],["历史","li4 shi3"],["经济","jing1 ji4"],["文化","wen2 hua4"],["环境","huan2 jing4"],["比较","bi3 jiao4"],["地铁","di4 tie3"],["手机","shou3 ji1"],["干净","gan1 jing4"],["认真","ren4 zhen1"],["旅游","lv3 you2"],["城市","cheng2 shi4"],["打折","da3 zhe2"],["报纸","bao4 zhi3"],["飞机","fei1 ji1"],["厨房","chu2 fang2"]];
 const PAIRS = [
   ["aspiration b/p", [["八", "ba1"], ["趴", "pa1"]]], ["aspiration d/t", [["多", "duo1"], ["拖", "tuo1"]]], ["aspiration g/k", [["哥", "ge1"], ["科", "ke1"]]],
@@ -699,12 +704,12 @@ async function getListenStats() { return (await DB.get("kv", "listen")) || { ton
 async function bumpListen(fn) { const s = await getListenStats(); fn(s); await DB.put("kv", s, "listen"); }
 function nextListen() {
   const area = $("#hArea"); area.replaceChildren();
-  $("#hNote").textContent = zhVoice ? "Rösten: " + zhVoice.name + ". Syntetisk röst, så använd också riktiga inspelningar när du kan." : "Ingen kinesisk röst hittades på enheten. Lägg till kinesisk röst i telefonens inställningar (Tillgänglighet → Uppläst innehåll).";
+  $("#hNote").textContent = "Native-inspelningar från audio-cmn (CC BY-SA).";
   if (hMode === "tones") {
     const lib = ITEMS.filter(i => MA.parsePinyin(i.pinyin).length === 2).map(i => [i.zh, i.pinyin]);
     const pool = TONE_WORDS.concat(lib); const [zh, py] = pool[Math.floor(Math.random() * pool.length)];
     const syls = MA.parsePinyin(py); const ans = syls.map(s => s.tone); const pick = syls.map(() => 0);
-    const play = h("button", { class: "btn primary block", onclick: () => speak(zh, 0.8) }, "▶ Lyssna");
+    const play = h("button", { class: "btn primary block", onclick: () => playWord(zh) }, "▶ Lyssna");
     area.append(play);
     const rows = syls.map((s, i) => { const r = h("div", { class: "toneopts" }); [1, 2, 3, 4, 5].forEach(t => r.append(h("button", { onclick: ev => { pick[i] = t; [...r.children].forEach(b => b.classList.toggle("sel", b === ev.target)); } }, t === 5 ? "0" : t))); return r; });
     rows.forEach((r, i) => area.append(h("label", { class: "lbl" }, "Stavelse " + (i + 1)), r));
@@ -718,21 +723,21 @@ function nextListen() {
       check.replaceWith(h("button", { class: "btn primary block", onclick: nextListen }, "Nästa"));
     };
     area.append(check);
-    setTimeout(() => speak(zh, 0.8), 200);
+    setTimeout(() => playWord(zh), 200);
   } else {
     const [cat, opts] = PAIRS[Math.floor(Math.random() * PAIRS.length)];
     const target = opts[Math.floor(Math.random() * opts.length)];
-    area.append(h("div", { class: "note" }, "Kontrast: " + cat), h("button", { class: "btn primary block", onclick: () => speak(target[0], 0.75) }, "▶ Lyssna"));
+    area.append(h("div", { class: "note" }, "Kontrast: " + cat), h("button", { class: "btn primary block", onclick: () => playSyl(target[1], target[0]) }, "▶ Lyssna"));
     const grid = h("div", { class: "pairs" }); let done = false;
     opts.forEach(o => { const s = MA.parsePinyin(o[1])[0]; grid.append(h("button", { onclick: async ev => {
       if (done) return; done = true; const ok = o === target;
       [...grid.children].forEach((b, k) => { if (opts[k] === target) b.classList.add("right"); else if (b === ev.currentTarget) b.classList.add("wrong"); });
       await bumpListen(st => { st.pairs[cat] = st.pairs[cat] || { n: 0, ok: 0 }; st.pairs[cat].n++; if (ok) st.pairs[cat].ok++; });
-      area.append(h("div", { class: ok ? "ok" : "bad" }, ok ? "Rätt!" : "Det var " + target[0] + " " + MA.marked(MA.parsePinyin(target[1])[0].syl, MA.parsePinyin(target[1])[0].tone) + "."), h("div", { class: "row" }, opts.map(x => h("button", { class: "chip", onclick: () => speak(x[0], 0.75) }, "▶ " + x[0]))), h("button", { class: "btn primary block", onclick: nextListen }, "Nästa"));
+      area.append(h("div", { class: ok ? "ok" : "bad" }, ok ? "Rätt!" : "Det var " + target[0] + " " + MA.marked(MA.parsePinyin(target[1])[0].syl, MA.parsePinyin(target[1])[0].tone) + "."), h("div", { class: "row" }, opts.map(x => h("button", { class: "chip", onclick: () => playSyl(x[1], x[0]) }, "▶ " + x[0]))), h("button", { class: "btn primary block", onclick: nextListen }, "Nästa"));
     } }, MA.marked(s.syl, s.tone)));
     });
     area.append(grid);
-    setTimeout(() => speak(target[0], 0.75), 200);
+    setTimeout(() => playSyl(target[1], target[0]), 200);
   }
 }
 
