@@ -98,6 +98,10 @@ details summary{cursor:pointer;font-weight:600}
 
   <!-- ÖVA -->
   <section class="view stack" id="v-ova">
+    <div class="row" id="voiceRow" hidden>
+      <label class="lbl" for="voiceSel" style="margin:0">Röst</label>
+      <select id="voiceSel" style="flex:1;min-width:0"></select>
+    </div>
     <div class="row">
       <button class="btn" id="prevItem" aria-label="Föregående">‹</button>
       <select id="itemSel" style="flex:1;min-width:0"></select>
@@ -113,6 +117,7 @@ details summary{cursor:pointer;font-weight:600}
       <div class="big" id="oZh"></div>
       <div class="pyl" id="oPy"></div>
       <div class="svl" id="oSv"></div>
+      <div class="note" id="oVoice"></div>
     </div>
     <div class="card stack" id="mimicCard">
       <div class="row" style="justify-content:space-between"><label class="lbl">Härma och jämför</label><span class="note mono" id="takeInfo"></span></div>
@@ -268,7 +273,25 @@ function pyNode(syls, tones) { const w = h("span"); syls.forEach((s, i) => { if 
 const audioEl = new Audio(); audioEl.preload = "auto"; let audioUrl = null;
 const AB = { a: null, b: null, loop: false };
 let modelAn = null, modelAnFor = null;
-const practiceItems = () => ITEMS.filter(i => i.audio || i.audioPath);
+// Röster: utvalda manliga talare (audio/rost.json). VOICE = "sel" (alla utvalda), "all" eller ett talar-id.
+let VOICES = []; let VOICE = "sel"; try { VOICE = localStorage.getItem("studio-voice") || "sel"; } catch { }
+function voiceOk(i) {
+  if (!VOICES.length || VOICE === "all") return true;
+  if (!isSentence(i)) return true; // enstaka ord har en egen inläsare (audio-cmn)
+  return VOICE === "sel" ? VOICES.some(v => v.speaker === i.speaker) : i.speaker === VOICE;
+}
+const practiceItems = () => ITEMS.filter(i => (i.audio || i.audioPath) && voiceOk(i));
+function renderVoiceSel() {
+  const row = $("#voiceRow"); row.hidden = !VOICES.length; if (!VOICES.length) return;
+  const sel = $("#voiceSel"); const tot = VOICES.reduce((a, v) => a + v.n, 0);
+  sel.replaceChildren(h("option", { value: "sel" }, "Utvalda manliga röster (" + tot + " meningar)"), ...VOICES.map(v => h("option", { value: v.speaker }, v.label + " (" + v.n + ")")), h("option", { value: "all" }, "Alla inspelningar (blandade röster)"));
+  sel.value = VOICE === "all" || VOICE === "sel" || VOICES.some(v => v.speaker === VOICE) ? VOICE : "sel";
+}
+function setVoice(v) {
+  VOICE = v; try { localStorage.setItem("studio-voice", v); } catch { }
+  if (CUR && !voiceOk(CUR)) { const P = practiceItems().filter(isSentence); const n = P[0] || practiceItems()[0]; if (n) { selectItem(n.id); return; } }
+  renderItemSel(); showSentHits($("#sentQ").value.trim());
+}
 function renderItemSel() {
   const P = practiceItems(); const list = CUR && !CUR.audio ? [CUR, ...P] : P;
   const isSent = it => [...it.zh].filter(c => /[\u3400-\u9fff]/.test(c)).length > 4 || /[，。！？、,.!?]/.test(it.zh);
@@ -281,15 +304,20 @@ function renderItemSel() {
 // Lägg in alla Tatoeba-meningar med native-ljud i biblioteket (en gång), så att det finns meningar att skugga
 const SENT_PACKS = [
   { name: "tatoeba", file: "audio/tatoeba.json", dir: "audio/tatoeba/", credit: x => (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") },
-  { name: "stcmds", file: "audio/stcmds.json", dir: "audio/stcmds/", credit: () => "Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" }
+  { name: "stcmds", file: "audio/stcmds.json", dir: "audio/stcmds/", credit: () => "Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" },
+  { name: "rost", file: "audio/rost.json", dir: "audio/rost/", voices: true, credit: x => x.voice + " · Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" }
 ];
 // Lägg in alla meningar med native-ljud i biblioteket. Ljudet hämtas först när meningen öppnas.
 async function seedSentences() {
-  let n = 0; const have = new Set(ITEMS.map(i => i.zh));
+  let n = 0; const have = new Set(ITEMS.map(i => i.zh)); const byZh = new Map(ITEMS.map(i => [i.zh, i]));
   for (const P of SENT_PACKS) {
     let pack = []; try { const r = await fetch(P.file); if (r.ok) pack = await r.json(); } catch { }
+    if (P.voices && pack && pack.voices) { VOICES = pack.voices; renderVoiceSel(); }
+    if (!Array.isArray(pack)) pack = (pack && pack.items) || [];
     const key = "seeded-" + P.name + "-" + pack.length; if (!pack.length || await DB.get("kv", key)) continue;
-    for (const x of pack) { if (have.has(x.zh)) continue; have.add(x.zh); await DB.put("items", { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, audioPath: P.dir + x.audio, added: Date.now() + n, source: P.name, credit: P.credit(x) }); n++; }
+    for (const x of pack) {
+      if (P.voices && have.has(x.zh)) { const old = byZh.get(x.zh); if (old && old.source !== "rost") { Object.assign(old, { audio: null, audioPath: P.dir + x.audio, speaker: x.speaker, voice: x.voice, source: P.name, credit: P.credit(x) }); await DB.put("items", old); n++; } continue; }
+      if (have.has(x.zh)) continue; have.add(x.zh); const it = { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, audioPath: P.dir + x.audio, added: Date.now() + n, source: P.name, credit: P.credit(x), speaker: x.speaker || null, voice: x.voice || null }; await DB.put("items", it); byZh.set(x.zh, it); n++; }
     await DB.put("kv", true, key);
   }
   if (n) await loadItems(); return n;
@@ -314,7 +342,7 @@ function renderItem() {
   $("#result").replaceChildren(); TAKES.length = 0; TAKE_SEL = -1; NATIVE = null; renderTakes(); drawMimic(); AB.a = AB.b = null; AB.loop = false; $("#loopBtn").classList.remove("on"); updAB();
   if (!CUR) { $("#oZh").textContent = "Biblioteket är tomt"; $("#oPy").textContent = ""; $("#oSv").textContent = ""; $("#breakdown").replaceChildren(); $("#modelRow").replaceChildren(); return; }
   const syls = itemSyls(CUR); const sd = MA.sandhi(syls, CUR.zh);
-  $("#oZh").textContent = CUR.zh; $("#oPy").replaceChildren(pyNode(syls, sd.tones)); $("#oSv").textContent = CUR.sv || "";
+  $("#oZh").textContent = CUR.zh; $("#oPy").replaceChildren(pyNode(syls, sd.tones)); $("#oSv").textContent = CUR.sv || ""; $("#oVoice").textContent = CUR.voice || "";
   // breakdown
   const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, "Stavelse"), h("th", null, "Initial"), h("th", null, "Final"), h("th", null, "Ton"))));
   const body = h("tbody"); const chars = [...CUR.zh].filter(c => /[㐀-鿿]/.test(c));
@@ -958,6 +986,7 @@ function showSentHits(q) {
   hits.slice(0, 30).forEach(it => box.append(sentRow(it)));
 }
 $("#sentQ").addEventListener("input", () => { clearTimeout(window._sq); window._sq = setTimeout(() => showSentHits($("#sentQ").value.trim()), 250); });
+$("#voiceSel").onchange = e => setVoice(e.target.value);
 $("#randSent").onclick = () => { const S = practiceItems().filter(isSentence); if (S.length) selectItem(S[Math.floor(Math.random() * S.length)].id); };
 async function renderRelated() {
   const box = $("#related"); box.replaceChildren(); if (!CUR || isSentence(CUR)) return;
