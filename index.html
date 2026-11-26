@@ -103,6 +103,7 @@ details summary{cursor:pointer;font-weight:600}
       <select id="itemSel" style="flex:1;min-width:0"></select>
       <button class="btn" id="nextItem" aria-label="Nästa">›</button>
     </div>
+    <div class="note" id="missNote"></div>
     <div class="card stack">
       <div class="big" id="oZh"></div>
       <div class="pyl" id="oPy"></div>
@@ -262,12 +263,36 @@ function pyNode(syls, tones) { const w = h("span"); syls.forEach((s, i) => { if 
 const audioEl = new Audio(); audioEl.preload = "auto"; let audioUrl = null;
 const AB = { a: null, b: null, loop: false };
 let modelAn = null, modelAnFor = null;
+const practiceItems = () => ITEMS.filter(i => i.audio);
 function renderItemSel() {
-  const sel = $("#itemSel"); sel.replaceChildren(...ITEMS.map(it => h("option", { value: it.id }, it.zh + (it.audio ? " 🔊" : ""))));
+  const P = practiceItems(); const list = CUR && !CUR.audio ? [CUR, ...P] : P;
+  const isSent = it => [...it.zh].filter(c => /[\u3400-\u9fff]/.test(c)).length > 4 || /[，。！？、,.!?]/.test(it.zh);
+  const opt = it => h("option", { value: it.id }, it.zh + (it.audio ? "" : " (saknar native)"));
+  const sent = list.filter(isSent), words = list.filter(it => !isSent(it));
+  const sel = $("#itemSel"); sel.replaceChildren(...[sent.length ? h("optgroup", { label: "Meningar (" + sent.length + ")" }, sent.map(opt)) : null, words.length ? h("optgroup", { label: "Ord (" + words.length + ")" }, words.map(opt)) : null].filter(Boolean));
   if (CUR) sel.value = CUR.id;
+  const miss = ITEMS.length - P.length; $("#missNote").textContent = miss ? miss + " fraser i biblioteket saknar native-inspelning och visas inte här." : "";
+}
+// Lägg in alla Tatoeba-meningar med native-ljud i biblioteket (en gång), så att det finns meningar att skugga
+async function seedSentences() {
+  if (await DB.get("kv", "tatoebaSeeded2")) return 0;
+  const pack = await tatoebaPack(); if (!pack.length) return 0;
+  const have = new Set(ITEMS.map(i => i.zh)); let n = 0;
+  for (const x of pack) {
+    if (have.has(x.zh)) continue;
+    try { const r = await fetch("audio/tatoeba/" + x.audio); if (!r.ok) continue; const b = await r.blob();
+      await DB.put("items", { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: b, added: Date.now() + n, source: "tatoeba", credit: (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") }); n++; } catch { }
+  }
+  await DB.put("kv", true, "tatoebaSeeded2"); await loadItems(); return n;
+}
+let fillingNative = false;
+async function fillNative() {
+  if (fillingNative) return; fillingNative = true; let n = 0;
+  for (const it of ITEMS.filter(i => !i.audio)) { if (triedNative.has(it.id)) continue; triedNative.add(it.id); const b = await fetchNative(it.zh); if (b) { it.audio = b; it.audioSrc = "audio-cmn"; await DB.put("items", it); n++; } }
+  fillingNative = false; if (n) { if (!CUR || !CUR.audio) { const P = practiceItems(); if (P[0]) { await selectItem(P[0].id); return; } } renderItemSel(); }
 }
 async function selectItem(id) {
-  CUR = ITEMS.find(i => i.id === id) || ITEMS[0] || null;
+  CUR = ITEMS.find(i => i.id === id) || practiceItems()[0] || ITEMS[0] || null;
   try { localStorage.setItem("studio-cur", CUR ? CUR.id : ""); } catch { }
   renderItemSel(); renderItem();
 }
@@ -304,10 +329,14 @@ function renderItem() {
   } else {
     audioEl.removeAttribute("src");
     tryNativeAudio(CUR);
-    mr.append(h("button", { class: "btn primary", onclick: () => speak(CUR.zh, +$("#speed").value * 0.85) }, "▶ Syntetisk röst"));
-    $("#modelNote").textContent = "Ingen riktig native-inspelning än. Jämförelsen görs mot idealkurvor för tonerna. Lägg till en ljudfil eller spela in en kinesisktalande vän under Bibliotek för bäst resultat.";
+    $("#modelNote").textContent = "Den här frasen saknar native-inspelning. Välj en ljudfil eller låt en kinesisktalande spela in den.";
+    const fi = h("input", { type: "file", accept: "audio/*,video/*", hidden: true }); fi.onchange = async () => { const f = fi.files[0]; if (!f) return; CUR.audio = f; await DB.put("items", CUR); await loadItems(); toast("Native sparad"); renderItemSel(); renderItem(); };
+    mr.append(h("label", { class: "btn primary" }, "Välj native-ljudfil", fi));
+    $("#modelBox").open = true;
   }
   mr.append(h("button", { class: "btn", onclick: () => recordModel() }, "● Spela in native"));
+  $("#recBtn").disabled = !CUR.audio; $("#playNative").disabled = !CUR.audio; $("#contBtn").disabled = !CUR.audio;
+  $("#recNote").textContent = CUR.audio ? "Lyssna på native, tryck Spela in och härma. Tryck igen när du är klar." : "Lägg till native först (under Native ovan).";
   renderHistory(); renderRelated();
 }
 async function analyzeModel(it) {
@@ -359,7 +388,7 @@ async function startRec(target) {
   loop();
   const btn = $("#recBtn"); btn.textContent = "■ Stopp"; btn.classList.remove("rec"); btn.classList.add("primary");
   $("#recNote").textContent = target === "model" ? "Spelar in native… låt en kinesisktalande säga frasen tydligt." : "Spelar in… säg frasen.";
-  if (target === "user" && $("#withModel").checked) { if (CUR.audio) playModel(); else speak(CUR.zh, +$("#speed").value * 0.85); }
+  if (target === "user" && $("#withModel").checked && CUR.audio) playModel();
 }
 function stopRec() {
   if (!REC.on) return; REC.on = false; cancelAnimationFrame(REC.raf);
@@ -526,17 +555,17 @@ function drawMimic(live) {
     g.stroke();
   };
   if (NATIVE) draw(NATIVE.st, css("--muted"), 5, NATIVE.en);
-  else if (CUR) { const syls = itemSyls(CUR); const t = MA.sandhi(syls, CUR.zh).tones; const tpl = MA.templateCurve(t, syls.map(() => 260)).map(v => v == null ? null : v * 1.4); g.setLineDash([6, 5]); draw(tpl, css("--muted"), 3); g.setLineDash([]); }
+
   if (live) draw(live, css("--accent"), 2.5);
   else if (take) draw(take.pt.st, css("--accent"), 3, take.pt.en);
   g.font = "11px " + css("--mono"); g.fillStyle = css("--muted");
-  if (!NATIVE && CUR) g.fillText(CUR.audio ? "läser native…" : "ingen riktig native: streckad idealkurva", 6, 14);
+  if (!NATIVE && CUR && CUR.audio) g.fillText("läser native…", 6, 14);
 }
 const meEl = new Audio();
 function playMe() { const t = TAKES[TAKE_SEL]; if (!t) return Promise.resolve(); return new Promise(res => { meEl.src = t.url; meEl.onloadedmetadata = () => { try { meEl.currentTime = t.pt.startSec; } catch { } }; meEl.onended = res; meEl.onerror = res; meEl.play().catch(res); }); }
 function playNativeP() {
   if (!CUR) return Promise.resolve();
-  if (!CUR.audio) return speak(CUR.zh, +$("#speed").value * 0.85);
+  if (!CUR.audio) return Promise.resolve();
   return new Promise(res => { audioEl.playbackRate = +$("#speed").value; try { audioEl.currentTime = AB.a != null ? AB.a : (NATIVE ? NATIVE.startSec : 0); } catch { } audioEl.onended = () => { audioEl.onended = null; res(); }; audioEl.play().catch(res); });
 }
 $("#playNative").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP(); };
@@ -594,8 +623,8 @@ function renderResult(an, j, cmp, tones, blob) {
   const url = URL.createObjectURL(blob); const me = new Audio(url);
   out.append(h("div", { class: "row" },
     h("button", { class: "btn", onclick: () => me.play() }, "▶ Min"),
-    h("button", { class: "btn", onclick: () => CUR.audio ? playModel() : speak(CUR.zh) }, "▶ Native"),
-    h("button", { class: "btn", onclick: async () => { if (CUR.audio) { playModel(); await new Promise(r => audioEl.addEventListener("ended", r, { once: true })); } else await speak(CUR.zh); me.play(); } }, "▶ Native, sedan jag")));
+    h("button", { class: "btn", onclick: () => playModel() }, "▶ Native"),
+    h("button", { class: "btn", onclick: async () => { playModel(); await new Promise(r => audioEl.addEventListener("ended", r, { once: true })); me.play(); } }, "▶ Native, sedan jag")));
   if (j.sylFound !== j.rows.length) out.append(h("div", { class: "banner" }, "Hittade " + j.sylFound + " stavelser men frasen har " + j.rows.length + ". Säg frasen lite tydligare med små pauser, så blir analysen säkrare."));
   const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, ""), h("th", null, "Ton"), h("th", null, "Initial"), h("th", null, cmp ? "Likhet" : "Längd"))));
   const body = h("tbody");
@@ -622,8 +651,8 @@ async function renderHistory() {
   a.slice(0, 8).forEach(x => box.append(h("div", { class: "item" }, h("span", { class: "small" }, new Date(x.t).toLocaleString("sv", { dateStyle: "short", timeStyle: "short" })), h("span", { class: "small mono" }, "ton " + (x.toneScore ?? "–") + " · ini " + (x.iniScore ?? "–") + (x.simScore != null ? " · likh " + x.simScore : "")), x.audio ? h("button", { class: "chip", onclick: () => new Audio(URL.createObjectURL(x.audio)).play() }, "▶") : null)));
 }
 $("#itemSel").onchange = e => selectItem(e.target.value);
-$("#prevItem").onclick = () => { const i = ITEMS.indexOf(CUR); if (i > 0) selectItem(ITEMS[i - 1].id); };
-$("#nextItem").onclick = () => { const i = ITEMS.indexOf(CUR); if (i < ITEMS.length - 1) selectItem(ITEMS[i + 1].id); };
+$("#prevItem").onclick = () => { const P = practiceItems(); const i = P.indexOf(CUR); if (i > 0) selectItem(P[i - 1].id); else if (i < 0 && P[0]) selectItem(P[0].id); };
+$("#nextItem").onclick = () => { const P = practiceItems(); const i = P.indexOf(CUR); if (i < P.length - 1) selectItem(P[i + 1].id); };
 
 /* ---------- BIBLIOTEK ---------- */
 async function renderLib() {
@@ -913,7 +942,9 @@ window.addEventListener("hashchange", route);
 (async () => {
   await loadItems();
   let last = null; try { last = localStorage.getItem("studio-cur"); } catch { }
-  await selectItem(last && ITEMS.find(i => i.id === last) ? last : ITEMS[0] && ITEMS[0].id);
+  const lastIt = last && ITEMS.find(i => i.id === last && i.audio);
+  await selectItem(lastIt ? lastIt.id : (practiceItems()[0] || ITEMS[0] || {}).id);
+  seedSentences().then(n => { if (n) { toast(n + " meningar med native-ljud tillagda"); if (!CUR || !CUR.audio) { const P = practiceItems(); if (P[0]) selectItem(P[0].id); } else renderItemSel(); } fillNative(); });
   route();
   if (!window.isSecureContext) $("#hdrNote").textContent = "Mikrofonen kräver https";
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => { reg.update().catch(() => { }); }).catch(() => { });
