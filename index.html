@@ -67,7 +67,7 @@ canvas{width:100%;display:block;background:var(--surface);border:1px solid var(-
 .item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
 .item .zh{font-size:1.1rem}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
-nav .in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav .in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav a{text-align:center;text-decoration:none;color:var(--muted);font-size:.7rem;padding:8px 0 10px}
 nav a i{display:block;font-style:normal;font-family:var(--zh);font-size:1.15rem}
 nav a.on{color:var(--accent);font-weight:600}
@@ -82,6 +82,12 @@ nav a.on{color:var(--accent);font-weight:600}
 .pairs button{padding:14px 4px;font:600 1.1rem var(--mono);border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .pairs button.right{background:var(--good-soft);border-color:var(--good)}
 .pairs button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.tpgrid{display:grid;grid-template-columns:34px repeat(5,minmax(0,1fr));gap:4px;font-size:.78rem}
+.tpgrid .hd{display:grid;place-items:center;color:var(--muted);font:600 .72rem var(--mono)}
+.tpgrid button{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px 0;cursor:pointer;line-height:1.15}
+.tpgrid button b{display:block;font:600 .9rem var(--mono)}
+.tpgrid button small{color:var(--muted);font-size:.66rem}
+.tpgrid button.sel{outline:2px solid var(--accent);outline-offset:1px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;z-index:9}
 details summary{cursor:pointer;font-weight:600}
 </style>
@@ -127,6 +133,15 @@ details summary{cursor:pointer;font-weight:600}
     <div id="result" class="stack"></div>
   </section>
 
+  <!-- TONPAR -->
+  <section class="view stack" id="v-tonpar" hidden>
+    <div class="note">Alla 20 tonpar med riktiga inspelningar av vanliga ord. Tryck på ett par för att lyssna, skugga eller köra hörtest. Färgen visar hur säker du är (tal och hörsel).</div>
+    <div class="tpgrid" id="tpGrid"></div>
+    <div class="row"><button class="btn primary" id="tpMix">Hörtest: blandade tonpar</button></div>
+    <div id="tpArea" class="stack"></div>
+    <div class="note">Inspelningar: Yue Tan via <a href="https://github.com/hugolpz/audio-cmn" target="_blank" rel="noopener">audio-cmn</a>, CC BY-SA. Paren följer skriven ton; 3+3 uttalas som 2+3.</div>
+  </section>
+
   <!-- BIBLIOTEK -->
   <section class="view stack" id="v-bibliotek" hidden>
     <div class="card stack">
@@ -161,8 +176,9 @@ details summary{cursor:pointer;font-weight:600}
 </div>
 <nav><div class="in">
   <a href="#ova" data-v="ova"><i>说</i>Öva</a>
+  <a href="#tonpar" data-v="tonpar"><i>调</i>Tonpar</a>
   <a href="#bibliotek" data-v="bibliotek"><i>库</i>Bibliotek</a>
-  <a href="#hor" data-v="hor"><i>听</i>Hörträning</a>
+  <a href="#hor" data-v="hor"><i>听</i>Hör</a>
   <a href="#stat" data-v="stat"><i>统</i>Statistik</a>
 </div></nav>
 
@@ -259,6 +275,7 @@ function renderItem() {
     if (modelAnFor !== CUR.id) { modelAn = null; analyzeModel(CUR); }
   } else {
     audioEl.removeAttribute("src");
+    tryNativeAudio(CUR);
     mr.append(h("button", { class: "btn primary", onclick: () => speak(CUR.zh, +$("#speed").value * 0.85) }, "▶ Syntetisk röst"));
     $("#modelNote").textContent = "Ingen riktig förlaga än. Jämförelsen görs mot idealkurvor för tonerna. Lägg till en ljudfil eller spela in en kinesisktalande vän under Bibliotek för bäst resultat.";
   }
@@ -544,12 +561,20 @@ async function renderStats() {
   area.append(h("h2", null, "Hörträning"));
   const L = S.listen;
   area.append(h("table", null, h("tbody", null, [1, 2, 3, 4, 5].map(t => h("tr", null, h("td", { class: "t" + t }, t === 5 ? "neutral ton" : MA.TONE_NAME[t] + " ton"), h("td", { class: "mono" }, pctS(L.tones[t])), h("td", { class: "note" }, L.tones[t] ? L.tones[t].n + " st" : ""))), Object.entries(L.pairs).map(([k, v]) => h("tr", null, h("td", null, k), h("td", { class: "mono" }, pctS(v)), h("td", { class: "note" }, v.n + " st"))))));
+  const PS = await pairStats(); const tpk = Object.keys(PS.listen).concat(Object.keys(PS.speak));
+  if (tpk.length) {
+    area.append(h("h2", null, "Tonpar"));
+    const rows = [...new Set(tpk)].sort().map(k => h("tr", null, h("td", { class: "mono" }, pairLabel(k)), h("td", { class: "mono" }, "hör " + pctS(PS.listen[k])), h("td", { class: "mono" }, "tal " + pctS(PS.speak[k]))));
+    area.append(h("table", null, h("tbody", null, rows)));
+    const tc = Object.entries(L.tpConf || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (tc.length) area.append(h("div", { class: "note" }, "Vanligaste förväxlingar av tonpar: " + tc.map(([k, n]) => k + " (" + n + ")").join(", ")));
+  }
   area.append(h("h2", null, "Skicka till Mandapp"));
   area.append(h("div", { class: "note" }, "Exportera statistiken och importera den i Mandapp (Inställningar → Importera), så syns din uttalsutveckling där."));
   area.append(h("div", { class: "row" }, h("button", { class: "btn primary", onclick: () => exportStats(S, false) }, "Dela / spara fil"), h("button", { class: "btn", onclick: () => exportStats(S, true) }, "Kopiera")));
 }
 async function exportStats(S, copy) {
-  const data = JSON.stringify({ app: "mandapp-studio-stats", version: 1, exported: new Date().toISOString(), perTone: S.perTone, conf: S.conf, asp: { asp: { n: S.asp.asp.n, ok: S.asp.asp.ok }, unasp: { n: S.asp.unasp.n, ok: S.asp.unasp.ok } }, sib: S.sib, listen: S.listen,
+  const data = JSON.stringify({ app: "mandapp-studio-stats", version: 1, exported: new Date().toISOString(), perTone: S.perTone, conf: S.conf, asp: { asp: { n: S.asp.asp.n, ok: S.asp.asp.ok }, unasp: { n: S.asp.unasp.n, ok: S.asp.unasp.ok } }, sib: S.sib, listen: S.listen, pairs: await pairStats(),
     attempts: S.atts.slice(-300).map(a => ({ t: a.t, zh: a.zh, toneScore: a.toneScore, iniScore: a.iniScore, simScore: a.simScore })) });
   if (copy) { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { toast("Kunde inte kopiera"); } return; }
   const file = new File([data], "skuggning-statistik.json", { type: "application/json" });
@@ -557,9 +582,103 @@ async function exportStats(S, copy) {
   const a = h("a", { href: URL.createObjectURL(file), download: file.name }); document.body.append(a); a.click(); a.remove();
 }
 
+/* ---------- riktiga inspelningar (audio-cmn) ---------- */
+const ACMN = "https://raw.githubusercontent.com/hugolpz/audio-cmn/master/64k/hsk/cmn-";
+let HSKIDX = null, TP = null;
+async function hskIndex() { if (HSKIDX) return HSKIDX; try { HSKIDX = new Set(await (await fetch("audio/hsk-index.json")).json()); } catch { HSKIDX = new Set(); } return HSKIDX; }
+async function tonparData() { if (TP) return TP; TP = await (await fetch("audio/tonpar.json")).json(); return TP; }
+const triedNative = new Set();
+async function fetchNative(zh) {
+  const clean = zh.replace(/[，。！？、,.!? ]/g, "");
+  const local = "audio/tonpar/" + encodeURIComponent(clean) + ".mp3";
+  for (const url of [local, ACMN + encodeURIComponent(clean) + ".mp3"]) {
+    if (url !== local && !(await hskIndex()).has(clean)) continue;
+    try { const r = await fetch(url); if (r.ok) { const b = await r.blob(); if (b.size > 1000) return b; } } catch { }
+  }
+  return null;
+}
+async function tryNativeAudio(it) {
+  if (!it || it.audio || triedNative.has(it.id)) return; triedNative.add(it.id);
+  const b = await fetchNative(it.zh); if (!b) return;
+  it.audio = b; it.audioSrc = "audio-cmn"; await DB.put("items", it);
+  if (CUR && CUR.id === it.id) { toast("Hämtade riktig inspelning"); renderItemSel(); renderItem(); }
+}
+async function ensureItem(w, src) {
+  let it = ITEMS.find(i => i.zh === w.zh);
+  if (!it) { it = { id: uid(), zh: w.zh, pinyin: w.pinyin, sv: w.en || "", audio: null, added: Date.now(), source: src || "tonpar" }; }
+  if (!it.audio) { const b = await fetchNative(w.zh); if (b) { it.audio = b; it.audioSrc = "audio-cmn"; } }
+  await DB.put("items", it); await loadItems(); return ITEMS.find(i => i.id === it.id);
+}
+const pairKey = py => { const s = MA.parsePinyin(py); return s.length === 2 ? "" + s[0].tone + s[1].tone : null; };
+const pairLabel = k => k[0] + "+" + (k[1] === "5" ? "0" : k[1]);
+async function pairStats() {
+  const speak = {}; const atts = await DB.all("attempts");
+  for (const a of atts) { const r = a.rows || []; if (r.length !== 2) continue; const it = ITEMS.find(i => i.id === a.itemId); const k = it ? pairKey(it.pinyin) : null; if (!k) continue; const o = speak[k] = speak[k] || { n: 0, ok: 0 }; o.n++; if (r.every(x => x.toneOk !== false)) o.ok++; }
+  const L = await getListenStats(); return { speak, listen: L.tp || {} };
+}
+let tpSel = null;
+async function renderTonpar() {
+  const tp = await tonparData(); const st = await pairStats(); const g = $("#tpGrid"); g.replaceChildren(h("div"));
+  [1, 2, 3, 4, 5].forEach(t => g.append(h("div", { class: "hd t" + t }, t === 5 ? "+0" : "+" + t)));
+  for (const a of [1, 2, 3, 4]) {
+    g.append(h("div", { class: "hd t" + a }, a + "+"));
+    for (const b of [1, 2, 3, 4, 5]) {
+      const k = "" + a + b; const sp = st.speak[k], li = st.listen[k];
+      const n = (sp ? sp.n : 0) + (li ? li.n : 0), ok = (sp ? sp.ok : 0) + (li ? li.ok : 0); const pc = n ? ok / n : null;
+      const bg = pc == null ? "" : pc >= 0.8 ? "background:var(--good-soft)" : pc >= 0.5 ? "background:var(--warn-soft)" : "background:var(--bad-soft)";
+      g.append(h("button", { class: tpSel === k ? "sel" : "", style: bg, "aria-label": "Tonpar " + pairLabel(k), onclick: () => { tpSel = k; renderTonpar(); showPair(k); } }, h("b", null, pairLabel(k)), h("small", null, pc == null ? (tp[k] || []).length + " ord" : Math.round(pc * 100) + " %")));
+    }
+  }
+  if (tpSel && !$("#tpArea").childNodes.length) showPair(tpSel);
+}
+async function showPair(k) {
+  const tp = await tonparData(); const words = tp[k] || []; const area = $("#tpArea"); area.replaceChildren();
+  area.append(h("h2", null, "Tonpar " + pairLabel(k) + (k === "33" ? " (uttalas 2+3)" : "")));
+  area.append(h("div", { class: "row" },
+    h("button", { class: "btn primary", onclick: () => pairQuiz([k]) }, "Hörtest för paret"),
+    h("button", { class: "btn", onclick: async ev => { ev.target.disabled = true; let first = null; for (const w of words) { const it = await ensureItem(w, "tonpar " + pairLabel(k)); first = first || it; } toast(words.length + " ord i biblioteket"); ev.target.disabled = false; if (first) { await selectItem(first.id); location.hash = "ova"; } } }, "Skugga alla")));
+  for (const w of words) {
+    const s = MA.parsePinyin(w.pinyin);
+    area.append(h("div", { class: "item" },
+      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, w.zh), " ", h("span", { class: "mono small" }, pyNode(s)), w.hsk ? h("span", { class: "tag" }, "HSK " + w.hsk) : null, h("div", { class: "note" }, w.en)),
+      h("div", { class: "row", style: "flex:none" },
+        h("button", { class: "chip", "aria-label": "Lyssna", onclick: () => playTp(w.zh) }, "▶"),
+        h("button", { class: "chip", onclick: async () => { const it = await ensureItem(w, "tonpar " + pairLabel(k)); await selectItem(it.id); location.hash = "ova"; } }, "Skugga"))));
+  }
+}
+const tpAudio = new Audio();
+function playTp(zh) { return new Promise(res => { tpAudio.src = "audio/tonpar/" + encodeURIComponent(zh) + ".mp3"; tpAudio.onended = res; tpAudio.onerror = () => { speak(zh).then(res); }; tpAudio.play().catch(() => speak(zh).then(res)); }); }
+async function pairQuiz(keys) {
+  const tp = await tonparData(); const area = $("#tpArea"); area.replaceChildren();
+  const pool = keys.flatMap(k => (tp[k] || []).map(w => [k, w])); if (!pool.length) return;
+  let done = 0, right = 0;
+  const next = () => {
+    area.replaceChildren();
+    const [k, w] = pool[Math.floor(Math.random() * pool.length)];
+    const pick = [0, 0];
+    area.append(h("div", { class: "row", style: "justify-content:space-between" }, h("b", null, keys.length > 1 ? "Blandade tonpar" : "Tonpar " + pairLabel(keys[0])), h("span", { class: "note mono" }, done ? right + "/" + done + " rätt" : "")));
+    area.append(h("button", { class: "btn primary block", onclick: () => playTp(w.zh) }, "▶ Lyssna igen"));
+    const rows = [0, 1].map(i => { const r = h("div", { class: "toneopts" }); [1, 2, 3, 4, 5].forEach(t => { if (i === 0 && t === 5) { r.append(h("span")); return; } r.append(h("button", { onclick: ev => { pick[i] = t; [...r.children].forEach(b => b.classList && b.classList.toggle("sel", b === ev.target)); } }, t === 5 ? "0" : t)); }); return r; });
+    area.append(h("label", { class: "lbl" }, "Första stavelsen"), rows[0], h("label", { class: "lbl" }, "Andra stavelsen"), rows[1]);
+    const chk = h("button", { class: "btn block" }, "Rätta");
+    chk.onclick = async () => {
+      if (!pick[0] || !pick[1]) { toast("Välj båda tonerna"); return; }
+      const ans = [+k[0], +k[1]]; const ok = pick[0] === ans[0] && pick[1] === ans[1]; done++; if (ok) right++;
+      rows.forEach((r, i) => [...r.children].forEach((b, idx) => { if (!b.classList) return; const t = idx + 1; b.classList.remove("sel"); if (t === ans[i]) b.classList.add("right"); else if (t === pick[i]) b.classList.add("wrong"); }));
+      await bumpListen(s => { s.tp = s.tp || {}; const o = s.tp[k] = s.tp[k] || { n: 0, ok: 0 }; o.n++; if (ok) o.ok++; if (!ok) { s.tpConf = s.tpConf || {}; const c = pairLabel(k) + "→" + pick[0] + "+" + (pick[1] === 5 ? 0 : pick[1]); s.tpConf[c] = (s.tpConf[c] || 0) + 1; } });
+      area.append(h("div", { class: "card" }, h("div", { class: ok ? "ok" : "bad" }, ok ? "Rätt!" : "Det var " + pairLabel(k) + "."), h("div", null, h("span", { class: "zh", style: "font-size:1.4rem" }, w.zh), " ", pyNode(MA.parsePinyin(w.pinyin)), " ", h("span", { class: "note" }, w.en)), k === "33" ? h("div", { class: "note" }, "Två tredje toner: den första uttalas som andra ton.") : null));
+      chk.replaceWith(h("div", { class: "row" }, h("button", { class: "btn primary", onclick: next }, "Nästa"), h("button", { class: "btn", onclick: () => { area.replaceChildren(); renderTonpar(); } }, "Avsluta")));
+    };
+    area.append(chk);
+    setTimeout(() => playTp(w.zh), 150);
+  };
+  next();
+}
+$("#tpMix").onclick = async () => { const tp = await tonparData(); pairQuiz(Object.keys(tp)); };
+
 /* ---------- routing ---------- */
-const VIEWS = ["ova", "bibliotek", "hor", "stat"];
-function route() { let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "ova"; VIEWS.forEach(n => $("#v-" + n).hidden = n !== v); document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.v === v)); if (v === "bibliotek") renderLib(); if (v === "stat") renderStats(); if (v === "hor") nextListen(); if (REC.on && v !== "ova") stopRec(); }
+const VIEWS = ["ova", "tonpar", "bibliotek", "hor", "stat"];
+function route() { let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "ova"; VIEWS.forEach(n => $("#v-" + n).hidden = n !== v); document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.v === v)); if (v === "bibliotek") renderLib(); if (v === "tonpar") renderTonpar(); if (v === "stat") renderStats(); if (v === "hor") nextListen(); if (REC.on && v !== "ova") stopRec(); }
 window.addEventListener("hashchange", route);
 
 (async () => {
