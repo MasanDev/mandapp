@@ -1,4 +1,4 @@
-const C="skuggning-v4";const FILES=["./","index.html","analysis.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png","icon-180.png"];
+const C="skuggning-v5";const FILES=["./","index.html","analysis.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png","icon-180.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 // nätet först (så uppdateringar syns), cache som reserv offline

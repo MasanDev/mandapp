@@ -297,7 +297,7 @@ function dtw(a, b, distFn) {
   return { cost: D[n * (m + 1) + m] / (n + m), path };
 }
 function melDist(a, b) { let s = 0; const ma = mean(a), mb = mean(b); for (let i = 0; i < a.length; i++) { const d = (a[i] - ma) - (b[i] - mb); s += d * d; } return Math.sqrt(s / a.length); }
-// Jämför användarens analys (u) mot förlagan (m), stavelse för stavelse
+// Jämför användarens analys (u) mot native (m), stavelse för stavelse
 function compareToModel(u, m) {
   const out = [];
   const k = Math.min(u.syls.length, m.syls.length);
@@ -362,10 +362,10 @@ function judge(an, pinyinSyls, spokenTones, cmp) {
       const c = cmp.syl[i];
       const simP = Math.max(0, 100 - c.pitchDist * 18), simS = c.specDist != null ? Math.max(0, 100 - (c.specDist - 0.6) * 60) : null;
       row.sim = { pitch: Math.round(simP), spec: simS == null ? null : Math.round(Math.min(100, simS)), dur: c.durRatio };
-      if (c.durRatio > 1.6) row.tips.push("Stavelsen var mycket längre än förlagan.");
-      else if (c.durRatio < 0.55) row.tips.push("Stavelsen var mycket kortare än förlagan.");
-      if (c.consRatio != null && (ASP[ini]) && c.consRatio < 0.5) row.tips.push("Förlagan har dubbelt så lång luftpuff som du.");
-      if (simS != null && simS < 45) row.tips.push("Ljudet skiljer sig från förlagan. Lyssna på final och vokal (" + info.fin + ").");
+      if (c.durRatio > 1.6) row.tips.push("Stavelsen var mycket längre än native.");
+      else if (c.durRatio < 0.55) row.tips.push("Stavelsen var mycket kortare än native.");
+      if (c.consRatio != null && (ASP[ini]) && c.consRatio < 0.5) row.tips.push("Native har dubbelt så lång luftpuff som du.");
+      if (simS != null && simS < 45) row.tips.push("Ljudet skiljer sig från native. Lyssna på final och vokal (" + info.fin + ").");
     }
     rows.push(row);
   }
@@ -377,7 +377,7 @@ function judge(an, pinyinSyls, spokenTones, cmp) {
 }
 function fmt(v) { return (Math.round(v * 10) / 10).toString().replace(".", ","); }
 
-// syntetisk tonkurva för ritning när förlaga saknas
+// syntetisk tonkurva för ritning när native saknas
 function templateCurve(tones, durs) { const pts = []; tones.forEach((t, i) => { const tpl = t === 5 ? [0, 0, -0.5, -1, -1.2, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5] : TPL[t]; const n = Math.max(4, Math.round((durs[i] || 250) / 20)); for (let k = 0; k < n; k++) pts.push(tpl[Math.round(k * 11 / (n - 1))]); pts.push(null); }); return pts; }
 
 /* ---------------- snabb tonkurva (för härmningsläget) ---------------- */

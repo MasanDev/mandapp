@@ -135,7 +135,7 @@ details summary{cursor:pointer;font-weight:600}
       <div class="row"><button class="btn" id="analyzeBtn" disabled>Analysera uttalet</button><span class="note" id="recNote">Lyssna på native, tryck Spela in och härma. Tryck igen när du är klar.</span></div>
     </div>
     <details class="card" id="modelBox">
-      <summary>Förlaga: hastighet, loop och egen inspelning</summary>
+      <summary>Native: hastighet, loop och egen inspelning</summary>
       <div class="stack" style="margin-top:8px">
         <div class="row" id="modelRow"></div>
         <div class="row small">
@@ -176,7 +176,7 @@ details summary{cursor:pointer;font-weight:600}
       <input type="text" id="nZh" placeholder="Tecken, t.ex. 我想开一个账户">
       <input type="text" id="nPy" placeholder="Pinyin, t.ex. wo3 xiang3 kai1 yi2 ge4 zhang4 hu4 eller wǒ xiǎng…">
       <input type="text" id="nSv" placeholder="Svenska (valfritt)">
-      <label class="small">Förlaga (ljudfil, valfritt) <input type="file" id="nAudio" accept="audio/*,video/*"></label>
+      <label class="small">Native-ljud (ljudfil, valfritt) <input type="file" id="nAudio" accept="audio/*,video/*"></label>
       <button class="btn primary" id="nAdd">Lägg till</button>
     </div>
     <div class="card stack">
@@ -297,7 +297,7 @@ function renderItem() {
   if (audioUrl) { URL.revokeObjectURL(audioUrl); audioUrl = null; }
   if (CUR.audio) {
     audioUrl = URL.createObjectURL(CUR.audio); audioEl.src = audioUrl;
-    mr.append(h("button", { class: "btn primary", onclick: playModel }, "▶ Förlaga"), h("button", { class: "btn", onclick: () => { audioEl.pause(); } }, "■"));
+    mr.append(h("button", { class: "btn primary", onclick: playModel }, "▶ Native"), h("button", { class: "btn", onclick: () => { audioEl.pause(); } }, "■"));
     $("#modelNote").textContent = "Riktig inspelning. Tonkurvan jämförs med den.";
     if (modelAnFor !== CUR.id) { modelAn = null; analyzeModel(CUR); }
     nativeTrack(CUR);
@@ -305,9 +305,9 @@ function renderItem() {
     audioEl.removeAttribute("src");
     tryNativeAudio(CUR);
     mr.append(h("button", { class: "btn primary", onclick: () => speak(CUR.zh, +$("#speed").value * 0.85) }, "▶ Syntetisk röst"));
-    $("#modelNote").textContent = "Ingen riktig förlaga än. Jämförelsen görs mot idealkurvor för tonerna. Lägg till en ljudfil eller spela in en kinesisktalande vän under Bibliotek för bäst resultat.";
+    $("#modelNote").textContent = "Ingen riktig native-inspelning än. Jämförelsen görs mot idealkurvor för tonerna. Lägg till en ljudfil eller spela in en kinesisktalande vän under Bibliotek för bäst resultat.";
   }
-  mr.append(h("button", { class: "btn", onclick: () => recordModel() }, "● Spela in förlaga"));
+  mr.append(h("button", { class: "btn", onclick: () => recordModel() }, "● Spela in native"));
   renderHistory(); renderRelated();
 }
 async function analyzeModel(it) {
@@ -358,7 +358,7 @@ async function startRec(target) {
   };
   loop();
   const btn = $("#recBtn"); btn.textContent = "■ Stopp"; btn.classList.remove("rec"); btn.classList.add("primary");
-  $("#recNote").textContent = target === "model" ? "Spelar in förlaga… låt en kinesisktalande säga frasen tydligt." : "Spelar in… säg frasen.";
+  $("#recNote").textContent = target === "model" ? "Spelar in native… låt en kinesisktalande säga frasen tydligt." : "Spelar in… säg frasen.";
   if (target === "user" && $("#withModel").checked) { if (CUR.audio) playModel(); else speak(CUR.zh, +$("#speed").value * 0.85); }
 }
 function stopRec() {
@@ -374,7 +374,7 @@ async function onRecStop() {
   const blob = new Blob(REC.chunks, { type: (REC.mr && REC.mr.mimeType) || "audio/webm" });
   if (blob.size < 1000) { $("#recNote").textContent = "Inspelningen blev tom. Försök igen."; return; }
   if (REC.target === "model") {
-    CUR.audio = blob; await DB.put("items", CUR); modelAnFor = null; toast("Förlaga sparad"); renderItemSel(); renderItem(); $("#recNote").textContent = "Förlagan är sparad. Spela nu in dig själv."; return;
+    CUR.audio = blob; await DB.put("items", CUR); modelAnFor = null; toast("Native sparad"); renderItemSel(); renderItem(); $("#recNote").textContent = "Native-inspelningen är sparad. Spela nu in dig själv."; return;
   }
   try {
     const x = await MA.toMono16k(await blob.arrayBuffer());
@@ -563,7 +563,7 @@ function drawCompare(c, an, cmp, tones) {
   const norm = arr => { const scale = Math.min(2, Math.max(0.5, 8 / arr.range)); const mid = (arr.p10 + arr.p90) / 2; return v => (v - mid) * scale; };
   let ref = [], usr = [];
   if (cmp && cmp.global.path.length) {
-    // rita förlagan på sin tidsaxel, användaren omplacerad längs DTW-vägen
+    // rita native på sin tidsaxel, användaren omplacerad längs DTW-vägen
     const nm = norm(modelAn), nu = norm(an);
     const M = cmp.ma.v.length; ref = cmp.ma.v.map(v => nm(v));
     const mapped = new Array(M).fill(null); const cnt = new Array(M).fill(0);
@@ -578,7 +578,7 @@ function drawCompare(c, an, cmp, tones) {
   const line = (arr, color, w, dash) => { g.strokeStyle = color; g.lineWidth = w; g.setLineDash(dash || []); g.beginPath(); let pen = false; arr.forEach((v, i) => { if (v == null) { pen = false; return; } const x = i / (N - 1 || 1) * W, y = Math.max(2, Math.min(H - 2, yOf(v))); if (!pen) { g.moveTo(x, y); pen = true; } else g.lineTo(x, y); }); g.stroke(); g.setLineDash([]); };
   line(ref, css("--muted"), 4, cmp ? [] : [6, 5]);
   line(usr, css("--accent"), 2.5);
-  g.font = "11px " + css("--mono"); g.fillStyle = css("--muted"); g.fillText(cmp ? "grå = förlaga" : "streckad = idealkurva", 6, H - 6); g.fillStyle = css("--accent"); g.fillText("grön = du", W - 62, H - 6);
+  g.font = "11px " + css("--mono"); g.fillStyle = css("--muted"); g.fillText(cmp ? "grå = native" : "streckad = idealkurva", 6, H - 6); g.fillStyle = css("--accent"); g.fillText("grön = du", W - 62, H - 6);
 }
 
 /* ---------- resultat ---------- */
@@ -588,14 +588,14 @@ function renderResult(an, j, cmp, tones, blob) {
   out.append(h("div", { class: "tiles" },
     h("div", { class: "tile" }, h("b", { class: scoreCls(j.toneScore) }, j.toneScore == null ? "–" : j.toneScore + " %"), "toner"),
     h("div", { class: "tile" }, h("b", { class: scoreCls(j.iniScore) }, j.iniScore == null ? "–" : j.iniScore + " %"), "initialer"),
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.simScore) }, j.simScore == null ? "–" : j.simScore + " %"), cmp ? "likhet m. förlaga" : "likhet (kräver förlaga)")));
+    h("div", { class: "tile" }, h("b", { class: scoreCls(j.simScore) }, j.simScore == null ? "–" : j.simScore + " %"), cmp ? "likhet med native" : "likhet (kräver native)")));
   const cv = h("canvas", { "data-ratio": "0.4", "aria-label": "Tonkurvor" }); out.append(h("div", { class: "card stack" }, h("label", { class: "lbl" }, "Tonkurva"), cv));
   requestAnimationFrame(() => drawCompare(cv, an, cmp, tones));
   const url = URL.createObjectURL(blob); const me = new Audio(url);
   out.append(h("div", { class: "row" },
     h("button", { class: "btn", onclick: () => me.play() }, "▶ Min"),
-    h("button", { class: "btn", onclick: () => CUR.audio ? playModel() : speak(CUR.zh) }, "▶ Förlaga"),
-    h("button", { class: "btn", onclick: async () => { if (CUR.audio) { playModel(); await new Promise(r => audioEl.addEventListener("ended", r, { once: true })); } else await speak(CUR.zh); me.play(); } }, "▶ Förlaga, sedan min")));
+    h("button", { class: "btn", onclick: () => CUR.audio ? playModel() : speak(CUR.zh) }, "▶ Native"),
+    h("button", { class: "btn", onclick: async () => { if (CUR.audio) { playModel(); await new Promise(r => audioEl.addEventListener("ended", r, { once: true })); } else await speak(CUR.zh); me.play(); } }, "▶ Native, sedan jag")));
   if (j.sylFound !== j.rows.length) out.append(h("div", { class: "banner" }, "Hittade " + j.sylFound + " stavelser men frasen har " + j.rows.length + ". Säg frasen lite tydligare med små pauser, så blir analysen säkrare."));
   const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, ""), h("th", null, "Ton"), h("th", null, "Initial"), h("th", null, cmp ? "Likhet" : "Längd"))));
   const body = h("tbody");
@@ -608,7 +608,7 @@ function renderResult(an, j, cmp, tones, blob) {
     if (r.tips.length) body.append(h("tr", null, h("td", { colspan: 4, style: "padding-top:0" }, h("ul", { class: "tips small", style: "margin:0;padding-left:18px" }, r.tips.map(t => h("li", null, t))))));
   });
   tb.append(body); out.append(h("div", { class: "card" }, tb));
-  out.append(h("div", { class: "note" }, "Analysen är en uppskattning: toner mäts från tonhöjdskurvan, aspiration från hur länge det brusar före rösten och s/sh/x från var bruset ligger i frekvens. Den är säkrast med en riktig förlaga och i ett tyst rum."));
+  out.append(h("div", { class: "note" }, "Analysen är en uppskattning: toner mäts från tonhöjdskurvan, aspiration från hur länge det brusar före rösten och s/sh/x från var bruset ligger i frekvens. Den är säkrast med en riktig native-inspelning och i ett tyst rum."));
 }
 async function renderHistory() {
   if (!CUR) return;
@@ -633,7 +633,7 @@ async function renderLib() {
     const del = h("button", { class: "chip" }, "Ta bort");
     del.onclick = async () => { if (!del.dataset.arm) { del.dataset.arm = 1; del.textContent = "Säker?"; return; } await DB.del("items", it.id); await loadItems(); if (CUR && CUR.id === it.id) CUR = ITEMS[0] || null; renderItemSel(); renderLib(); };
     list.append(h("div", { class: "item" },
-      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, it.zh), " ", it.audio ? h("span", { class: "tag" }, "förlaga") : null, best[it.id] != null ? h("span", { class: "tag" }, "bäst " + best[it.id] + " %") : null, h("div", { class: "note mono" }, pyNode(itemSyls(it))), it.sv ? h("div", { class: "note" }, it.sv) : null),
+      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, it.zh), " ", it.audio ? h("span", { class: "tag" }, "native") : null, best[it.id] != null ? h("span", { class: "tag" }, "bäst " + best[it.id] + " %") : null, h("div", { class: "note mono" }, pyNode(itemSyls(it))), it.sv ? h("div", { class: "note" }, it.sv) : null),
       h("div", { class: "row", style: "flex:none" }, h("button", { class: "chip", onclick: () => { selectItem(it.id); location.hash = "ova"; } }, "Öva"), del)));
   });
 }
@@ -867,7 +867,7 @@ function tqRow(x, local) {
 async function tqItem(x, local) {
   let it = ITEMS.find(i => i.zh === x.zh);
   if (!it) it = { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, added: Date.now(), source: "tatoeba", credit: (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") };
-  if (!it.audio) { try { const r = await fetch(local ? "audio/tatoeba/" + x.audio : x.audioUrl); if (r.ok) it.audio = await r.blob(); } catch { } if (!it.audio) toast("Ljudet kunde inte hämtas, frasen sparas utan förlaga"); }
+  if (!it.audio) { try { const r = await fetch(local ? "audio/tatoeba/" + x.audio : x.audioUrl); if (r.ok) it.audio = await r.blob(); } catch { } if (!it.audio) toast("Ljudet kunde inte hämtas, frasen sparas utan native-ljud"); }
   await DB.put("items", it); await loadItems(); return ITEMS.find(i => i.id === it.id);
 }
 function parseTatoebaPinyin(s, n) { for (const t of s.transcriptions || []) { let txt = (t.text || "").toLowerCase().replace(/u:/g, "v").replace(/\[[^|\]]*\|([^\]]*)\]/g, "$1"); const m = txt.match(/[a-zü:v]+[1-5]/g) || []; if (m.length === n) return m.join(" "); } return null; }
