@@ -916,7 +916,8 @@ window.addEventListener("hashchange", route);
   await selectItem(last && ITEMS.find(i => i.id === last) ? last : ITEMS[0] && ITEMS[0].id);
   route();
   if (!window.isSecureContext) $("#hdrNote").textContent = "Mikrofonen kräver https";
-  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => { });
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => { reg.update().catch(() => { }); }).catch(() => { });
+  if ("serviceWorker" in navigator) { let reloaded = false; navigator.serviceWorker.addEventListener("controllerchange", () => { if (reloaded) return; reloaded = true; location.reload(); }); }
 })();
 </script>
 </body>
