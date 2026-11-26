@@ -3,990 +3,1354 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mandapp Skuggning</title>
+<title>Mandapp</title>
 <meta name="theme-color" content="#0d7a6a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Skuggning">
+<script>
+// Gamla adresser till skuggningsstudion (#ova, #tonpar …) leder vidare till skugga.html
+(function () { function go() { var v = location.hash.slice(1).split("?")[0]; if (["ova", "tonpar", "bibliotek", "hor", "stat"].indexOf(v) >= 0) { location.replace("skugga.html" + location.hash); return true; } } go(); window.addEventListener("hashchange", go); })();
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+/* Layout: en kolumn för mobil (max 560px), fast flikrad i botten, bottenark för uppslag. */
 :root{
   --bg:#f3f6f5; --surface:#ffffff; --sunk:#e7eeec; --fg:#14201d; --muted:#55645f; --line:#cfdbd7;
   --accent:#0d7a6a; --accent-soft:#d5ece7; --on-accent:#ffffff;
-  --warn:#a85a00; --warn-soft:#fbecd7; --bad:#b3261e; --bad-soft:#f8dedb; --good:#2e7d32; --good-soft:#dcefdc; --blue:#1565c0;
+  --warn:#a85a00; --warn-soft:#fbecd7; --bad:#b3261e; --bad-soft:#f8dedb; --blue:#1565c0;
   --t1:#c62828; --t2:#2e7d32; --t3:#1565c0; --t4:#6a1b9a; --t5:#6b7773;
-  --body:-apple-system,"Segoe UI",system-ui,Roboto,sans-serif;
-  --zh:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
-  --mono:ui-monospace,Menlo,"SF Mono",Consolas,monospace;
+  --display:"Sora","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --zh:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
-@media (prefers-color-scheme: dark){:root{
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
   --accent:#4cc2ad; --accent-soft:#163a34; --on-accent:#08201c;
-  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --good:#6cc770; --good-soft:#173219; --blue:#6aa8f0;
+  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --blue:#6aa8f0;
   --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
+  --accent:#4cc2ad; --accent-soft:#163a34; --on-accent:#08201c;
+  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --blue:#6aa8f0;
+  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c; color-scheme:dark;}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--body)}
-.app{max-width:600px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
-header{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 0 8px}
-header h1{font-size:1.2rem;margin:0}
-h2{font-size:1.02rem;margin:18px 0 8px}
-.muted{color:var(--muted)}.small{font-size:.85rem}.mono{font-family:var(--mono)}.zh{font-family:var(--zh)}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);margin:0}
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(76px + env(safe-area-inset-bottom,0px))}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-block:14px 8px}
+header.top h1{font:700 1.25rem var(--display);margin:0;letter-spacing:-.01em}
+header.top .sub{font:500 .72rem var(--mono);color:var(--muted)}
+.banner{font-size:.85rem;background:var(--warn-soft);color:var(--fg);border-left:3px solid var(--warn);padding:8px 10px;border-radius:0 8px 8px 0;margin:6px 0}
+.banner[hidden]{display:none}
+h2{font:600 1.05rem var(--display);margin:18px 0 8px}
+.muted{color:var(--muted)} .small{font-size:.85rem} .mono{font-family:var(--mono)}
+.zh{font-family:var(--zh)}
 .t1{color:var(--t1)}.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}.t5{color:var(--t5)}
-button,select,input,textarea{font:inherit;color:inherit}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;font-weight:600;cursor:pointer}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.rec{background:var(--bad);border-color:var(--bad);color:#fff}
-.btn:disabled{opacity:.5}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
 .btn.block{width:100%}
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;padding:3px 9px;border-radius:999px;background:var(--sunk);border:0;cursor:pointer}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--fg);border:0}
+button.chip{cursor:pointer}
 .chip.on{background:var(--accent);color:var(--on-accent)}
+.pill{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.pill.new{background:var(--sunk);color:var(--muted)} .pill.learn{background:var(--warn-soft);color:var(--warn)}
+.pill.young{background:var(--accent-soft);color:var(--accent)} .pill.mature{background:var(--accent);color:var(--on-accent)}
+.pill.leech{background:var(--bad-soft);color:var(--bad)} .pill.susp{background:var(--sunk);color:var(--muted);text-decoration:line-through}
+.pill.flag{background:var(--warn-soft);color:var(--warn)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .stack{display:flex;flex-direction:column;gap:10px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
-input[type=text],textarea,select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
-select{width:auto}
-textarea{min-height:80px}
-label.lbl{font:600 .7rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+input[type=text],input[type=search],input[type=number],textarea,select{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+textarea{min-height:90px;resize:vertical}
+label.lbl{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.view{display:flex;flex-direction:column;gap:12px}
 .view[hidden]{display:none}
-.big{font-family:var(--zh);font-size:clamp(2rem,10vw,3rem);font-weight:700;text-align:center;letter-spacing:.05em;line-height:1.2}
-.pyl{text-align:center;font:500 1.1rem var(--mono)}
-.svl{text-align:center;color:var(--muted)}
-table{border-collapse:collapse;width:100%;font-size:.86rem}
-th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font:600 .68rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.tag{display:inline-block;font-size:.72rem;padding:1px 7px;border-radius:999px;background:var(--sunk);margin:1px 2px 1px 0}
-.tag.warn{background:var(--warn-soft);color:var(--warn)}
-.ok{color:var(--good)}.bad{color:var(--bad)}.mid{color:var(--warn)}
-canvas{width:100%;display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center;font-size:.75rem;color:var(--muted)}
-.tile b{display:block;font-size:1.35rem;color:var(--fg);font-variant-numeric:tabular-nums}
-.tips li{margin:2px 0}
-.item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
-.item .zh{font-size:1.1rem}
-nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
-nav .in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
-nav a{text-align:center;text-decoration:none;color:var(--muted);font-size:.7rem;padding:8px 0 10px}
-nav a i{display:block;font-style:normal;font-family:var(--zh);font-size:1.15rem}
-nav a.on{color:var(--accent);font-weight:600}
+
+/* review */
+.progress{display:flex;justify-content:space-between;font:500 .75rem var(--mono);color:var(--muted)}
+.bar{height:4px;background:var(--sunk);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);width:0}
+.rcard{min-height:340px;display:flex;flex-direction:column;gap:12px}
+.big{font-family:var(--zh);font-size:clamp(2.6rem,13vw,3.6rem);font-weight:700;text-align:center;letter-spacing:.06em;line-height:1.15;margin-top:10px;word-break:break-all}
+.py{text-align:center;font:500 1.05rem var(--mono)}
+.mean{text-align:center}
+.mean .en{color:var(--muted);font-size:.88rem;display:block;margin-top:2px}
+.ctx{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.ctx .lblrow{display:flex;justify-content:space-between;align-items:center;font:500 .68rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;gap:8px}
+.ctx .zhline{font-family:var(--zh);font-size:1.12rem;line-height:1.9}
+.ctx .sv{color:var(--muted);font-size:.85rem}
+.seg{cursor:pointer;border-radius:3px}
+.seg:hover{background:var(--sunk)}
+.seg.target{background:var(--accent-soft);border-bottom:2px solid var(--accent)}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.grades button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 2px;font-weight:600}
+.grades small{display:block;font:400 .7rem var(--mono);color:var(--muted)}
+.grades .g1{color:var(--bad)} .grades .g2{color:var(--warn)} .grades .g3{color:var(--accent)} .grades .g4{color:var(--blue)}
+.grades .suggest{outline:2px solid var(--warn);outline-offset:1px}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font:600 1.05rem var(--display);margin-bottom:6px}
 .note{font-size:.82rem;color:var(--muted)}
-.banner{background:var(--warn-soft);border-left:3px solid var(--warn);padding:8px 10px;border-radius:0 8px 8px 0;font-size:.85rem}
-.toneopts{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
-.toneopts button{padding:8px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
-.toneopts button.sel{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-.toneopts button.right{background:var(--good-soft);border-color:var(--good)}
-.toneopts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
-.pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
-.pairs button{padding:14px 4px;font:600 1.1rem var(--mono);border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
-.pairs button.right{background:var(--good-soft);border-color:var(--good)}
-.pairs button.wrong{background:var(--bad-soft);border-color:var(--bad)}
-.tpgrid{display:grid;grid-template-columns:34px repeat(5,minmax(0,1fr));gap:4px;font-size:.78rem}
-.tpgrid .hd{display:grid;place-items:center;color:var(--muted);font:600 .72rem var(--mono)}
-.tpgrid button{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px 0;cursor:pointer;line-height:1.15}
-.tpgrid button b{display:block;font:600 .9rem var(--mono)}
-.tpgrid button small{color:var(--muted);font-size:.66rem}
-.tpgrid button.sel{outline:2px solid var(--accent);outline-offset:1px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;z-index:9}
-details summary{cursor:pointer;font-weight:600}
+.thinking{font-size:.85rem;color:var(--muted);font-style:italic}
+
+/* lists */
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;text-align:left;width:100%}
+.item .w{min-width:0;flex:1}
+.item .hz{font-family:var(--zh);font-size:1.12rem;font-weight:500}
+.item .pyi{font:500 .8rem var(--mono);margin-left:6px}
+.item .def{display:block;font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.add{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-weight:700;border:0;flex:none}
+.add.done{background:var(--sunk);color:var(--muted)}
+.check{width:22px;height:22px;flex:none;accent-color:var(--accent)}
+.segtabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:12px;padding:3px}
+.segtabs button{border:0;background:transparent;padding:8px;border-radius:9px;font-weight:500}
+.segtabs button.on{background:var(--surface);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* stats */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:.75rem;color:var(--muted)}
+.tile b{display:block;font:600 1.3rem var(--display);color:var(--fg);font-variant-numeric:tabular-nums}
+.chartbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.chartbox svg{display:block;width:100%;height:auto}
+.dist{display:grid;grid-template-columns:70px 1fr 44px;gap:6px 8px;align-items:center;font-size:.82rem}
+.dist .track{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}.dist .track i{display:block;height:100%;border-radius:4px}
+
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:20;
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav.tabs a{text-decoration:none;color:var(--muted);text-align:center;font-size:.68rem;padding:8px 2px 10px;position:relative}
+nav.tabs a i{display:block;font-style:normal;font-family:var(--zh);font-size:1.2rem;line-height:1.2}
+nav.tabs a.on{color:var(--accent);font-weight:600}
+nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--bad);color:#fff;font:600 .62rem var(--mono);border-radius:999px;padding:0 5px;min-width:16px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--line);
+  max-height:82vh;overflow:auto;box-shadow:0 -12px 30px -12px rgba(0,0,0,.4);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 4px}
+.sheet .hw{font-family:var(--zh);font-size:2rem;font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;z-index:60;max-width:90vw}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
 </style>
 </head>
 <body>
+
 <div class="app">
-  <header><h1>Skuggning</h1><span class="note" id="hdrNote"></span></header>
+  <header class="top">
+    <div><h1>Mandapp</h1><div class="sub" id="subtitle">laddar…</div></div>
+    <button class="chip" id="btnSettings" type="button" aria-label="Inställningar">⚙ Inställningar</button>
+  </header>
+  <div class="banner" id="banner" hidden></div>
 
-  <!-- ÖVA -->
-  <section class="view stack" id="v-ova">
-    <div class="row">
-      <button class="btn" id="prevItem" aria-label="Föregående">‹</button>
-      <select id="itemSel" style="flex:1;min-width:0"></select>
-      <button class="btn" id="nextItem" aria-label="Nästa">›</button>
+  <!-- REPETERA -->
+  <section class="view" id="v-repetera">
+    <div id="reviewArea"></div>
+  </section>
+
+  <!-- LÄGG TILL -->
+  <section class="view" id="v-lagg-till" hidden>
+    <div class="segtabs" role="tablist">
+      <button type="button" id="tabText" class="on">Skriv</button>
+      <button type="button" id="tabFoto">Foto</button>
     </div>
-    <div class="row">
-      <input type="text" id="sentQ" placeholder="Hitta meningar med ett ord, t.ex. 银行" style="flex:1;min-width:0">
-      <button class="btn" id="randSent" aria-label="Slumpa en mening">🎲</button>
+    <div id="addText" class="stack">
+      <input type="search" id="q" placeholder="Tecken, pinyin (yinhang) eller engelska" autocomplete="off">
+      <div class="note" id="qNote">Ordboken (CC-CEDICT) laddas första gången och sparas sedan i telefonen.</div>
+      <div class="list" id="results"></div>
     </div>
-    <div id="sentHits" class="stack"></div>
-    <div class="note" id="missNote"></div>
-    <div class="card stack">
-      <div class="big" id="oZh"></div>
-      <div class="pyl" id="oPy"></div>
-      <div class="svl" id="oSv"></div>
+    <div id="addFoto" class="stack" hidden>
+      <div class="card stack">
+        <div>Fota en meny, skylt eller textsida. Claude läser texten och plockar ut orden.</div>
+        <label class="btn primary block" style="text-align:center">Ta foto eller välj bild
+          <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+        </label>
+        <div class="note" id="photoNote"></div>
+      </div>
+      <div id="photoOut" class="stack"></div>
     </div>
-    <div class="card stack" id="mimicCard">
-      <div class="row" style="justify-content:space-between"><label class="lbl">Härma och jämför</label><span class="note mono" id="takeInfo"></span></div>
-      <canvas id="live" data-ratio="0.5" aria-label="Tonkurvor för native och dig"></canvas>
-      <div class="row small" style="justify-content:space-between"><span><span style="color:var(--muted)">━ native</span> &nbsp; <span style="color:var(--accent)">━ du</span></span>
-        <label><input type="checkbox" id="sameLen" checked> Samma längd</label></div>
+  </section>
+
+  <!-- IDAG -->
+  <section class="view" id="v-idag" hidden>
+    <div class="segtabs" role="tablist">
+      <button type="button" id="tabIdag" class="on">Idag ska jag…</button>
+      <button type="button" id="tabLas">Läs en text</button>
+    </div>
+    <div id="lasBox" class="stack" hidden>
+      <label class="lbl" for="lasTopic">Ämne</label>
+      <input type="text" id="lasTopic" placeholder="t.ex. mat i Sichuan, en dag på banken, AI">
       <div class="row">
-        <button class="btn" id="playNative" style="flex:1">▶ Native</button>
-        <button class="btn rec" id="recBtn" style="flex:2">● Spela in</button>
+        <select id="lasLen" style="width:auto"><option value="150">Kort (~150 tecken)</option><option value="300" selected>Mellan (~300 tecken)</option><option value="500">Lång (~500 tecken)</option></select>
+        <button class="btn primary" id="btnLas" type="button" style="flex:1">Skriv en text till mig</button>
       </div>
-      <div class="row" id="playRow">
-        <button class="btn" id="playMe" disabled>▶ Jag</button>
-        <button class="btn" id="playBoth" disabled>▶ Båda samtidigt</button>
-        <button class="btn" id="playSeq" disabled>▶ Native → jag</button>
-      </div>
-      <div class="row small" id="takesRow"></div>
-      <label class="row small"><input type="checkbox" id="withModel"> Hör native samtidigt när jag spelar in (hörlurar)</label>
-      <div class="card stack" style="background:var(--bg)">
-        <button class="btn primary" id="contBtn">∞ Starta kontinuerligt läge</button>
-        <div class="row small">
-          <label><input type="checkbox" id="contNative" checked> Native före varje försök</label>
-          <label>Sedan: <select id="contPlay"><option value="me">spela upp mig</option><option value="both">båda samtidigt</option><option value="seq">native → mig</option><option value="none">ingen uppspelning</option></select></label>
-        </div>
-        <div class="note" id="contNote">Appen lyssnar, känner av när du börjar och slutar prata, spelar upp och visar kurvorna direkt. Prata igen när du vill.</div>
-      </div>
-      <div class="row"><button class="btn" id="analyzeBtn" disabled>Analysera uttalet</button><span class="note" id="recNote">Lyssna på native, tryck Spela in och härma. Tryck igen när du är klar.</span></div>
+      <div class="note" id="lasNote">Claude skriver en text där nästan alla ord är sådana du kan, plus några ord du håller på att lära dig. Tryck på ord du inte kan.</div>
+      <div id="lasOut" class="stack"></div>
     </div>
-    <details class="card" id="modelBox">
-      <summary>Native: hastighet, loop och egen inspelning</summary>
-      <div class="stack" style="margin-top:8px">
-        <div class="row" id="modelRow"></div>
-        <div class="row small">
-          <label>Hastighet <select id="speed"><option value="1">1×</option><option value="0.85">0,85×</option><option value="0.7">0,7×</option><option value="0.5">0,5×</option></select></label>
-          <button class="chip" id="setA">A</button><button class="chip" id="setB">B</button><button class="chip" id="loopBtn">⟲ Loop</button>
-          <span class="mono note" id="abInfo"></span>
-        </div>
-        <div class="note" id="modelNote"></div>
-      </div>
-    </details>
-    <details class="card" id="breakdownBox">
-      <summary>Ljud för ljud: initial, final, ton</summary>
-      <div id="breakdown" style="margin-top:8px"></div>
-    </details>
-    <div id="related" class="stack"></div>
-    <div id="result" class="stack"></div>
+    <div class="stack" id="idagBox">
+      <label class="lbl" for="todayText">Idag ska jag…</label>
+      <textarea id="todayText" placeholder="t.ex. gå till banken och öppna ett konto, och fråga om att föra över pengar till Sverige"></textarea>
+      <button class="btn primary" id="btnToday" type="button">Ge mig orden jag behöver</button>
+      <div class="note" id="todayNote"></div>
+    </div>
+    <div id="todayOut" class="stack" data-idag="1"></div>
   </section>
 
-  <!-- TONPAR -->
-  <section class="view stack" id="v-tonpar" hidden>
-    <div class="note">Alla 20 tonpar med riktiga inspelningar av vanliga ord. Tryck på ett par för att lyssna, skugga eller köra hörtest. Färgen visar hur säker du är (tal och hörsel).</div>
-    <div class="tpgrid" id="tpGrid"></div>
-    <div class="row"><button class="btn primary" id="tpMix">Hörtest: blandade tonpar</button></div>
-    <div id="tpArea" class="stack"></div>
-    <div class="note">Inspelningar: Yue Tan via <a href="https://github.com/hugolpz/audio-cmn" target="_blank" rel="noopener">audio-cmn</a>, CC BY-SA. Paren följer skriven ton; 3+3 uttalas som 2+3.</div>
-  </section>
-
-  <!-- BIBLIOTEK -->
-  <section class="view stack" id="v-bibliotek" hidden>
-    <div class="card stack">
-      <label class="lbl">Importera från Mandapp</label>
-      <div class="note">I Mandapp: Inställningar → "Skicka till skuggning". Välj sedan filen här, eller klistra in texten.</div>
-      <div class="row"><label class="btn">Välj fil<input type="file" id="impFile" accept=".json,application/json,text/plain" hidden></label><button class="btn" id="impPasteBtn">Klistra in</button></div>
-      <textarea id="impPaste" placeholder="Klistra in JSON från Mandapp" hidden></textarea>
+  <!-- ORD -->
+  <section class="view" id="v-ord" hidden>
+    <div class="row">
+      <input type="search" id="wq" placeholder="Sök i din ordbank" style="flex:1;min-width:0">
     </div>
-    <div class="card stack">
-      <label class="lbl">Lägg till fras</label>
-      <input type="text" id="nZh" placeholder="Tecken, t.ex. 我想开一个账户">
-      <input type="text" id="nPy" placeholder="Pinyin, t.ex. wo3 xiang3 kai1 yi2 ge4 zhang4 hu4 eller wǒ xiǎng…">
-      <input type="text" id="nSv" placeholder="Svenska (valfritt)">
-      <label class="small">Native-ljud (ljudfil, valfritt) <input type="file" id="nAudio" accept="audio/*,video/*"></label>
-      <button class="btn primary" id="nAdd">Lägg till</button>
+    <div class="row" id="wfilters">
+      <button class="chip on" data-f="alla" type="button">Alla</button>
+      <button class="chip" data-f="ny" type="button">Nya</button>
+      <button class="chip" data-f="lar" type="button">Lär</button>
+      <button class="chip" data-f="mogen" type="button">Mogna</button>
+      <button class="chip" data-f="markerad" type="button">Markerade</button>
+      <button class="chip" data-f="igel" type="button">Iglar</button>
+      <button class="chip" data-f="pausad" type="button">Pausade</button>
     </div>
-    <div class="card stack">
-      <label class="lbl">Meningar med ljud (Tatoeba)</label>
-      <div class="row"><input type="text" id="tqQ" placeholder="Sök ord, t.ex. 银行" style="flex:1;min-width:0"><button class="btn" id="tqBtn">Sök</button></div>
-      <div class="note" id="tqNote"></div>
-      <div class="stack" id="tqList"></div>
-    </div>
-    <div class="note" id="libCount"></div>
-    <div class="stack" id="libList"></div>
-  </section>
-
-  <!-- HÖR -->
-  <section class="view stack" id="v-hor" hidden>
-    <div class="row"><button class="chip on" id="hTones">Toner</button><button class="chip" id="hPairs">Minimala par</button></div>
-    <div id="hNote" class="note"></div>
-    <div id="hArea" class="stack"></div>
+    <div class="note" id="wcount"></div>
+    <div class="list" id="wlist"></div>
   </section>
 
   <!-- STATISTIK -->
-  <section class="view stack" id="v-stat" hidden>
-    <div id="statArea" class="stack"></div>
+  <section class="view" id="v-statistik" hidden>
+    <div id="statsArea" class="stack"></div>
   </section>
 </div>
-<nav><div class="in">
-  <a href="#ova" data-v="ova"><i>说</i>Öva</a>
-  <a href="#tonpar" data-v="tonpar"><i>调</i>Tonpar</a>
-  <a href="#bibliotek" data-v="bibliotek"><i>库</i>Bibliotek</a>
-  <a href="#hor" data-v="hor"><i>听</i>Hör</a>
-  <a href="#stat" data-v="stat"><i>统</i>Statistik</a>
+
+<nav class="tabs" aria-label="Huvudmeny"><div class="in">
+  <a href="#repetera" data-v="repetera"><i>复</i>Repetera<span class="badge" id="dueBadge" hidden></span></a>
+  <a href="#lagg-till" data-v="lagg-till"><i>+</i>Lägg till</a>
+  <a href="#idag" data-v="idag"><i>今</i>Idag</a>
+  <a href="#ord" data-v="ord"><i>词</i>Ord</a>
+  <a href="#statistik" data-v="statistik"><i>统</i>Utveckling</a>
+  <a href="skugga.html#ova"><i>声</i>Skugga</a>
 </div></nav>
 
+<script src="vendor/ts-fsrs-5.4.2.umd.js"></script>
 <script src="analysis.js"></script>
 <script>
 "use strict";
-const $ = s => document.querySelector(s);
-function h(tag, attrs, ...kids) { const e = document.createElement(tag); if (attrs) for (const [k, v] of Object.entries(attrs)) { if (v == null || v === false) continue; if (k === "class") e.className = v; else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v); } for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : String(k)); return e; }
-function toast(t) { const e = h("div", { class: "toast", role: "status" }, t); document.body.append(e); setTimeout(() => e.remove(), 2200); }
-const uid = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const fmt1 = v => (Math.round(v * 10) / 10).toString().replace(".", ",");
+/* ============ helpers ============ */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v);
+    else if (k === "style") e.setAttribute("style", v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : String(k));
+  return e;
+}
+const DAY = 86400000;
+const now = () => Date.now();
+function dayKey(t = now()) { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function toast(msg, ms = 2200) { const t = h("div", { class: "toast", role: "status" }, msg); document.body.append(t); setTimeout(() => t.remove(), ms); }
+function fmtIvl(ms) {
+  if (ms < 60000) return "<1 min";
+  const m = ms / 60000; if (m < 60) return Math.round(m) + " min";
+  const hr = m / 60; if (hr < 24) return Math.round(hr) + " h";
+  const d = hr / 24; if (d < 30) return Math.round(d) + " d";
+  const mo = d / 30.4; if (mo < 12) return (Math.round(mo * 10) / 10).toString().replace(".", ",") + " mån";
+  return (Math.round(d / 36.5) / 10).toString().replace(".", ",") + " år";
+}
+const isCJK = c => /[\u3400-\u9fff\uf900-\ufaff]/.test(c);
+function uid36() { return "w" + now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-/* ---------- IndexedDB ---------- */
-const DB = {
-  db: null,
-  open() { if (this.db) return Promise.resolve(this.db); return new Promise((res, rej) => { const r = indexedDB.open("mandapp-studio", 1); r.onupgradeneeded = () => { const d = r.result; d.createObjectStore("items", { keyPath: "id" }); const a = d.createObjectStore("attempts", { keyPath: "id" }); a.createIndex("item", "itemId"); d.createObjectStore("kv"); }; r.onsuccess = () => { this.db = r.result; res(this.db); }; r.onerror = () => rej(r.error); }); },
-  async tx(store, mode, fn) { const d = await this.open(); return new Promise((res, rej) => { const t = d.transaction(store, mode); const s = t.objectStore(store); const out = fn(s); t.oncomplete = () => res(out instanceof IDBRequest ? out.result : out); t.onerror = () => rej(t.error); }); },
-  all(store) { return this.tx(store, "readonly", s => s.getAll()); },
-  put(store, v, k) { return this.tx(store, "readwrite", s => k === undefined ? s.put(v) : s.put(v, k)); },
-  del(store, k) { return this.tx(store, "readwrite", s => s.delete(k)); },
-  get(store, k) { return this.tx(store, "readonly", s => s.get(k)); },
-  byItem(id) { return this.tx("attempts", "readonly", s => s.index("item").getAll(id)); }
+/* ============ pinyin ============ */
+const TM = { a: "āáǎàa", e: "ēéěèe", i: "īíǐìi", o: "ōóǒòo", u: "ūúǔùu", "ü": "ǖǘǚǜü" };
+function syl(s) {
+  const m = s.match(/^([A-Za-zü:Üv]+)([1-5])$/);
+  if (!m) return { t: s, tone: 0 };
+  let base = m[1].replace(/u:|v/g, "ü").replace(/U:|V/g, "Ü"); const tone = +m[2];
+  if (tone === 5) return { t: base, tone: 5 };
+  const lo = base.toLowerCase(); let idx = -1;
+  if (lo.includes("a")) idx = lo.indexOf("a"); else if (lo.includes("e")) idx = lo.indexOf("e"); else if (lo.includes("ou")) idx = lo.indexOf("o");
+  else for (let i = lo.length - 1; i >= 0; i--) if ("aeiouü".includes(lo[i])) { idx = i; break; }
+  if (idx < 0) return { t: base, tone };
+  let rep = TM[lo[idx]][tone - 1]; if (base[idx] !== lo[idx]) rep = rep.toUpperCase();
+  return { t: base.slice(0, idx) + rep + base.slice(idx + 1), tone };
+}
+function pinyinNode(p, cls) {
+  const wrap = h("span", { class: cls || "" });
+  (p || "").split(/\s+/).filter(Boolean).forEach((s, i) => {
+    const r = syl(s); if (i) wrap.append(" ");
+    wrap.append(h("span", { class: r.tone ? "t" + r.tone : "" }, r.t));
+  });
+  return wrap;
+}
+function pinyinText(p) { return (p || "").split(/\s+/).filter(Boolean).map(s => syl(s).t).join(" "); }
+function tonesOf(p) { return (p || "").split(/\s+/).map(s => syl(s).tone); }
+const TONE_STRIP = { "ā": "a", "á": "a", "ǎ": "a", "à": "a", "ē": "e", "é": "e", "ě": "e", "è": "e", "ī": "i", "í": "i", "ǐ": "i", "ì": "i", "ō": "o", "ó": "o", "ǒ": "o", "ò": "o", "ū": "u", "ú": "u", "ǔ": "u", "ù": "u", "ǖ": "v", "ǘ": "v", "ǚ": "v", "ǜ": "v", "ü": "v" };
+function normPy(s) { return s.toLowerCase().replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]/g, c => TONE_STRIP[c]).replace(/u:/g, "v").replace(/[^a-z]/g, ""); }
+
+/* ============ dictionary ============ */
+const DICT = { map: new Map(), list: [], ready: false, loading: null };
+let HSK = {};
+const idb = {
+  _db: null,
+  open() { if (this._db) return Promise.resolve(this._db); return new Promise((res, rej) => { const r = indexedDB.open("mandapp", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => { this._db = r.result; res(r.result); }; r.onerror = () => rej(r.error); }); },
+  async get(k) { try { const d = await this.open(); return await new Promise((res, rej) => { const q = d.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); } catch { return undefined; } },
+  async set(k, v) { try { const d = await this.open(); await new Promise((res, rej) => { const t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch { } }
 };
-
-/* ---------- data ---------- */
-const STARTER = [
-  ["你好", "ni3 hao3", "hej"], ["谢谢", "xie4 xie5", "tack"], ["我不知道", "wo3 bu4 zhi1 dao4", "jag vet inte"],
-  ["请问，银行在哪里？", "qing3 wen4 yin2 hang2 zai4 na3 li3", "ursäkta, var ligger banken?"],
-  ["我想开一个账户", "wo3 xiang3 kai1 yi1 ge4 zhang4 hu4", "jag vill öppna ett konto"],
-  ["出租车", "chu1 zu1 che1", "taxi"], ["学习中文", "xue2 xi2 zhong1 wen2", "studera kinesiska"],
-  ["四十四", "si4 shi2 si4", "fyrtiofyra"], ["吃饭了吗？", "chi1 fan4 le5 ma5", "har du ätit?"], ["一起去", "yi1 qi3 qu4", "gå tillsammans"]
-];
-let ITEMS = [], CUR = null;
-async function loadItems() {
-  ITEMS = await DB.all("items");
-  if (!ITEMS.length && !(await DB.get("kv", "seeded"))) {
-    for (const [zh, py, sv] of STARTER) await DB.put("items", { id: uid(), zh, pinyin: py, sv, audio: null, added: Date.now(), source: "start" });
-    await DB.put("kv", true, "seeded"); ITEMS = await DB.all("items");
-  }
-  ITEMS.sort((a, b) => a.added - b.added);
+function loadDict() {
+  if (DICT.loading) return DICT.loading;
+  DICT.loading = (async () => {
+    let txt = await idb.get("cedict-v1");
+    if (!txt) {
+      const r = await fetch("cedict.txt"); if (!r.ok) throw new Error("dict " + r.status);
+      txt = await r.text(); idb.set("cedict-v1", txt);
+    }
+    const lines = txt.split("\n");
+    for (const ln of lines) {
+      const [s, t, p, e] = ln.split("\t"); if (!s) continue;
+      const ent = { s, t: t || s, p, e };
+      DICT.list.push(ent);
+      if (!DICT.map.has(s)) DICT.map.set(s, []); DICT.map.get(s).push(ent);
+      if (t && t !== s) { if (!DICT.map.has(t)) DICT.map.set(t, []); DICT.map.get(t).push(ent); }
+    }
+    try { const r = await fetch("hsk.json"); if (r.ok) HSK = await r.json(); } catch { }
+    DICT.ready = true;
+  })();
+  DICT.loading.catch(() => { DICT.loading = null; });
+  return DICT.loading;
 }
-function itemSyls(it) { return MA.parsePinyin(it.pinyin); }
+function lookup(w) { return DICT.map.get(w) || []; }
+function bestEntry(w) {
+  const es = lookup(w); if (!es.length) return null;
+  // prefer lowercase pinyin (not names), and entries not starting with "surname"/"variant"
+  return es.slice().sort((a, b) => score(a) - score(b))[0];
+  function score(e) { let s = 0; if (/^[A-Z]/.test(e.p)) s += 5; if (/^(surname|variant of|old variant|see )/i.test(e.e)) s += 3; if (/^(CL:|used in)/.test(e.e)) s += 1; return s; }
+}
+function cleanDefs(e) { return (e || "").split(" / ").filter(d => !/^(CL:|variant of|old variant)/.test(d)).slice(0, 4).join("; "); }
+function segment(text) {
+  const out = []; let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (!isCJK(c)) { let j = i; while (j < text.length && !isCJK(text[j])) j++; out.push({ t: text.slice(i, j), w: false }); i = j; continue; }
+    let len = Math.min(8, text.length - i), hit = 1;
+    for (; len > 1; len--) { const sub = text.slice(i, i + len); if (DICT.map.has(sub) || STATE.byHanzi.has(sub)) { hit = len; break; } }
+    out.push({ t: text.slice(i, i + hit), w: true }); i += hit;
+  }
+  return out;
+}
 
-/* ---------- TTS ---------- */
+/* ============ storage ============ */
+const STATE = { mode: "init", db: null, uid: null, sample: null, downloads: null, words: new Map(), byHanzi: new Map(), profile: {}, profileRef: null, wordsCol: null, logCol: null, logCache: new Map(), canImages: false };
+const PROFILE_DEFAULT = { level: "HSK 4–5", interests: "", goals: "", newPerDay: 15, todayHistory: [] };
+const LOCAL_KEY = "mandapp-local-v1";
+// All data ligger i webbläsarens IndexedDB (nyckel "data-v1"). LOCAL hålls i minnet och skrivs ner efter varje ändring.
+let LOCAL = {};
+let localTimer = null, localWrite = Promise.resolve();
+function localLoad() { return LOCAL; }
+function localSave(o) {
+  LOCAL = o; clearTimeout(localTimer);
+  localTimer = setTimeout(() => { localWrite = localWrite.then(() => idb.set("data-v1", JSON.parse(JSON.stringify(LOCAL)))); }, 150);
+}
+function localFlush() { clearTimeout(localTimer); localWrite = localWrite.then(() => idb.set("data-v1", JSON.parse(JSON.stringify(LOCAL)))); return localWrite; }
+window.addEventListener("pagehide", () => { localFlush(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") localFlush(); });
+const Store = {
+  async saveWord(w) {
+    w.updated = now();
+    STATE.words.set(w.id, w); indexWords();
+    if (STATE.mode === "db") { await STATE.wordsCol.doc(w.id).set(JSON.parse(JSON.stringify(w))); }
+    else { const o = localLoad(); o.words = o.words || {}; o.words[w.id] = w; localSave(o); }
+  },
+  async deleteWord(id) {
+    STATE.words.delete(id); indexWords();
+    if (STATE.mode === "db") await STATE.wordsCol.doc(id).delete();
+    else { const o = localLoad(); if (o.words) delete o.words[id]; localSave(o); }
+  },
+  async saveProfile(p) {
+    STATE.profile = p;
+    if (STATE.mode === "db") await STATE.profileRef.set(JSON.parse(JSON.stringify(p)));
+    else { const o = localLoad(); o.profile = p; localSave(o); }
+  },
+  _logChain: Promise.resolve(),
+  appendLog(entry) {
+    const key = dayKey(entry.t);
+    this._logChain = this._logChain.then(async () => {
+      let doc = STATE.logCache.get(key);
+      if (!doc) doc = await this.getLog(key);
+      doc = { entries: [...(doc.entries || []), entry] };
+      STATE.logCache.set(key, doc);
+      if (STATE.mode === "db") await STATE.logCol.doc("d" + key).set(doc);
+      else { const o = localLoad(); o.log = o.log || {}; o.log[key] = doc; localSave(o); }
+    }).catch(e => console.warn("log", e));
+    return this._logChain;
+  },
+  async getLog(key) {
+    if (STATE.logCache.has(key)) return STATE.logCache.get(key);
+    let doc = { entries: [] };
+    if (STATE.mode === "db") { const s = await STATE.logCol.doc("d" + key).get(); if (s.exists) doc = s.data(); }
+    else { const o = localLoad(); doc = (o.log && o.log[key]) || doc; }
+    STATE.logCache.set(key, doc); return doc;
+  },
+  async allLogs() {
+    const res = {};
+    if (STATE.mode === "db") { const q = await STATE.logCol.get(); q.docs.forEach(d => { res[d.id.slice(1)] = d.data(); }); }
+    else { Object.assign(res, localLoad().log || {}); }
+    for (const [k, v] of Object.entries(res)) STATE.logCache.set(k, v);
+    return res;
+  }
+};
+function indexWords() { STATE.byHanzi = new Map(); for (const w of STATE.words.values()) STATE.byHanzi.set(w.hanzi, w); }
+
+async function initStorage() {
+  setupClaude();
+  STATE.downloads = { save: async ({ filename, data }) => {
+    const file = new File([data], filename, { type: "application/json" });
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: filename }); return; } catch (e) { if (e.name === "AbortError") throw { code: "cancelled" }; }
+    }
+    const a = h("a", { href: URL.createObjectURL(file), download: filename }); document.body.append(a); a.click(); a.remove();
+  } };
+  STATE.mode = "local";
+  let o = await idb.get("data-v1");
+  if (!o) { try { o = JSON.parse(localStorage.getItem(LOCAL_KEY) || "null"); } catch { } }
+  LOCAL = o || {};
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { });
+  STATE.profile = Object.assign({}, PROFILE_DEFAULT, LOCAL.profile || {});
+  for (const [k, w] of Object.entries(LOCAL.words || {})) STATE.words.set(k, w);
+  indexWords();
+  if (!STATE.words.size) showBanner("Har du ord i den gamla Mandapp i Claude? Exportera dem där (Inställningar → Exportera allt) och importera filen här under ⚙ Inställningar.");
+  onWordsChanged();
+  try { const t = localStorage.getItem("mandapp-from-studio"); if (t) { localStorage.removeItem("mandapp-from-studio"); await importPron(JSON.parse(t)); } } catch (e) { console.warn(e); }
+  updateSubtitle();
+}
+function updateSubtitle() { $("#subtitle").textContent = STATE.words.size + " ord · " + (STATE.sample ? "Claude på" : "Claude av (ingen API-nyckel)"); }
+function showBanner(t) { const b = $("#banner"); b.textContent = t; b.hidden = false; }
+function hideBanner() { $("#banner").hidden = true; }
+
+/* ============ FSRS ============ */
+const F = FSRS.fsrs(FSRS.generatorParameters({ request_retention: 0.9, enable_fuzz: true, enable_short_term: true }));
+const R = FSRS.Rating;
+function newCardData() { return cardToData(FSRS.createEmptyCard(new Date())); }
+function cardToData(c) { return { due: +new Date(c.due), stability: c.stability, difficulty: c.difficulty, elapsed_days: c.elapsed_days, scheduled_days: c.scheduled_days, learning_steps: c.learning_steps || 0, reps: c.reps, lapses: c.lapses, state: c.state, last_review: c.last_review ? +new Date(c.last_review) : null }; }
+function dataToCard(d) { const c = Object.assign({}, d, { due: new Date(d.due) }); if (d.last_review) c.last_review = new Date(d.last_review); else delete c.last_review; return c; }
+function status(w) {
+  if (w.suspended) return "pausad";
+  const c = w.card || {};
+  if ((c.lapses || 0) >= 6) return "igel";
+  if (c.state === 0 || c.state == null) return "ny";
+  if (c.state === 1 || c.state === 3) return "lar";
+  return (c.stability || 0) >= 21 ? "mogen" : "ung";
+}
+const STATUS_LABEL = { ny: ["Ny", "new"], lar: ["Lär", "learn"], ung: ["Ung", "young"], mogen: ["Mogen", "mature"], igel: ["Igel", "leech"], pausad: ["Pausad", "susp"] };
+function statusPill(w) { const s = status(w); const [l, c] = STATUS_LABEL[s]; return h("span", { class: "pill " + c }, l); }
+
+/* ============ words ============ */
+function makeWord(hanzi, extra = {}) {
+  const e = bestEntry(hanzi);
+  return Object.assign({
+    id: uid36(), hanzi, trad: e && e.t !== hanzi ? e.t : "", pinyin: e ? e.p : "", defs: e ? cleanDefs(e.e) : "", sv: "",
+    hsk: HSK[hanzi] || null, added: now(), source: "", card: newCardData(), suspended: false, flagged: false,
+    sentences: [], sentIdx: 0, collocations: [], note: ""
+  }, extra);
+}
+async function addWord(hanzi, extra) {
+  if (STATE.byHanzi.has(hanzi)) { toast(hanzi + " finns redan"); return STATE.byHanzi.get(hanzi); }
+  await loadDict().catch(() => { });
+  const w = makeWord(hanzi, extra);
+  if (extra && extra.pinyinMarked && !w.pinyin) w.pinyinMarked = extra.pinyinMarked;
+  try { await Store.saveWord(w); toast("La till " + hanzi); } catch (e) { handleDbError(e); }
+  return w;
+}
+function handleDbError(e) {
+  if (e && e.code === "quota_exceeded") showBanner("Databasen är full. Exportera och ta bort gamla ord.");
+  else toast("Kunde inte spara (" + (e && e.code || "fel") + ")");
+}
+function wordPinyinNode(w, cls) { return w.pinyin ? pinyinNode(w.pinyin, cls) : h("span", { class: cls || "" }, w.pinyinMarked || ""); }
+
+/* ============ Claude ============ */
+// Anropar Claude direkt från webbläsaren med Mattias egen API-nyckel, som bara sparas i den här webbläsaren (localStorage).
+const KEY_LS = "mandapp-api-key";
+const MODELS = { quick: "claude-haiku-5-5", default: "claude-sonnet-5-5", complex: "claude-opus-5-5" };
+function apiKey() { try { return (localStorage.getItem(KEY_LS) || "").trim(); } catch { return ""; } }
+function setupClaude() {
+  STATE.sample = apiKey() ? { json: (p, o) => { countCall(); return claudeJson(p, o || {}); }, limits: async () => ({ images: { mediaTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"] } }) } : null;
+  STATE.canImages = !!STATE.sample;
+}
+function blobToBase64(b) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = () => rej(r.error); r.readAsDataURL(b); }); }
+async function imageBlock(file) {
+  // Skala ner till högst 1568 px (Claudes optimala storlek) och skicka som JPEG
+  try {
+    const bmp = await createImageBitmap(file);
+    const sc = Math.min(1, 1568 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+    return { type: "image", source: { type: "base64", media_type: "image/jpeg", data: await blobToBase64(blob) } };
+  } catch {
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) throw { code: "image_rejected" };
+    return { type: "image", source: { type: "base64", media_type: file.type, data: await blobToBase64(file) } };
+  }
+}
+function parseJsonText(t) {
+  t = String(t || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+  try { return JSON.parse(t); } catch { }
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch { } }
+  throw { code: "invalid_json" };
+}
+async function claudeJson(prompt, opts) {
+  const key = apiKey(); if (!key) throw { code: "no_key" };
+  const tier = opts.modelTier || "quick";
+  const model = MODELS[tier] || MODELS.quick;
+  const content = [];
+  const imgs = opts.images ? (Array.isArray(opts.images) ? opts.images : [opts.images]) : [];
+  for (const f of imgs) content.push(await imageBlock(f));
+  content.push({ type: "text", text: prompt });
+  const body = {
+    model, max_tokens: 16000,
+    system: "Du är en del av en språkapp. Svara alltid med enbart giltig JSON enligt formen i uppgiften, utan förklaringar runt omkring och utan kodblock.",
+    messages: [{ role: "user", content }],
+    output_config: { effort: "low" }
+  };
+  const headers = { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+  const send = async (b, hd) => {
+    let r; try { r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: hd, body: JSON.stringify(b) }); } catch { throw { code: "network" }; }
+    let j = null; try { j = await r.json(); } catch { }
+    return { r, j };
+  };
+  // Sonnet och Opus: låt servern byta till en reservmodell om säkerhetsfiltret avböjer. Om det inte accepteras, skicka igen utan.
+  let res;
+  if (tier !== "quick" && !claudeJson.noFallback) {
+    try { res = await send(Object.assign({}, body, { fallbacks: "default" }), Object.assign({}, headers, { "anthropic-beta": "server-side-fallback-2026-07-01" })); } catch { res = null; }
+    if (!res || res.r.status === 400) { if (!res) claudeJson.noFallback = true; res = await send(body, headers); }
+  } else res = await send(body, headers);
+  const { r, j } = res;
+  if (!r.ok) {
+    const et = j && j.error && j.error.type, em = j && j.error && j.error.message || "";
+    console.warn("Claude API", r.status, et, em);
+    if (r.status === 401 || et === "authentication_error") throw { code: "bad_key" };
+    if (r.status === 403 || et === "permission_error") throw { code: "permission" };
+    if (r.status === 429) throw { code: "rate_limited" };
+    if (r.status === 402 || /credit balance/i.test(em)) throw { code: "no_credit" };
+    if (r.status >= 500) throw { code: "upstream_error" };
+    if (/image/i.test(em)) throw { code: "image_rejected" };
+    throw { code: "bad_request", detail: em };
+  }
+  if (j.stop_reason === "refusal") throw { code: "refused" };
+  const text = (j.content || []).filter(c => c.type === "text").map(c => c.text).join("");
+  if (!text.trim()) throw { code: "empty_completion" };
+  return parseJsonText(text);
+}
+const NEED_KEY = "Lägg in din Anthropic API-nyckel under ⚙ Inställningar för att använda Claude här.";
+const SAMPLE_MSG = {
+  not_granted: NEED_KEY, no_key: NEED_KEY,
+  bad_key: "API-nyckeln fungerar inte. Kontrollera den under ⚙ Inställningar.",
+  permission: "API-nyckeln saknar behörighet för den här modellen.",
+  no_credit: "Det finns ingen kredit kvar på API-kontot. Fyll på i Anthropic Console.",
+  network: "Kunde inte nå Claude. Kontrollera nätet.",
+  bad_request: "Claude kunde inte ta emot frågan. Försök igen.",
+  rate_limited: "För många frågor till Claude just nu. Vänta en stund och försök igen.",
+  image_rejected: "Bilden gick inte att använda. Prova en annan bild (JPG eller PNG).",
+  images_unavailable: "Bilder kan inte skickas till Claude här.",
+  refused: "Claude ville inte svara på det här. Formulera om.",
+  invalid_json: "Svaret blev fel. Tryck igen.",
+  empty_completion: "Claude gav inget svar. Prova igen med kortare text.",
+  upstream_error: "Tillfälligt fel hos Claude. Försök igen."
+};
+function callStats() { try { return JSON.parse(localStorage.getItem("mandapp-calls") || "{}"); } catch { return {}; } }
+function countCall() { const c = callStats(); const k = dayKey(); c[k] = (c[k] || 0) + 1; for (const d of Object.keys(c)) if (now() - new Date(d).getTime() > 60 * DAY) delete c[d]; try { localStorage.setItem("mandapp-calls", JSON.stringify(c)); } catch { } }
+function sampleMsg(e) { return SAMPLE_MSG[e && e.code] || ("Något gick fel (" + (e && e.code || "okänt") + ")."); }
+function profileSummary() {
+  const p = STATE.profile; const parts = ["Nivå: " + (p.level || "HSK 4–5")];
+  if (p.interests) parts.push("Intressen: " + p.interests);
+  if (p.goals) parts.push("Mål: " + p.goals);
+  const hard = [...STATE.words.values()].filter(w => (w.card?.lapses || 0) >= 2).sort((a, b) => b.card.lapses - a.card.lapses).slice(0, 8).map(w => w.hanzi);
+  if (hard.length) parts.push("Ord eleven ofta glömmer: " + hard.join("、"));
+  return parts.join(". ");
+}
+function knownSample(n) {
+  const ws = [...STATE.words.values()].filter(w => w.card && w.card.state === 2 && !w.suspended).map(w => w.hanzi);
+  return shuffle(ws).slice(0, n);
+}
+async function genSentences(w) {
+  if (!STATE.sample) throw { code: "not_granted" };
+  const known = knownSample(120);
+  const prompt =
+`Du hjälper en svensk som lär sig kinesiska. ${profileSummary()}.
+Målord: ${w.hanzi} (${pinyinText(w.pinyin) || w.pinyinMarked || ""}; ${w.defs || w.sv}).
+Skriv 5 naturliga och varierade exempelmeningar på förenklad kinesiska som använder målordet i olika vanliga situationer. Varje mening 8–22 tecken. Använd i övrigt främst ord på HSK 1–4-nivå${known.length ? " och gärna några av dessa ord som eleven redan kan: " + known.join("、") : ""}. Anpassa gärna innehållet till elevens intressen.
+Ge också 2–4 vanliga kollokationer med målordet, en kort svensk betydelse av målordet och en kort anteckning på svenska (högst 2 meningar) om nyans, register eller vad det skiljer sig från ett närliggande ord.
+Svara endast med JSON i exakt denna form:
+{"sv":"kort svensk betydelse","sentences":[{"zh":"...","sv":"svensk översättning"}],"collocations":["..."],"note":"..."}`;
+  const r = await STATE.sample.json(prompt, { modelTier: STATE.profile.tierSentences || "quick" });
+  if (!r || !Array.isArray(r.sentences)) throw { code: "invalid_json" };
+  return r;
+}
+
+/* ============ TTS ============ */
 let zhVoice = null;
-function pickVoice() { try { const v = speechSynthesis.getVoices(); zhVoice = v.find(x => /zh[-_]CN/i.test(x.lang)) || v.find(x => /^zh/i.test(x.lang)) || null; } catch { } }
-if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function speak(t, rate) { return new Promise(res => { try { const u = new SpeechSynthesisUtterance(t); u.lang = "zh-CN"; if (zhVoice) u.voice = zhVoice; u.rate = rate || 0.85; u.onend = res; u.onerror = res; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch { res(); } }); }
-
-/* ---------- pinyin-rendering ---------- */
-function pyNode(syls, tones) { const w = h("span"); syls.forEach((s, i) => { if (i) w.append(" "); const t = tones ? tones[i] : s.tone; w.append(h("span", { class: "t" + s.tone }, MA.marked(s.syl, s.tone)), tones && t !== s.tone ? h("sup", { class: "t" + t, title: "uttalas med ton " + t }, "→" + t) : ""); }); return w; }
-
-/* ---------- ÖVA ---------- */
-const audioEl = new Audio(); audioEl.preload = "auto"; let audioUrl = null;
-const AB = { a: null, b: null, loop: false };
-let modelAn = null, modelAnFor = null;
-const practiceItems = () => ITEMS.filter(i => i.audio || i.audioPath);
-function renderItemSel() {
-  const P = practiceItems(); const list = CUR && !CUR.audio ? [CUR, ...P] : P;
-  const isSent = it => [...it.zh].filter(c => /[\u3400-\u9fff]/.test(c)).length > 4 || /[，。！？、,.!?]/.test(it.zh);
-  const opt = it => h("option", { value: it.id }, it.zh + (it.audio || it.audioPath ? "" : " (saknar native)"));
-  const sent = list.filter(isSent), words = list.filter(it => !isSent(it));
-  const sel = $("#itemSel"); sel.replaceChildren(...[sent.length ? h("optgroup", { label: "Meningar (" + sent.length + ")" }, sent.map(opt)) : null, words.length ? h("optgroup", { label: "Ord (" + words.length + ")" }, words.map(opt)) : null].filter(Boolean));
-  if (CUR) sel.value = CUR.id;
-  const miss = ITEMS.length - P.length; $("#missNote").textContent = miss ? miss + " fraser i biblioteket saknar native-inspelning och visas inte här." : "";
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); zhVoice = vs.find(v => /zh[-_]CN/i.test(v.lang)) || vs.find(v => /^zh/i.test(v.lang)) || null; } catch { } }
+if ("speechSynthesis" in window) { pickVoice(); try { speechSynthesis.onvoiceschanged = pickVoice; } catch { } }
+function speak(text) {
+  try {
+    if (!("speechSynthesis" in window)) { toast("Uppläsning stöds inte här"); return; }
+    const u = new SpeechSynthesisUtterance(text); u.lang = "zh-CN"; if (zhVoice) u.voice = zhVoice; u.rate = 0.85;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch { toast("Uppläsning fungerade inte"); }
 }
-// Lägg in alla Tatoeba-meningar med native-ljud i biblioteket (en gång), så att det finns meningar att skugga
-const SENT_PACKS = [
-  { name: "tatoeba", file: "audio/tatoeba.json", dir: "audio/tatoeba/", credit: x => (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") },
-  { name: "stcmds", file: "audio/stcmds.json", dir: "audio/stcmds/", credit: () => "Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" }
-];
-// Lägg in alla meningar med native-ljud i biblioteket. Ljudet hämtas först när meningen öppnas.
-async function seedSentences() {
-  let n = 0; const have = new Set(ITEMS.map(i => i.zh));
-  for (const P of SENT_PACKS) {
-    let pack = []; try { const r = await fetch(P.file); if (r.ok) pack = await r.json(); } catch { }
-    const key = "seeded-" + P.name + "-" + pack.length; if (!pack.length || await DB.get("kv", key)) continue;
-    for (const x of pack) { if (have.has(x.zh)) continue; have.add(x.zh); await DB.put("items", { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, audioPath: P.dir + x.audio, added: Date.now() + n, source: P.name, credit: P.credit(x) }); n++; }
-    await DB.put("kv", true, key);
+const speakBtn = text => h("button", { class: "chip", type: "button", "aria-label": "Lyssna", onclick: ev => { ev.stopPropagation(); speak(text); } }, "🔊");
+
+/* ============ tappable text + sheets ============ */
+function zhText(text, target) {
+  const wrap = h("span", { class: "zhline zh" });
+  if (!DICT.ready) { wrap.append(text); loadDict().then(() => { wrap.replaceWith(zhText(text, target)); }).catch(() => { }); return wrap; }
+  for (const s of segment(text)) {
+    if (!s.w) { wrap.append(s.t); continue; }
+    wrap.append(h("span", { class: "seg" + (target && s.t === target ? " target" : ""), role: "button", tabindex: "0", onclick: () => openWordSheet(s.t, text), onkeydown: ev => { if (ev.key === "Enter") openWordSheet(s.t, text); } }, s.t));
   }
-  if (n) await loadItems(); return n;
+  return wrap;
 }
-async function ensureAudio(it) {
-  if (!it || it.audio || !it.audioPath) return;
-  try { const r = await fetch(it.audioPath); if (r.ok) { it.audio = await r.blob(); await DB.put("items", it); } } catch { }
+let sheetEls = null;
+function openSheet(content) {
+  closeSheet();
+  const scrim = h("div", { class: "scrim", onclick: closeSheet });
+  const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true" }, h("div", { class: "in" }, h("div", { class: "grab" }), content));
+  document.body.append(scrim, sheet); sheetEls = [scrim, sheet];
 }
-let fillingNative = false;
-async function fillNative() {
-  if (fillingNative) return; fillingNative = true; let n = 0;
-  for (const it of ITEMS.filter(i => !i.audio && !i.audioPath)) { if (triedNative.has(it.id)) continue; triedNative.add(it.id); const b = await fetchNative(it.zh); if (b) { it.audio = b; it.audioSrc = "audio-cmn"; await DB.put("items", it); n++; } }
-  fillingNative = false; if (n) { if (!CUR || !CUR.audio) { const P = practiceItems(); if (P[0]) { await selectItem(P[0].id); return; } } renderItemSel(); }
+function closeSheet() { if (sheetEls) sheetEls.forEach(e => e.remove()); sheetEls = null; }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+const explainCache = new Map();
+function openWordSheet(word, sentence) {
+  const es = lookup(word); const best = bestEntry(word); const inDeck = STATE.byHanzi.get(word);
+  const box = h("div", { class: "stack" });
+  const head = h("div", { class: "row", style: "justify-content:space-between" },
+    h("div", null, h("span", { class: "hw" }, word), " ", best ? pinyinNode(best.p, "mono") : ""),
+    h("div", { class: "row" }, speakBtn(word), HSK[word] ? h("span", { class: "chip" }, "HSK " + HSK[word]) : null));
+  box.append(head);
+  if (es.length) {
+    const seen = new Set();
+    es.slice(0, 4).forEach(e => { const k = e.p + e.e; if (seen.has(k)) return; seen.add(k); box.append(h("div", { class: "small" }, pinyinNode(e.p, "mono"), " ", cleanDefs(e.e))); });
+  } else box.append(h("div", { class: "muted small" }, "Finns inte i ordboken."));
+  if (inDeck) box.append(h("div", { class: "row" }, h("span", { class: "chip" }, "I din ordbank"), statusPill(inDeck), inDeck.sv ? h("span", { class: "small" }, inDeck.sv) : null));
+  if (best) box.append(pronBlock(best.p, word));
+  { const sl = shadowLink(word); if (sl) box.append(sl); }
+  // explain in sentence
+  if (sentence && sentence !== word && STATE.sample) {
+    const out = h("div", { class: "ctx" });
+    const key = word + "|" + sentence;
+    const btn = h("button", { class: "btn", type: "button" }, "Förklara i meningen");
+    const render = r => { out.replaceChildren(h("div", { class: "lblrow" }, h("span", null, "I den här meningen"), h("span", null, "Claude")), h("div", { class: "small" }, r.explanation || "")); (r.examples || []).forEach(x => out.append(h("div", { style: "margin-top:6px" }, zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || ""))))); };
+    btn.onclick = async () => {
+      btn.disabled = true; out.replaceChildren(h("span", { class: "thinking" }, "Claude tänker…")); box.append(out);
+      try {
+        const r = await STATE.sample.json(
+`Du hjälper en svensk som lär sig kinesiska. ${profileSummary()}.
+Mening: «${sentence}»
+Förklara kort på svenska (högst 70 ord) vad «${word}» betyder just här och varför det används, och jämför med 1–2 närliggande ord om det är relevant. Ge sedan 2 nya korta exempelmeningar med ordet.
+Svara endast med JSON: {"explanation":"...","examples":[{"zh":"...","sv":"..."}]}`, { modelTier: "default" });
+        explainCache.set(key, r); render(r); btn.remove();
+      } catch (e) { out.replaceChildren(h("span", { class: "note" }, sampleMsg(e))); btn.disabled = false; }
+    };
+    if (explainCache.has(key)) { render(explainCache.get(key)); box.append(out); } else box.append(btn);
+  }
+  // characters
+  if (word.length > 1) {
+    const chars = h("div", { class: "row" });
+    [...word].forEach(c => { if (!isCJK(c)) return; const be = bestEntry(c); chars.append(h("button", { class: "chip", type: "button", onclick: () => openCharSheet(c) }, h("span", { class: "zh" }, c), " ", be ? cleanDefs(be.e).split(";")[0] : "")); });
+    box.append(h("label", { class: "lbl" }, "Tecken"), chars);
+  }
+  const actions = h("div", { class: "row" });
+  if (!inDeck) actions.append(h("button", { class: "btn primary", type: "button", onclick: async () => { await addWord(word, { source: sentence ? "uppslag: " + sentence : "uppslag" }); closeSheet(); } }, "Lägg till i ordbanken"));
+  else actions.append(h("button", { class: "btn", type: "button", onclick: async () => { inDeck.flagged = !inDeck.flagged; await Store.saveWord(inDeck).catch(handleDbError); toast(inDeck.flagged ? "Markerat för extra övning" : "Markering borttagen"); closeSheet(); } }, inDeck.flagged ? "Ta bort markering" : "Markera för extra övning"));
+  box.append(actions);
+  openSheet(box);
+  logLookup(word);
 }
-async function selectItem(id) {
-  CUR = ITEMS.find(i => i.id === id) || practiceItems()[0] || ITEMS[0] || null;
-  if (CUR && !CUR.audio && CUR.audioPath) { $("#recNote").textContent = "Hämtar native…"; await ensureAudio(CUR); }
-  try { localStorage.setItem("studio-cur", CUR ? CUR.id : ""); } catch { }
-  renderItemSel(); renderItem();
-}
-function renderItem() {
-  $("#result").replaceChildren(); TAKES.length = 0; TAKE_SEL = -1; NATIVE = null; renderTakes(); drawMimic(); AB.a = AB.b = null; AB.loop = false; $("#loopBtn").classList.remove("on"); updAB();
-  if (!CUR) { $("#oZh").textContent = "Biblioteket är tomt"; $("#oPy").textContent = ""; $("#oSv").textContent = ""; $("#breakdown").replaceChildren(); $("#modelRow").replaceChildren(); return; }
-  const syls = itemSyls(CUR); const sd = MA.sandhi(syls, CUR.zh);
-  $("#oZh").textContent = CUR.zh; $("#oPy").replaceChildren(pyNode(syls, sd.tones)); $("#oSv").textContent = CUR.sv || "";
-  // breakdown
-  const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, "Stavelse"), h("th", null, "Initial"), h("th", null, "Final"), h("th", null, "Ton"))));
-  const body = h("tbody"); const chars = [...CUR.zh].filter(c => /[㐀-鿿]/.test(c));
+// Uttalsvy: initial, final, ton och fällor per stavelse (delad kod med skuggningsstudion)
+function pronBlock(pinyin, hanzi) {
+  const d = h("details", { class: "ctx" }, h("summary", { class: "small", style: "cursor:pointer;font-weight:600" }, "Uttal ljud för ljud"));
+  if (!window.MA) return d;
+  const syls = MA.parsePinyin(pinyin); if (!syls.length) return d;
+  const sd = MA.sandhi(syls, hanzi); const chars = [...hanzi].filter(isCJK);
   syls.forEach((s, i) => {
     const info = MA.sylInfo(s.syl, sd.tones[i]);
-    body.append(h("tr", null,
-      h("td", null, h("span", { class: "zh" }, chars[i] || ""), " ", h("span", { class: "mono t" + s.tone }, MA.marked(s.syl, s.tone))),
-      h("td", null, h("b", { class: "mono" }, info.ini || "–"), h("div", { class: "note" }, info.iniKind)),
-      h("td", null, h("b", { class: "mono" }, info.fin.replace(/v/g, "ü"))),
-      h("td", null, h("span", { class: "t" + sd.tones[i] }, sd.tones[i] === 5 ? "neutral" : sd.tones[i]), sd.tones[i] !== s.tone ? h("div", { class: "note" }, "(skrivs " + s.tone + ")") : null)));
-    if (info.traps.length || info.iniTip) body.append(h("tr", null, h("td", { colspan: 4, style: "border-bottom:1px solid var(--line);padding-top:0" }, info.iniTip ? h("div", { class: "note" }, info.ini + ": " + info.iniTip) : null, info.traps.map(t => h("span", { class: "tag warn" }, t)))));
+    d.append(h("div", { style: "margin-top:6px" },
+      h("div", { class: "small" }, h("span", { class: "zh" }, chars[i] || ""), " ", h("b", { class: "mono t" + s.tone }, MA.marked(s.syl, s.tone)), " · initial ", h("b", { class: "mono" }, info.ini || "–"), info.iniKind ? " (" + info.iniKind + ")" : "", " · final ", h("b", { class: "mono" }, info.fin.replace(/v/g, "ü")), " · ton ", h("b", { class: "t" + sd.tones[i] }, sd.tones[i] === 5 ? "neutral" : String(sd.tones[i])), sd.tones[i] !== s.tone ? " (skrivs " + s.tone + ")" : ""),
+      info.iniTip ? h("div", { class: "note" }, info.iniTip) : null,
+      info.traps.length ? h("div", { class: "row", style: "gap:4px;margin-top:2px" }, info.traps.map(t => h("span", { class: "pill flag" }, t))) : null));
   });
-  tb.append(body);
-  const box = $("#breakdown"); box.replaceChildren(tb);
-  if (sd.notes.length) box.append(h("div", { class: "note", style: "margin-top:6px" }, "Tonsandhi: " + sd.notes.join(". ") + "."));
-  if (syls.length !== chars.length && chars.length) box.append(h("div", { class: "banner", style: "margin-top:6px" }, "Antalet stavelser i pinyin (" + syls.length + ") stämmer inte med antalet tecken (" + chars.length + "). Rätta pinyin i biblioteket för bästa analys."));
-  // model
-  const mr = $("#modelRow"); mr.replaceChildren();
-  if (audioUrl) { URL.revokeObjectURL(audioUrl); audioUrl = null; }
-  if (CUR.audio) {
-    audioUrl = URL.createObjectURL(CUR.audio); audioEl.src = audioUrl;
-    mr.append(h("button", { class: "btn primary", onclick: playModel }, "▶ Native"), h("button", { class: "btn", onclick: () => { audioEl.pause(); } }, "■"));
-    $("#modelNote").textContent = "Riktig inspelning. Tonkurvan jämförs med den.";
-    if (modelAnFor !== CUR.id) { modelAn = null; analyzeModel(CUR); }
-    nativeTrack(CUR);
-  } else {
-    audioEl.removeAttribute("src");
-    tryNativeAudio(CUR);
-    $("#modelNote").textContent = "Den här frasen saknar native-inspelning. Välj en ljudfil eller låt en kinesisktalande spela in den.";
-    const fi = h("input", { type: "file", accept: "audio/*,video/*", hidden: true }); fi.onchange = async () => { const f = fi.files[0]; if (!f) return; CUR.audio = f; await DB.put("items", CUR); await loadItems(); toast("Native sparad"); renderItemSel(); renderItem(); };
-    mr.append(h("label", { class: "btn primary" }, "Välj native-ljudfil", fi));
-    $("#modelBox").open = true;
-  }
-  mr.append(h("button", { class: "btn", onclick: () => recordModel() }, "● Spela in native"));
-  $("#recBtn").disabled = !CUR.audio; $("#playNative").disabled = !CUR.audio; $("#contBtn").disabled = !CUR.audio;
-  $("#recNote").textContent = CUR.audio ? "Lyssna på native, tryck Spela in och härma. Tryck igen när du är klar." : "Lägg till native först (under Native ovan).";
-  renderHistory(); renderRelated();
+  if (sd.notes.length) d.append(h("div", { class: "note", style: "margin-top:6px" }, sd.notes.join(". ") + "."));
+  return d;
 }
-async function analyzeModel(it) {
-  try { const ab = await it.audio.arrayBuffer(); const x = await MA.toMono16k(ab); const an = MA.analyze(x, itemSyls(it).length); if (CUR && CUR.id === it.id) { modelAn = an.ok ? an : null; modelAnFor = it.id; } } catch (e) { console.warn(e); }
+function openCharSheet(c) {
+  const box = h("div", { class: "stack" });
+  const es = lookup(c);
+  box.append(h("div", { class: "row", style: "justify-content:space-between" }, h("div", null, h("span", { class: "hw" }, c), " ", es[0] ? pinyinNode(es[0].p, "mono") : ""), speakBtn(c)));
+  es.slice(0, 4).forEach(e => box.append(h("div", { class: "small" }, pinyinNode(e.p, "mono"), " ", cleanDefs(e.e))));
+  const mine = [...STATE.words.values()].filter(w => w.hanzi.includes(c) && w.hanzi !== c).slice(0, 20);
+  box.append(h("label", { class: "lbl" }, "Dina ord med " + c));
+  if (mine.length) { const r = h("div", { class: "row" }); mine.forEach(w => r.append(h("button", { class: "chip", type: "button", onclick: () => openWordSheet(w.hanzi) }, h("span", { class: "zh" }, w.hanzi)))); box.append(r); }
+  else box.append(h("div", { class: "note" }, "Inga ännu."));
+  if (!STATE.byHanzi.has(c)) box.append(h("button", { class: "btn", type: "button", onclick: async () => { await addWord(c, { source: "tecken" }); closeSheet(); } }, "Lägg till tecknet som ord"));
+  openSheet(box);
 }
-function playModel() {
-  if (!CUR || !CUR.audio) return;
-  audioEl.playbackRate = +$("#speed").value; try { audioEl.preservesPitch = true; audioEl.webkitPreservesPitch = true; } catch { }
-  if (AB.a != null) audioEl.currentTime = AB.a; else audioEl.currentTime = 0;
-  audioEl.play().catch(() => toast("Kunde inte spela upp"));
-}
-audioEl.addEventListener("timeupdate", () => { if (AB.loop && AB.b != null && audioEl.currentTime >= AB.b) { audioEl.currentTime = AB.a || 0; } });
-audioEl.addEventListener("ended", () => { if (AB.loop) { audioEl.currentTime = AB.a || 0; audioEl.play(); } });
-$("#setA").onclick = () => { AB.a = audioEl.currentTime || 0; updAB(); };
-$("#setB").onclick = () => { AB.b = audioEl.currentTime || null; updAB(); };
-$("#loopBtn").onclick = () => { AB.loop = !AB.loop; $("#loopBtn").classList.toggle("on", AB.loop); if (AB.loop) playModel(); else audioEl.pause(); };
-function updAB() { $("#abInfo").textContent = (AB.a != null ? "A " + fmt1(AB.a) + " s " : "") + (AB.b != null ? "B " + fmt1(AB.b) + " s" : ""); }
-$("#speed").onchange = () => { audioEl.playbackRate = +$("#speed").value; };
+const lookupCounts = new Map();
+function logLookup(word) { lookupCounts.set(word, (lookupCounts.get(word) || 0) + 1); Store.appendLog({ k: "lookup", h: word, t: now() }); }
 
-/* ---------- inspelning ---------- */
-const REC = { on: false, stream: null, mr: null, chunks: [], ac: null, an: null, raf: 0, live: [], t0: 0, target: "user" };
-async function getStream() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("nomic");
-  return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true } });
+/* ============ REVIEW ============ */
+const RV = { queue: [], cur: null, revealed: false, shownAt: 0, done: 0, newToday: 0, sessionStarted: false, mode: (() => { try { return localStorage.getItem("mandapp-mode") || "tecken"; } catch { return "tecken"; } })() };
+function dueWords() {
+  const t = now(); return [...STATE.words.values()].filter(w => !w.suspended && w.card && w.card.state !== 0 && w.card.due <= t).sort((a, b) => a.card.due - b.card.due);
 }
-async function startRec(target) {
-  if (REC.on) return;
-  try { REC.stream = await getStream(); } catch (e) { $("#recNote").textContent = "Fick inte tillgång till mikrofonen. Tillåt mikrofon för den här sidan i webbläsarens inställningar."; return; }
-  REC.target = target; REC.chunks = []; REC.live = []; REC.on = true; REC.t0 = performance.now();
-  const types = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg"]; const mt = types.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t));
-  REC.mr = new MediaRecorder(REC.stream, mt ? { mimeType: mt } : undefined);
-  REC.mr.ondataavailable = e => { if (e.data && e.data.size) REC.chunks.push(e.data); };
-  REC.mr.onstop = onRecStop;
-  await beep("start");
-  REC.mr.start();
-  const AC = window.AudioContext || window.webkitAudioContext; REC.ac = new AC();
-  const src = REC.ac.createMediaStreamSource(REC.stream); REC.an = REC.ac.createAnalyser(); REC.an.fftSize = 2048; src.connect(REC.an);
-  const buf = new Float32Array(2048); let frame = 0;
-  const loop = () => {
-    if (!REC.on) return; REC.raf = requestAnimationFrame(loop);
-    if (frame++ % 2) return;
-    REC.an.getFloatTimeDomainData(buf);
-    let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i]; const db = 10 * Math.log10(s / buf.length + 1e-12);
-    const [f0, ap] = db > -55 ? MA.yin(buf, 0, 2048, REC.ac.sampleRate, 70, 500) : [0, 1];
-    REC.live.push({ t: (performance.now() - REC.t0) / 1000, f0: f0 && ap < 0.3 ? f0 : 0, db });
-    drawLive();
-    if (performance.now() - REC.t0 > 30000) stopRec();
-  };
-  loop();
-  const btn = $("#recBtn"); btn.textContent = "■ Stopp"; btn.classList.remove("rec"); btn.classList.add("primary");
-  $("#recNote").textContent = target === "model" ? "Spelar in native… låt en kinesisktalande säga frasen tydligt." : "Spelar in… säg frasen.";
-  if (target === "user" && $("#withModel").checked && CUR.audio) playModel();
+async function newIntroducedToday() { const d = await Store.getLog(dayKey()); return (d.entries || []).filter(e => e.k === "rev" && e.s === 0).length; }
+async function buildQueue() {
+  const due = dueWords().map(w => w.id);
+  const limit = Math.max(0, (+STATE.profile.newPerDay || 15) - await newIntroducedToday());
+  const fresh = [...STATE.words.values()].filter(w => !w.suspended && (!w.card || w.card.state === 0)).sort((a, b) => (b.flagged - a.flagged) || (a.added - b.added)).slice(0, limit).map(w => w.id);
+  // interleave new cards among due
+  const q = due.slice(); fresh.forEach((id, i) => q.splice(Math.min(q.length, (i + 1) * 4), 0, id));
+  RV.queue = q; RV.newToday = fresh.length;
 }
-function stopRec() {
-  if (!REC.on) return; REC.on = false; cancelAnimationFrame(REC.raf);
-  try { REC.mr.stop(); } catch { }
-  setTimeout(() => beep("stop"), 60);
-  REC.stream.getTracks().forEach(t => t.stop()); try { REC.ac.close(); } catch { }
-  const btn = $("#recBtn"); btn.textContent = "● Spela in"; btn.classList.add("rec"); btn.classList.remove("primary");
-}
-$("#recBtn").onclick = () => { if (!CUR) return; audioEl.pause(); meEl.pause(); REC.on ? stopRec() : startRec("user"); };
-function recordModel() { if (REC.on) return; if (!CUR) return; startRec("model"); }
-async function onRecStop() {
-  const blob = new Blob(REC.chunks, { type: (REC.mr && REC.mr.mimeType) || "audio/webm" });
-  if (blob.size < 1000) { $("#recNote").textContent = "Inspelningen blev tom. Försök igen."; return; }
-  if (REC.target === "model") {
-    CUR.audio = blob; await DB.put("items", CUR); modelAnFor = null; toast("Native sparad"); renderItemSel(); renderItem(); $("#recNote").textContent = "Native-inspelningen är sparad. Spela nu in dig själv."; return;
+function dueCountForBadge() { return dueWords().length; }
+async function startReview() { await buildQueue(); RV.sessionStarted = true; nextCard(); }
+function nextCard() {
+  // drop ids that no longer exist / not due anymore
+  while (RV.queue.length) {
+    const id = RV.queue[0]; const w = STATE.words.get(id);
+    if (!w || w.suspended) { RV.queue.shift(); continue; }
+    if (w.card.state !== 0 && w.card.due > now() + 60000) { RV.queue.shift(); continue; }
+    break;
   }
-  try {
-    const x = await MA.toMono16k(await blob.arrayBuffer());
-    const take = await addTake(blob, x);
-    if (!take) { $("#recNote").textContent = "Hörde nästan inget. Prata närmare mikrofonen."; return; }
-    $("#recNote").textContent = "Försök " + take.n + ". Lyssna, jämför och spela in igen.";
-  } catch (e) { console.error(e); $("#recNote").textContent = "Kunde inte läsa ljudet (" + (e.message || e) + ")."; }
+  RV.cur = RV.queue.length ? STATE.words.get(RV.queue[0]) : null; RV.revealed = false; RV.shownAt = now(); RV.curAudio = Math.random() < 0.4;
+  renderReview();
+  // prefetch sentences for next card (user just acted)
+  const nxt = RV.queue[1] && STATE.words.get(RV.queue[1]);
+  if (nxt && (!nxt.sentences || !nxt.sentences.length)) ensureSentences(nxt, true);
 }
-async function analyzeTake() {
-  const take = TAKES[TAKE_SEL]; if (!take) return;
-  $("#analyzeBtn").disabled = true; $("#recNote").textContent = "Analyserar…";
-  try {
-    if (CUR.audio && modelAnFor !== CUR.id) await analyzeModel(CUR);
-    const syls = itemSyls(CUR); const sd = MA.sandhi(syls, CUR.zh);
-    const an = MA.analyze(take.x, syls.length);
-    if (!an.ok) { $("#recNote").textContent = an.reason; return; }
-    const cmp = modelAn ? MA.compareToModel(an, modelAn) : null;
-    const j = MA.judge(an, syls, sd.tones, cmp);
-    const att = (await DB.get("attempts", take.attId)) || { id: take.attId || uid(), itemId: CUR.id, zh: CUR.zh, t: take.t, audio: take.blob };
-    Object.assign(att, { toneScore: j.toneScore, iniScore: j.iniScore, simScore: j.simScore, withModel: !!modelAn, quick: false,
-      rows: j.rows.map(r => ({ syl: r.py.syl, exp: r.exp, heard: r.heard, toneOk: r.toneOk, ini: r.info.ini, iniOk: r.ini ? r.ini.ok : null, iniKind: r.ini ? r.ini.kind : null, ms: r.ini ? r.ini.ms : null })) });
-    await DB.put("attempts", att);
-    $("#recNote").textContent = "Analys av försök " + take.n + " nedan.";
-    renderResult(an, j, cmp, sd.tones, take.blob);
-    renderHistory();
-    $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (e) { console.error(e); $("#recNote").textContent = "Kunde inte analysera ljudet (" + (e.message || e) + ")."; }
-  finally { $("#analyzeBtn").disabled = false; }
+const pendingSent = new Map();
+function ensureSentences(w, silent) {
+  if (!STATE.sample) return Promise.resolve(null);
+  if (pendingSent.has(w.id)) return pendingSent.get(w.id);
+  const p = genSentences(w).then(async r => {
+    const fresh = STATE.words.get(w.id) || w;
+    fresh.sentences = [...(fresh.sentences || []), ...r.sentences.filter(s => s && s.zh).map(s => ({ zh: String(s.zh), sv: String(s.sv || "") }))].slice(-15);
+    if (r.collocations) fresh.collocations = r.collocations.map(String).slice(0, 5);
+    if (r.note) fresh.note = String(r.note);
+    if (r.sv && !fresh.sv) fresh.sv = String(r.sv);
+    await Store.saveWord(fresh).catch(handleDbError);
+    return fresh;
+  }).catch(e => { if (!silent) throw e; return null; }).finally(() => pendingSent.delete(w.id));
+  pendingSent.set(w.id, p); return p;
 }
-
-/* ---------- pip ---------- */
-let BEEPAC = null;
-function beep(kind) {
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext; BEEPAC = BEEPAC || new AC(); if (BEEPAC.state === "suspended") BEEPAC.resume();
-    const t0 = BEEPAC.currentTime + 0.01; const fr = kind === "start" ? [660, 990] : kind === "ready" ? [880, 880] : [880, 520];
-    fr.forEach((f, i) => { const o = BEEPAC.createOscillator(), g = BEEPAC.createGain(); o.type = "sine"; o.frequency.value = f; const ts = t0 + i * 0.09; g.gain.setValueAtTime(0, ts); g.gain.linearRampToValueAtTime(0.18, ts + 0.01); g.gain.exponentialRampToValueAtTime(0.001, ts + 0.08); o.connect(g); g.connect(BEEPAC.destination); o.start(ts); o.stop(ts + 0.09); });
-  } catch { }
-  return new Promise(r => setTimeout(r, 200));
-}
-async function addTake(blob, x) {
-  const pt = MA.pitchTrack(x);
-  if (!pt) return null;
-  const take = { blob, x, pt, url: URL.createObjectURL(blob), t: Date.now(), n: (TAKES.length ? TAKES[TAKES.length - 1].n : 0) + 1 };
-  TAKES.push(take); if (TAKES.length > 6) { const old = TAKES.shift(); URL.revokeObjectURL(old.url); }
-  TAKE_SEL = TAKES.length - 1; $("#result").replaceChildren(); renderTakes(); drawMimic();
-  const att = { id: uid(), itemId: CUR.id, zh: CUR.zh, t: take.t, toneScore: null, iniScore: null, simScore: null, quick: true, rows: [], audio: blob };
-  take.attId = att.id; DB.put("attempts", att).then(() => { pruneAttempts(CUR.id); renderHistory(); });
-  return take;
-}
-function wavBlob(f32, sr) {
-  const n = f32.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf); const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-  ws(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); ws(8, "WAVE"); ws(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); ws(36, "data"); v.setUint32(40, n * 2, true);
-  for (let i = 0; i < n; i++) { const s = Math.max(-1, Math.min(1, f32[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
-  return new Blob([buf], { type: "audio/wav" });
-}
-
-/* ---------- kontinuerligt läge ---------- */
-const CONT = { on: false, stream: null, ac: null, proc: null, state: "off", pre: [], cur: [], floor: -60, loud: 0, quiet: 0, live: [], sr: 48000 };
-function contStatus(t) { $("#contNote").textContent = t; }
-async function contStart() {
-  if (REC.on) stopRec();
-  try { CONT.stream = await getStream(); } catch { contStatus("Fick inte tillgång till mikrofonen."); return; }
-  const AC = window.AudioContext || window.webkitAudioContext; CONT.ac = new AC(); CONT.sr = CONT.ac.sampleRate;
-  const src = CONT.ac.createMediaStreamSource(CONT.stream);
-  CONT.proc = CONT.ac.createScriptProcessor(2048, 1, 1); const mute = CONT.ac.createGain(); mute.gain.value = 0;
-  src.connect(CONT.proc); CONT.proc.connect(mute); mute.connect(CONT.ac.destination);
-  CONT.on = true; CONT.pre = []; CONT.cur = []; CONT.floor = -55; CONT.state = "idle";
-  CONT.proc.onaudioprocess = e => contFrame(e.inputBuffer.getChannelData(0));
-  $("#contBtn").textContent = "■ Stoppa kontinuerligt läge"; $("#recBtn").disabled = true;
-  contCycle();
-}
-function contStop() {
-  CONT.on = false; CONT.state = "off";
-  try { CONT.proc.disconnect(); } catch { } try { CONT.stream.getTracks().forEach(t => t.stop()); } catch { } try { CONT.ac.close(); } catch { }
-  $("#contBtn").textContent = "∞ Starta kontinuerligt läge"; $("#recBtn").disabled = false; contStatus("Kontinuerligt läge avslutat.");
-}
-async function contCycle() {
-  if (!CONT.on) return;
-  CONT.state = "busy";
-  if ($("#contNative").checked) { contStatus("Lyssna på native…"); await playNativeP(); await new Promise(r => setTimeout(r, 150)); }
-  if (!CONT.on) return;
-  await beep("ready");
-  CONT.pre = []; CONT.cur = []; CONT.loud = 0; CONT.quiet = 0; CONT.live = []; CONT.state = "idle";
-  contStatus("Redo. Prata när du vill.");
-}
-function contFrame(d) {
-  if (!CONT.on) return;
-  const buf = Float32Array.from(d); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
-  const db = 10 * Math.log10(s / buf.length + 1e-12);
-  if (CONT.state === "busy") return;
-  if (CONT.state === "idle") {
-    CONT.floor = Math.min(-25, CONT.floor * 0.97 + Math.min(db, CONT.floor + 3) * 0.03);
-    CONT.pre.push(buf); if (CONT.pre.length > 8) CONT.pre.shift();
-    if (db > CONT.floor + 14) { if (++CONT.loud >= 2) { CONT.state = "speech"; CONT.cur = CONT.pre.slice(); CONT.quiet = 0; CONT.t0 = performance.now(); contStatus("Spelar in…"); } } else CONT.loud = 0;
-  } else if (CONT.state === "speech") {
-    CONT.cur.push(buf);
-    const [f0, ap] = db > CONT.floor + 8 ? MA.yin(buf, 0, buf.length, CONT.sr, 70, 500) : [0, 1];
-    CONT.live.push(f0 && ap < 0.3 ? f0 : 0);
-    const vf = CONT.live.filter(Boolean).sort((a, b) => a - b); const med = vf.length ? vf[vf.length >> 1] : 150;
-    drawMimic(CONT.live.map(f => f ? 12 * Math.log2(f / med) : null));
-    if (db < CONT.floor + 9) CONT.quiet++; else CONT.quiet = 0;
-    const quietMs = CONT.quiet * 2048 / CONT.sr * 1000, dur = performance.now() - CONT.t0;
-    if ((quietMs > 700 && dur > 500) || dur > 15000) contFinish();
-  }
-}
-async function contFinish() {
-  CONT.state = "busy"; await beep("stop");
-  const len = CONT.cur.reduce((a, b) => a + b.length, 0); const all = new Float32Array(len); let o = 0; for (const b of CONT.cur) { all.set(b, o); o += b.length; }
-  CONT.cur = [];
-  try {
-    const AC = window.OfflineAudioContext || window.webkitOfflineAudioContext; const ab = CONT.ac.createBuffer(1, all.length, CONT.sr);
-    ab.copyToChannel(all, 0); const x = await MA.resample(ab);
-    const take = await addTake(wavBlob(all, CONT.sr), x);
-    if (!take) { contStatus("Hörde för lite. Försök igen."); }
-    else {
-      $("#recNote").textContent = "Försök " + take.n + " (kontinuerligt).";
-      const m = $("#contPlay").value;
-      if (m === "me") await playMe(); else if (m === "both") await Promise.all([playNativeP(), playMe()]); else if (m === "seq") { await playNativeP(); await new Promise(r => setTimeout(r, 250)); await playMe(); }
-      await new Promise(r => setTimeout(r, 300));
+function renderReview() {
+  const area = $("#reviewArea"); area.replaceChildren();
+  if (!RV.sessionStarted) {
+    const due = dueCountForBadge();
+    const newAvail = [...STATE.words.values()].filter(w => !w.suspended && w.card && w.card.state === 0).length;
+    if (!STATE.words.size) {
+      area.append(h("div", { class: "card empty" }, h("b", null, "Din ordbank är tom"), "Lägg till ord genom att skriva, fota eller använda \"Idag ska jag…\".", h("div", { style: "margin-top:14px" }, h("a", { class: "btn primary", href: "#lagg-till", style: "text-decoration:none;display:inline-block" }, "Lägg till ord"))));
+      return;
     }
-  } catch (e) { console.error(e); contStatus("Fel: " + (e.message || e)); }
-  contCycle();
-}
-$("#contBtn").onclick = () => { audioEl.pause(); meEl.pause(); beep("init"); CONT.on ? contStop() : contStart(); };
-
-/* ---------- härmningsläge: kurvor och uppspelning ---------- */
-const TAKES = []; let TAKE_SEL = -1; let NATIVE = null;
-async function nativeTrack(it) {
-  try { const x = await MA.toMono16k(await it.audio.arrayBuffer()); const pt = MA.pitchTrack(x); if (CUR && CUR.id === it.id && pt) { NATIVE = pt; drawMimic(); } } catch (e) { console.warn(e); }
-}
-function renderTakes() {
-  const row = $("#takesRow"); row.replaceChildren();
-  const has = TAKE_SEL >= 0; ["#playMe", "#playBoth", "#playSeq", "#analyzeBtn"].forEach(s => $(s).disabled = !has);
-  $("#takeInfo").textContent = TAKES.length ? TAKES.length + " försök" : "";
-  if (TAKES.length > 1) { row.append(h("span", { class: "note" }, "Försök:")); TAKES.forEach((t, i) => row.append(h("button", { class: "chip" + (i === TAKE_SEL ? " on" : ""), onclick: () => { TAKE_SEL = i; renderTakes(); drawMimic(); } }, String(t.n)))); }
-}
-function drawMimic(live) {
-  const c = $("#live"); const { g, W, H } = setupCanvas(c); g.clearRect(0, 0, W, H);
-  const pad = 10, R = 9; const yOf = v => H / 2 - Math.max(-R, Math.min(R, v)) / R * (H / 2 - pad);
-  g.strokeStyle = css("--line"); g.lineWidth = 1; [-6, 0, 6].forEach(v => { g.beginPath(); g.moveTo(0, yOf(v)); g.lineTo(W, yOf(v)); g.stroke(); });
-  const same = $("#sameLen").checked; const take = TAKES[TAKE_SEL];
-  const durs = [NATIVE ? NATIVE.st.length : 0, take ? take.pt.st.length : 0, live ? live.length : 0]; const maxLen = Math.max(1, ...durs);
-  const draw = (arr, color, w, en) => {
-    const n = arr.length; if (!n) return; const span = same ? W : W * n / maxLen; const xOf = i => i / Math.max(1, n - 1) * span;
-    if (en) { g.fillStyle = color; g.globalAlpha = 0.12; for (let i = 0; i < n; i++) { const hh = en[i] * (H - 2 * pad) * 0.5; g.fillRect(xOf(i), H - pad - hh, Math.max(1, span / n), hh); } g.globalAlpha = 1; }
-    g.strokeStyle = color; g.lineWidth = w; g.lineJoin = "round"; g.lineCap = "round"; g.beginPath(); let pen = false;
-    for (let i = 0; i < n; i++) { const v = arr[i]; if (v == null) { pen = false; continue; } const X = xOf(i), Y = yOf(v); if (!pen) { g.moveTo(X, Y); pen = true; } else g.lineTo(X, Y); }
-    g.stroke();
-  };
-  if (NATIVE) draw(NATIVE.st, css("--muted"), 5, NATIVE.en);
-
-  if (live) draw(live, css("--accent"), 2.5);
-  else if (take) draw(take.pt.st, css("--accent"), 3, take.pt.en);
-  g.font = "11px " + css("--mono"); g.fillStyle = css("--muted");
-  if (!NATIVE && CUR && CUR.audio) g.fillText("läser native…", 6, 14);
-}
-const meEl = new Audio();
-function playMe() { const t = TAKES[TAKE_SEL]; if (!t) return Promise.resolve(); return new Promise(res => { meEl.src = t.url; meEl.onloadedmetadata = () => { try { meEl.currentTime = t.pt.startSec; } catch { } }; meEl.onended = res; meEl.onerror = res; meEl.play().catch(res); }); }
-function playNativeP() {
-  if (!CUR) return Promise.resolve();
-  if (!CUR.audio) return Promise.resolve();
-  return new Promise(res => { audioEl.playbackRate = +$("#speed").value; try { audioEl.currentTime = AB.a != null ? AB.a : (NATIVE ? NATIVE.startSec : 0); } catch { } audioEl.onended = () => { audioEl.onended = null; res(); }; audioEl.play().catch(res); });
-}
-$("#playNative").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP(); };
-$("#playMe").onclick = () => { audioEl.pause(); playMe(); };
-$("#playBoth").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP(); playMe(); };
-$("#playSeq").onclick = async () => { audioEl.pause(); meEl.pause(); await playNativeP(); await new Promise(r => setTimeout(r, 250)); playMe(); };
-$("#analyzeBtn").onclick = analyzeTake;
-$("#sameLen").onchange = () => drawMimic();
-window.addEventListener("resize", () => drawMimic());
-async function pruneAttempts(itemId) { const a = (await DB.byItem(itemId)).sort((x, y) => y.t - x.t); for (const old of a.slice(5)) if (old.audio) { old.audio = null; await DB.put("attempts", old); } }
-
-/* ---------- ritning ---------- */
-function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-function setupCanvas(c) { const r = c.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; c.width = Math.round(r.width * dpr); c.height = Math.round((r.width * (c.dataset.ratio || 0.32)) * dpr); c.style.height = (r.width * (c.dataset.ratio || 0.32)) + "px"; const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, W: r.width, H: r.width * (c.dataset.ratio || 0.32) }; }
-function drawLive() {
-  const pts = REC.live; if (!pts.length) return;
-  const vf = pts.filter(p => p.f0).map(p => p.f0).sort((a, b) => a - b); const med = vf.length ? vf[vf.length >> 1] : 150;
-  drawMimic(pts.map(p => p.f0 ? 12 * Math.log2(p.f0 / med) : null));
-}
-function drawCompare(c, an, cmp, tones) {
-  const { g, W, H } = setupCanvas(c); g.clearRect(0, 0, W, H);
-  const pad = 8; const yOf = v => H / 2 - v / 7 * (H / 2 - pad);
-  g.strokeStyle = css("--line"); g.lineWidth = 1; [-4, 0, 4].forEach(v => { g.beginPath(); g.moveTo(0, yOf(v)); g.lineTo(W, yOf(v)); g.stroke(); });
-  const norm = arr => { const scale = Math.min(2, Math.max(0.5, 8 / arr.range)); const mid = (arr.p10 + arr.p90) / 2; return v => (v - mid) * scale; };
-  let ref = [], usr = [];
-  if (cmp && cmp.global.path.length) {
-    // rita native på sin tidsaxel, användaren omplacerad längs DTW-vägen
-    const nm = norm(modelAn), nu = norm(an);
-    const M = cmp.ma.v.length; ref = cmp.ma.v.map(v => nm(v));
-    const mapped = new Array(M).fill(null); const cnt = new Array(M).fill(0);
-    for (const [ui, mi] of cmp.global.path) { mapped[mi] = (mapped[mi] || 0) + nu(cmp.ua.v[ui]); cnt[mi]++; }
-    usr = mapped.map((v, i) => cnt[i] ? v / cnt[i] : null);
+    area.append(h("div", { class: "card stack" },
+      h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, due), "att repetera"), h("div", { class: "tile" }, h("b", null, Math.min(newAvail, +STATE.profile.newPerDay || 15)), "nya idag"), h("div", { class: "tile" }, h("b", null, STATE.words.size), "ord totalt")),
+      h("div", { class: "row" }, h("span", { class: "small muted" }, "Framsida:"),
+        ...[["tecken", "Tecken"], ["ljud", "Ljud"], ["blandat", "Blandat"]].map(([k, l]) => h("button", { class: "chip" + (RV.mode === k ? " on" : ""), type: "button", onclick: () => { RV.mode = k; try { localStorage.setItem("mandapp-mode", k); } catch { } renderReview(); } }, l))),
+      h("button", { class: "btn primary block", type: "button", onclick: startReview }, due || newAvail ? "Starta repetition" : "Inget att repetera just nu"),
+      h("div", { class: "note" }, "Regler för knapparna: Igen = kunde inte. Svårt = fick kämpa. Bra = kom på det inom cirka 3 sekunder. Lätt = används sparsamt.")));
+    return;
+  }
+  const w = RV.cur;
+  if (!w) {
+    const upcoming = [...STATE.words.values()].filter(x => !x.suspended && x.card && x.card.state !== 0).sort((a, b) => a.card.due - b.card.due)[0];
+    area.append(h("div", { class: "card empty" }, h("b", null, "Klart för nu!"), RV.done ? "Du repeterade " + RV.done + " kort." : "", upcoming ? h("div", null, "Nästa kort om " + fmtIvl(upcoming.card.due - now()) + ".") : null,
+      h("div", { class: "row", style: "justify-content:center;margin-top:14px" }, h("a", { class: "btn", href: "#lagg-till", style: "text-decoration:none" }, "Lägg till ord"), h("button", { class: "btn", type: "button", onclick: () => { RV.sessionStarted = false; RV.done = 0; renderReview(); } }, "Tillbaka"))));
+    return;
+  }
+  const total = RV.done + RV.queue.length;
+  area.append(h("div", { class: "progress" }, h("span", null, RV.queue.length + " kvar"), statusPill(w)));
+  area.append(h("div", { class: "bar" }, h("i", { style: "width:" + (total ? Math.round(RV.done / total * 100) : 0) + "%" })));
+  const card = h("div", { class: "card rcard" });
+  const audioFront = !RV.revealed && w.card.state !== 0 && (RV.mode === "ljud" || (RV.mode === "blandat" && RV.curAudio));
+  if (audioFront) {
+    card.append(h("div", { style: "text-align:center;margin-top:20px" }, h("button", { class: "btn", type: "button", style: "font-size:2rem;padding:18px 28px", "aria-label": "Lyssna igen", onclick: () => speak(w.hanzi) }, "🔊")), h("div", { class: "note", style: "text-align:center" }, "Lyssna och försök förstå ordet."));
+    if (RV.spokenFor !== w.id) { RV.spokenFor = w.id; setTimeout(() => speak(w.hanzi), 150); }
+  } else card.append(h("div", { class: "big" }, w.hanzi));
+  if ((w.card.lapses || 0) >= 6) card.append(h("div", { class: "note", style: "text-align:center" }, "Det här ordet är en igel. Prova en minnesbild, jämför med ord du blandar ihop det med, eller pausa det i ordlistan."));
+  if (!RV.revealed) {
+    card.append(h("div", { style: "flex:1" }));
+    card.append(h("button", { class: "btn primary block", type: "button", id: "btnReveal", onclick: reveal }, "Visa svar"));
   } else {
-    ref = MA.templateCurve(tones, an.syls.map(s => s.durMs));
-    const nu = norm(an); usr = [];
-    an.syls.forEach(s => { const n = Math.max(4, Math.round(s.durMs / 20)); const cc = s.raw.length ? s.raw : [0]; for (let k = 0; k < n; k++) usr.push(nu(cc[Math.round(k * (cc.length - 1) / (n - 1))])); usr.push(null); });
+    card.append(h("div", { class: "py" }, wordPinyinNode(w), " ", speakBtn(w.hanzi)));
+    card.append(h("div", { class: "mean" }, w.sv ? h("div", null, w.sv) : null, h("span", { class: "en" }, w.defs), w.hsk ? h("span", { class: "chip", style: "margin-top:4px" }, "HSK " + w.hsk) : null));
+    card.append(sentenceBox(w));
+    if (w.collocations && w.collocations.length) card.append(h("div", { class: "ctx" }, h("div", { class: "lblrow" }, h("span", null, "Vanliga kombinationer")), zhText(w.collocations.join(" · "), w.hanzi)));
+    if (w.note) card.append(h("div", { class: "note" }, w.note));
+    card.append(gradeButtons(w));
+    card.append(h("div", { class: "row", style: "justify-content:center" },
+      h("button", { class: "chip", type: "button", onclick: async () => { w.flagged = !w.flagged; await Store.saveWord(w).catch(handleDbError); toast(w.flagged ? "Markerat för senare" : "Markering borttagen"); renderReview(); } }, w.flagged ? "★ Markerad" : "☆ Markera för senare"),
+      h("button", { class: "chip", type: "button", onclick: async () => { w.shadow = !w.shadow; await Store.saveWord(w).catch(handleDbError); toast(w.shadow ? "Med i nästa export till skuggning" : "Borttaget från skuggning"); renderReview(); } }, w.shadow ? "🎙 Ska skuggas" : "🎙 Skugga")));
+    if (w.pinyin) card.append(pronBlock(w.pinyin, w.hanzi));
+    { const sl = shadowLink(w.hanzi); if (sl) card.append(sl); }
   }
-  const N = Math.max(ref.length, usr.length) || 1;
-  const line = (arr, color, w, dash) => { g.strokeStyle = color; g.lineWidth = w; g.setLineDash(dash || []); g.beginPath(); let pen = false; arr.forEach((v, i) => { if (v == null) { pen = false; return; } const x = i / (N - 1 || 1) * W, y = Math.max(2, Math.min(H - 2, yOf(v))); if (!pen) { g.moveTo(x, y); pen = true; } else g.lineTo(x, y); }); g.stroke(); g.setLineDash([]); };
-  line(ref, css("--muted"), 4, cmp ? [] : [6, 5]);
-  line(usr, css("--accent"), 2.5);
-  g.font = "11px " + css("--mono"); g.fillStyle = css("--muted"); g.fillText(cmp ? "grå = native" : "streckad = idealkurva", 6, H - 6); g.fillStyle = css("--accent"); g.fillText("grön = du", W - 62, H - 6);
+  area.append(card);
 }
+function reveal() { RV.revealed = true; RV.revealMs = now() - RV.shownAt; renderReview(); const w = RV.cur; if (w && (!w.sentences || !w.sentences.length)) { ensureSentences(w, false).then(f => { if (f && RV.cur && RV.cur.id === w.id) { RV.cur = f; renderReview(); } }).catch(e => { const n = $("#sentNote"); if (n) n.textContent = sampleMsg(e); }); } }
+function sentenceBox(w) {
+  const box = h("div", { class: "ctx" });
+  const list = w.sentences || [];
+  const lbl = h("div", { class: "lblrow" }, h("span", null, list.length ? "Exempelmening " + ((w.sentIdx || 0) % list.length + 1) + "/" + list.length : "Exempelmening"));
+  if (STATE.sample) lbl.append(h("button", { class: "chip", type: "button", onclick: async ev => { ev.target.disabled = true; ev.target.textContent = "…"; try { const f = await ensureSentences(w, false); if (f) { f.sentIdx = (f.sentences.length - 5); RV.cur = f; renderReview(); } } catch (e) { toast(sampleMsg(e)); ev.target.disabled = false; ev.target.textContent = "↻ Nya"; } } }, "↻ Nya"));
+  box.append(lbl);
+  if (list.length) { const s = list[(w.sentIdx || 0) % list.length]; box.append(zhText(s.zh, w.hanzi), h("div", { class: "sv" }, s.sv), h("div", { class: "row", style: "margin-top:4px" }, speakBtn(s.zh))); }
+  else box.append(h("div", { class: "thinking", id: "sentNote" }, STATE.sample ? (pendingSent.has(w.id) ? "Claude skriver meningar…" : "Claude skriver meningar…") : "Exempelmeningar kräver en API-nyckel (⚙ Inställningar)."));
+  return box;
+}
+function gradeButtons(w) {
+  const prev = F.repeat(dataToCard(w.card), new Date());
+  const g = h("div", { class: "grades" });
+  const labels = [[R.Again, "Igen", "g1"], [R.Hard, "Svårt", "g2"], [R.Good, "Bra", "g3"], [R.Easy, "Lätt", "g4"]];
+  for (const [r, l, c] of labels) {
+    const due = +new Date(prev[r].card.due);
+    const b = h("button", { type: "button", class: c, onclick: () => grade(w, r) }, l, h("small", null, fmtIvl(due - now())));
+    if (r === R.Hard && (RV.revealMs || 0) > 3000 && w.card.state !== 0) b.classList.add("suggest");
+    g.append(b);
+  }
+  return g;
+}
+async function grade(w, rating) {
+  const before = w.card.state; const t = now();
+  const rec = F.next(dataToCard(w.card), new Date(t), rating);
+  w.card = cardToData(rec.card); w.sentIdx = (w.sentIdx || 0) + 1;
+  RV.queue.shift(); RV.done++;
+  if (w.card.due - t < 20 * 60000) RV.queue.splice(Math.min(RV.queue.length, 3), 0, w.id);
+  Store.saveWord(w).catch(handleDbError);
+  Store.appendLog({ k: "rev", w: w.id, h: w.hanzi, r: rating, s: before, ms: RV.revealMs || 0, t });
+  nextCard();
+}
+document.addEventListener("keydown", e => {
+  if (location.hash.slice(1) !== "repetera" && location.hash) return;
+  if (sheetEls || !RV.cur || e.target.matches("input,textarea")) return;
+  if (!RV.revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); reveal(); }
+  else if (RV.revealed && ["1", "2", "3", "4"].includes(e.key)) grade(RV.cur, +e.key);
+});
 
-/* ---------- resultat ---------- */
-function scoreCls(v) { return v == null ? "" : v >= 80 ? "ok" : v >= 50 ? "mid" : "bad"; }
-function renderResult(an, j, cmp, tones, blob) {
-  const out = $("#result"); out.replaceChildren();
-  out.append(h("div", { class: "tiles" },
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.toneScore) }, j.toneScore == null ? "–" : j.toneScore + " %"), "toner"),
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.iniScore) }, j.iniScore == null ? "–" : j.iniScore + " %"), "initialer"),
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.simScore) }, j.simScore == null ? "–" : j.simScore + " %"), cmp ? "likhet med native" : "likhet (kräver native)")));
-  const cv = h("canvas", { "data-ratio": "0.4", "aria-label": "Tonkurvor" }); out.append(h("div", { class: "card stack" }, h("label", { class: "lbl" }, "Tonkurva"), cv));
-  requestAnimationFrame(() => drawCompare(cv, an, cmp, tones));
-  const url = URL.createObjectURL(blob); const me = new Audio(url);
-  out.append(h("div", { class: "row" },
-    h("button", { class: "btn", onclick: () => me.play() }, "▶ Min"),
-    h("button", { class: "btn", onclick: () => playModel() }, "▶ Native"),
-    h("button", { class: "btn", onclick: async () => { playModel(); await new Promise(r => audioEl.addEventListener("ended", r, { once: true })); me.play(); } }, "▶ Native, sedan jag")));
-  if (j.sylFound !== j.rows.length) out.append(h("div", { class: "banner" }, "Hittade " + j.sylFound + " stavelser men frasen har " + j.rows.length + ". Säg frasen lite tydligare med små pauser, så blir analysen säkrare."));
-  const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, ""), h("th", null, "Ton"), h("th", null, "Initial"), h("th", null, cmp ? "Likhet" : "Längd"))));
-  const body = h("tbody");
-  j.rows.forEach(r => {
-    body.append(h("tr", null,
-      h("td", null, h("b", { class: "mono t" + r.py.tone }, MA.marked(r.py.syl, r.py.tone))),
-      h("td", null, r.heard == null ? "–" : h("span", { class: r.toneOk ? "ok" : r.toneOk === false ? "bad" : "" }, (r.toneOk ? "✓ " : r.toneOk === false ? "✗ " : "") + (r.exp === 5 ? "neutral" : r.exp) + (r.toneOk === false && r.heard ? " (hörde " + r.heard + ")" : ""))),
-      h("td", null, r.ini ? h("span", { class: r.ini.ok ? "ok" : "bad" }, (r.ini.ok ? "✓ " : "✗ ") + r.info.ini + (r.ini.ms != null ? " " + r.ini.ms + " ms" : r.ini.heard ? " (" + r.ini.heard + ")" : "")) : h("span", { class: "muted" }, r.info.ini || "–")),
-      h("td", null, r.sim ? h("span", { class: scoreCls(r.sim.pitch) }, r.sim.pitch + " %") : r.durMs ? r.durMs + " ms" : "–")));
-    if (r.tips.length) body.append(h("tr", null, h("td", { colspan: 4, style: "padding-top:0" }, h("ul", { class: "tips small", style: "margin:0;padding-left:18px" }, r.tips.map(t => h("li", null, t))))));
-  });
-  tb.append(body); out.append(h("div", { class: "card" }, tb));
-  out.append(h("div", { class: "note" }, "Analysen är en uppskattning: toner mäts från tonhöjdskurvan, aspiration från hur länge det brusar före rösten och s/sh/x från var bruset ligger i frekvens. Den är säkrast med en riktig native-inspelning och i ett tyst rum."));
-}
-async function renderHistory() {
-  if (!CUR) return;
-  const a = (await DB.byItem(CUR.id)).sort((x, y) => y.t - x.t);
-  let box = $("#hist"); if (!box) { box = h("div", { id: "hist", class: "stack" }); $("#v-ova").append(box); }
-  box.replaceChildren();
-  if (!a.length) return;
-  box.append(h("h2", null, "Tidigare försök (" + a.length + ")"));
-  const best = Math.max(...a.map(x => x.toneScore || 0));
-  box.append(h("div", { class: "note" }, "Bästa tonresultat: " + best + " %"));
-  a.slice(0, 8).forEach(x => box.append(h("div", { class: "item" }, h("span", { class: "small" }, new Date(x.t).toLocaleString("sv", { dateStyle: "short", timeStyle: "short" })), h("span", { class: "small mono" }, "ton " + (x.toneScore ?? "–") + " · ini " + (x.iniScore ?? "–") + (x.simScore != null ? " · likh " + x.simScore : "")), x.audio ? h("button", { class: "chip", onclick: () => new Audio(URL.createObjectURL(x.audio)).play() }, "▶") : null)));
-}
-$("#itemSel").onchange = e => selectItem(e.target.value);
-$("#prevItem").onclick = () => { const P = practiceItems(); const i = P.indexOf(CUR); if (i > 0) selectItem(P[i - 1].id); else if (i < 0 && P[0]) selectItem(P[0].id); };
-$("#nextItem").onclick = () => { const P = practiceItems(); const i = P.indexOf(CUR); if (i < P.length - 1) selectItem(P[i + 1].id); };
-
-/* ---------- BIBLIOTEK ---------- */
-async function renderLib() {
-  const list = $("#libList"); list.replaceChildren(); $("#libCount").textContent = ITEMS.length + " fraser";
-  const atts = await DB.all("attempts"); const best = {}; atts.forEach(a => { best[a.itemId] = Math.max(best[a.itemId] || 0, a.toneScore || 0); });
-  const own = ITEMS.filter(i => !i.audioPath); const shown = own.slice().reverse().slice(0, 200);
-  if (ITEMS.length > own.length) list.append(h("div", { class: "note" }, (ITEMS.length - own.length) + " meningar från meningsbanken visas inte här. Hitta dem under Öva."));
-  shown.forEach(it => {
-    const del = h("button", { class: "chip" }, "Ta bort");
-    del.onclick = async () => { if (!del.dataset.arm) { del.dataset.arm = 1; del.textContent = "Säker?"; return; } await DB.del("items", it.id); await loadItems(); if (CUR && CUR.id === it.id) CUR = ITEMS[0] || null; renderItemSel(); renderLib(); };
-    list.append(h("div", { class: "item" },
-      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, it.zh), " ", it.audio ? h("span", { class: "tag" }, "native") : null, best[it.id] != null ? h("span", { class: "tag" }, "bäst " + best[it.id] + " %") : null, h("div", { class: "note mono" }, pyNode(itemSyls(it))), it.sv ? h("div", { class: "note" }, it.sv) : null),
-      h("div", { class: "row", style: "flex:none" }, h("button", { class: "chip", onclick: () => { selectItem(it.id); location.hash = "ova"; } }, "Öva"), del)));
-  });
-}
-$("#nAdd").onclick = async () => {
-  const zh = $("#nZh").value.trim(), py = $("#nPy").value.trim(); if (!zh || !py) { toast("Fyll i tecken och pinyin"); return; }
-  const f = $("#nAudio").files[0];
-  const it = { id: uid(), zh, pinyin: py, sv: $("#nSv").value.trim(), audio: f || null, added: Date.now(), source: "manuell" };
-  await DB.put("items", it); await loadItems(); ["#nZh", "#nPy", "#nSv"].forEach(s => $(s).value = ""); $("#nAudio").value = "";
-  toast("Tillagd"); renderItemSel(); renderLib();
-};
-async function importText(txt) {
-  let o; try { o = JSON.parse(txt); } catch { toast("Kunde inte läsa texten som JSON"); return; }
-  const items = o.items || []; let n = 0; const have = new Set(ITEMS.map(i => i.zh));
-  for (const x of items) { if (!x || !x.zh || !x.pinyin || have.has(x.zh)) continue; await DB.put("items", { id: uid(), zh: String(x.zh), pinyin: String(x.pinyin), sv: String(x.sv || ""), audio: null, added: Date.now() + n, source: "mandapp" }); have.add(x.zh); n++; }
-  await loadItems(); renderItemSel(); renderLib(); toast("Importerade " + n + " fraser");
-}
-$("#impFile").onchange = async e => { const f = e.target.files[0]; if (f) importText(await f.text()); e.target.value = ""; };
-$("#impPasteBtn").onclick = () => { const t = $("#impPaste"); if (t.hidden) { t.hidden = false; t.focus(); $("#impPasteBtn").textContent = "Importera"; } else { importText(t.value); t.value = ""; t.hidden = true; $("#impPasteBtn").textContent = "Klistra in"; } };
-
-/* ---------- HÖRTRÄNING ---------- */
-// Native-ljud för hörträningen: ord från audio-cmn (lokalt för tonpar, annars GitHub), stavelser från audio-cmns stavelsesamling. Syntetisk röst bara som reserv.
-const hearEl = new Audio();
-function playUrls(urls, fallback) { return new Promise(res => { let i = 0; const next = () => { if (i >= urls.length) { speak(fallback, 0.8).then(res); return; } hearEl.src = urls[i++]; hearEl.onended = res; hearEl.onerror = next; hearEl.play().catch(next); }; next(); }); }
-function playWord(zh) { return playUrls(["audio/tonpar/" + encodeURIComponent(zh) + ".mp3", ACMN + encodeURIComponent(zh) + ".mp3"], zh); }
-function playSyl(py, zh) { return playUrls(["https://raw.githubusercontent.com/hugolpz/audio-cmn/master/64k/syllabs/cmn-" + py.toLowerCase().replace("u:", "v") + ".mp3"], zh); }
-const TONE_WORDS = [["银行","yin2 hang2"],["中国","zhong1 guo2"],["老师","lao3 shi1"],["电脑","dian4 nao3"],["咖啡","ka1 fei1"],["学生","xue2 sheng1"],["工作","gong1 zuo4"],["朋友","peng2 you5"],["可以","ke3 yi3"],["喜欢","xi3 huan5"],["音乐","yin1 yue4"],["时间","shi2 jian1"],["问题","wen4 ti2"],["医院","yi1 yuan4"],["机场","ji1 chang3"],["火车","huo3 che1"],["面包","mian4 bao1"],["米饭","mi3 fan4"],["方便","fang1 bian4"],["容易","rong2 yi4"],["价格","jia4 ge2"],["历史","li4 shi3"],["经济","jing1 ji4"],["文化","wen2 hua4"],["环境","huan2 jing4"],["比较","bi3 jiao4"],["地铁","di4 tie3"],["手机","shou3 ji1"],["干净","gan1 jing4"],["认真","ren4 zhen1"],["旅游","lv3 you2"],["城市","cheng2 shi4"],["打折","da3 zhe2"],["报纸","bao4 zhi3"],["飞机","fei1 ji1"],["厨房","chu2 fang2"]];
-const PAIRS = [
-  ["aspiration b/p", [["八", "ba1"], ["趴", "pa1"]]], ["aspiration d/t", [["多", "duo1"], ["拖", "tuo1"]]], ["aspiration g/k", [["哥", "ge1"], ["科", "ke1"]]],
-  ["aspiration z/c", [["字", "zi4"], ["次", "ci4"]]], ["aspiration zh/ch", [["知", "zhi1"], ["吃", "chi1"]]], ["aspiration j/q", [["鸡", "ji1"], ["七", "qi1"]]],
-  ["s/sh/x", [["四", "si4"], ["是", "shi4"], ["细", "xi4"]]], ["s/sh/x", [["三", "san1"], ["山", "shan1"], ["先", "xian1"]]], ["z/zh/j", [["早", "zao3"], ["找", "zhao3"], ["脚", "jiao3"]]],
-  ["-n/-ng", [["心", "xin1"], ["星", "xing1"]]], ["-n/-ng", [["金", "jin1"], ["经", "jing1"]]], ["-n/-ng", [["山", "shan1"], ["伤", "shang1"]]], ["-n/-ng", [["门", "men2"], ["盟", "meng2"]]], ["-n/-ng", [["烟", "yan1"], ["央", "yang1"]]],
-  ["u/ü", [["路", "lu4"], ["绿", "lv4"]]], ["u/ü", [["努", "nu3"], ["女", "nv3"]]], ["r/l", [["热", "re4"], ["乐", "le4"]]], ["h/f", [["胡", "hu2"], ["服", "fu2"]]],
-  ["toner", [["妈", "ma1"], ["麻", "ma2"], ["马", "ma3"], ["骂", "ma4"]]], ["toner", [["汤", "tang1"], ["糖", "tang2"], ["躺", "tang3"], ["烫", "tang4"]]]
-];
-let hMode = "tones";
-$("#hTones").onclick = () => { hMode = "tones"; $("#hTones").classList.add("on"); $("#hPairs").classList.remove("on"); nextListen(); };
-$("#hPairs").onclick = () => { hMode = "pairs"; $("#hPairs").classList.add("on"); $("#hTones").classList.remove("on"); nextListen(); };
-async function getListenStats() { return (await DB.get("kv", "listen")) || { tones: {}, conf: {}, pairs: {} }; }
-async function bumpListen(fn) { const s = await getListenStats(); fn(s); await DB.put("kv", s, "listen"); }
-function nextListen() {
-  const area = $("#hArea"); area.replaceChildren();
-  $("#hNote").textContent = "Native-inspelningar från audio-cmn (CC BY-SA).";
-  if (hMode === "tones") {
-    const lib = ITEMS.filter(i => MA.parsePinyin(i.pinyin).length === 2).map(i => [i.zh, i.pinyin]);
-    const pool = TONE_WORDS.concat(lib); const [zh, py] = pool[Math.floor(Math.random() * pool.length)];
-    const syls = MA.parsePinyin(py); const ans = syls.map(s => s.tone); const pick = syls.map(() => 0);
-    const play = h("button", { class: "btn primary block", onclick: () => playWord(zh) }, "▶ Lyssna");
-    area.append(play);
-    const rows = syls.map((s, i) => { const r = h("div", { class: "toneopts" }); [1, 2, 3, 4, 5].forEach(t => r.append(h("button", { onclick: ev => { pick[i] = t; [...r.children].forEach(b => b.classList.toggle("sel", b === ev.target)); } }, t === 5 ? "0" : t))); return r; });
-    rows.forEach((r, i) => area.append(h("label", { class: "lbl" }, "Stavelse " + (i + 1)), r));
-    const check = h("button", { class: "btn block" }, "Rätta");
-    check.onclick = async () => {
-      if (pick.some(p => !p)) { toast("Välj en ton för varje stavelse"); return; }
-      rows.forEach((r, i) => [...r.children].forEach((b, k) => { const t = k + 1; b.classList.remove("sel"); if (t === ans[i]) b.classList.add("right"); else if (t === pick[i]) b.classList.add("wrong"); }));
-      const ok = pick.every((p, i) => p === ans[i]);
-      await bumpListen(s => { ans.forEach((a, i) => { s.tones[a] = s.tones[a] || { n: 0, ok: 0 }; s.tones[a].n++; if (pick[i] === a) s.tones[a].ok++; else { const k = a + "→" + pick[i]; s.conf[k] = (s.conf[k] || 0) + 1; } }); });
-      area.append(h("div", { class: "card" }, h("div", { class: ok ? "ok" : "bad" }, ok ? "Rätt!" : "Inte riktigt."), h("div", null, h("span", { class: "zh", style: "font-size:1.4rem" }, zh), " ", pyNode(syls)), MA.sandhi(syls, zh).notes.map(n => h("div", { class: "note" }, n))));
-      check.replaceWith(h("button", { class: "btn primary block", onclick: nextListen }, "Nästa"));
-    };
-    area.append(check);
-    setTimeout(() => playWord(zh), 200);
+/* ============ ADD: text ============ */
+let qTimer = null;
+$("#q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(runSearch, 220); });
+$("#q").addEventListener("focus", () => { loadDict().then(() => { $("#qNote").textContent = DICT.list.length.toLocaleString("sv") + " ord i ordboken."; }).catch(() => { $("#qNote").textContent = "Ordboken kunde inte laddas."; }); });
+async function runSearch() {
+  const q = $("#q").value.trim(); const out = $("#results"); out.replaceChildren();
+  if (!q) return;
+  if (!DICT.ready) { out.append(h("div", { class: "note" }, "Laddar ordboken…")); await loadDict().catch(() => { }); if ($("#q").value.trim() !== q) return; out.replaceChildren(); }
+  let res = [];
+  if ([...q].some(isCJK)) {
+    const exact = lookup(q); const seen = new Set();
+    for (const e of exact) { if (!seen.has(e.s)) { res.push(e); seen.add(e.s); } }
+    for (const e of DICT.list) { if (res.length > 40) break; if (e.s !== q && e.s.startsWith(q) && !seen.has(e.s)) { res.push(e); seen.add(e.s); } }
+    if (!exact.length && q.length > 1) { for (const s of segment(q)) if (s.w && !seen.has(s.t)) { const be = bestEntry(s.t); if (be) { res.push(be); seen.add(s.t); } } }
   } else {
-    const [cat, opts] = PAIRS[Math.floor(Math.random() * PAIRS.length)];
-    const target = opts[Math.floor(Math.random() * opts.length)];
-    area.append(h("div", { class: "note" }, "Kontrast: " + cat), h("button", { class: "btn primary block", onclick: () => playSyl(target[1], target[0]) }, "▶ Lyssna"));
-    const grid = h("div", { class: "pairs" }); let done = false;
-    opts.forEach(o => { const s = MA.parsePinyin(o[1])[0]; grid.append(h("button", { onclick: async ev => {
-      if (done) return; done = true; const ok = o === target;
-      [...grid.children].forEach((b, k) => { if (opts[k] === target) b.classList.add("right"); else if (b === ev.currentTarget) b.classList.add("wrong"); });
-      await bumpListen(st => { st.pairs[cat] = st.pairs[cat] || { n: 0, ok: 0 }; st.pairs[cat].n++; if (ok) st.pairs[cat].ok++; });
-      area.append(h("div", { class: ok ? "ok" : "bad" }, ok ? "Rätt!" : "Det var " + target[0] + " " + MA.marked(MA.parsePinyin(target[1])[0].syl, MA.parsePinyin(target[1])[0].tone) + "."), h("div", { class: "row" }, opts.map(x => h("button", { class: "chip", onclick: () => playSyl(x[1], x[0]) }, "▶ " + x[0]))), h("button", { class: "btn primary block", onclick: nextListen }, "Nästa"));
-    } }, MA.marked(s.syl, s.tone)));
-    });
-    area.append(grid);
-    setTimeout(() => playSyl(target[1], target[0]), 200);
-  }
-}
-
-/* ---------- STATISTIK ---------- */
-async function computeStats() {
-  const atts = (await DB.all("attempts")).sort((a, b) => a.t - b.t);
-  const perTone = {}, conf = {}, asp = { asp: { n: 0, ok: 0, ms: [] }, unasp: { n: 0, ok: 0, ms: [] } }, sib = {};
-  for (const a of atts) for (const r of a.rows || []) {
-    if (r.exp && r.exp !== 5 && r.toneOk != null) { const p = perTone[r.exp] = perTone[r.exp] || { n: 0, ok: 0 }; p.n++; if (r.toneOk) p.ok++; else if (r.heard) conf[r.exp + "→" + r.heard] = (conf[r.exp + "→" + r.heard] || 0) + 1; }
-    if (r.iniKind === "aspirerad" || r.iniKind === "oaspirerad") { const k = r.iniKind === "aspirerad" ? "asp" : "unasp"; asp[k].n++; if (r.iniOk) asp[k].ok++; if (r.ms != null) asp[k].ms.push(r.ms); }
-    if (r.iniKind === "frikativa") { const s = sib[r.ini] = sib[r.ini] || { n: 0, ok: 0 }; s.n++; if (r.iniOk) s.ok++; }
-  }
-  return { atts, perTone, conf, asp, sib, listen: await getListenStats() };
-}
-const pctS = o => o && o.n ? Math.round(o.ok / o.n * 100) + " %" : "–";
-async function renderStats() {
-  const area = $("#statArea"); area.replaceChildren(h("div", { class: "note" }, "Räknar…"));
-  const S = await computeStats(); const a = S.atts; area.replaceChildren();
-  const first = a.slice(0, 10), last = a.slice(-10); const avg = arr => { const v = arr.map(x => x.toneScore).filter(x => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
-  area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, a.length), "inspelningar"), h("div", { class: "tile" }, h("b", null, avg(first) == null ? "–" : avg(first) + " %"), "toner, första 10"), h("div", { class: "tile" }, h("b", null, avg(last) == null ? "–" : avg(last) + " %"), "toner, senaste 10")));
-  if (a.length > 1) { const cv = h("canvas", { "data-ratio": "0.35" }); area.append(h("h2", null, "Tonresultat över tid"), cv); requestAnimationFrame(() => { const { g, W, H } = setupCanvas(cv); const v = a.map(x => x.toneScore ?? null); g.strokeStyle = css("--line"); [0, 50, 100].forEach(p => { g.beginPath(); g.moveTo(0, H - p / 100 * (H - 10) - 5); g.lineTo(W, H - p / 100 * (H - 10) - 5); g.stroke(); }); g.strokeStyle = css("--accent"); g.lineWidth = 2; g.beginPath(); let pen = false; const sm = v.map((_, i) => { const w = v.slice(Math.max(0, i - 4), i + 1).filter(x => x != null); return w.length ? w.reduce((s, x) => s + x, 0) / w.length : null; }); sm.forEach((x, i) => { if (x == null) return; const X = i / (sm.length - 1) * W, Y = H - x / 100 * (H - 10) - 5; pen ? g.lineTo(X, Y) : (g.moveTo(X, Y), pen = true); }); g.stroke(); }); }
-  area.append(h("h2", null, "Toner när du talar"));
-  area.append(h("table", null, h("tbody", null, [1, 2, 3, 4].map(t => h("tr", null, h("td", { class: "t" + t }, MA.TONE_NAME[t] + " ton"), h("td", { class: "mono" }, pctS(S.perTone[t])), h("td", { class: "note" }, S.perTone[t] ? S.perTone[t].n + " st" : ""))))));
-  const conf = Object.entries(S.conf).sort((x, y) => y[1] - x[1]).slice(0, 5);
-  if (conf.length) area.append(h("div", { class: "note" }, "Vanligaste förväxlingar: " + conf.map(([k, n]) => k + " (" + n + ")").join(", ")));
-  area.append(h("h2", null, "Initialer"));
-  const avgMs = arr => arr.length ? Math.round(arr.reduce((s, x) => s + x, 0) / arr.length) + " ms" : "–";
-  area.append(h("table", null, h("tbody", null,
-    h("tr", null, h("td", null, "Aspirerade (p t k c ch q)"), h("td", { class: "mono" }, pctS(S.asp.asp)), h("td", { class: "note" }, "snitt " + avgMs(S.asp.asp.ms))),
-    h("tr", null, h("td", null, "Oaspirerade (b d g z zh j)"), h("td", { class: "mono" }, pctS(S.asp.unasp)), h("td", { class: "note" }, "snitt " + avgMs(S.asp.unasp.ms))),
-    ["s", "sh", "x"].map(k => h("tr", null, h("td", null, k), h("td", { class: "mono" }, pctS(S.sib[k])), h("td", { class: "note" }, S.sib[k] ? S.sib[k].n + " st" : ""))))));
-  area.append(h("h2", null, "Hörträning"));
-  const L = S.listen;
-  area.append(h("table", null, h("tbody", null, [1, 2, 3, 4, 5].map(t => h("tr", null, h("td", { class: "t" + t }, t === 5 ? "neutral ton" : MA.TONE_NAME[t] + " ton"), h("td", { class: "mono" }, pctS(L.tones[t])), h("td", { class: "note" }, L.tones[t] ? L.tones[t].n + " st" : ""))), Object.entries(L.pairs).map(([k, v]) => h("tr", null, h("td", null, k), h("td", { class: "mono" }, pctS(v)), h("td", { class: "note" }, v.n + " st"))))));
-  const PS = await pairStats(); const tpk = Object.keys(PS.listen).concat(Object.keys(PS.speak));
-  if (tpk.length) {
-    area.append(h("h2", null, "Tonpar"));
-    const rows = [...new Set(tpk)].sort().map(k => h("tr", null, h("td", { class: "mono" }, pairLabel(k)), h("td", { class: "mono" }, "hör " + pctS(PS.listen[k])), h("td", { class: "mono" }, "tal " + pctS(PS.speak[k]))));
-    area.append(h("table", null, h("tbody", null, rows)));
-    const tc = Object.entries(L.tpConf || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    if (tc.length) area.append(h("div", { class: "note" }, "Vanligaste förväxlingar av tonpar: " + tc.map(([k, n]) => k + " (" + n + ")").join(", ")));
-  }
-  area.append(h("h2", null, "Skicka till Mandapp"));
-  area.append(h("div", { class: "note" }, "Exportera statistiken och importera den i Mandapp (Inställningar → Importera), så syns din uttalsutveckling där."));
-  area.append(h("div", { class: "row" }, h("button", { class: "btn primary", onclick: () => exportStats(S, false) }, "Dela / spara fil"), h("button", { class: "btn", onclick: () => exportStats(S, true) }, "Kopiera")));
-}
-async function exportStats(S, copy) {
-  const data = JSON.stringify({ app: "mandapp-studio-stats", version: 1, exported: new Date().toISOString(), perTone: S.perTone, conf: S.conf, asp: { asp: { n: S.asp.asp.n, ok: S.asp.asp.ok }, unasp: { n: S.asp.unasp.n, ok: S.asp.unasp.ok } }, sib: S.sib, listen: S.listen, pairs: await pairStats(),
-    attempts: S.atts.slice(-300).map(a => ({ t: a.t, zh: a.zh, toneScore: a.toneScore, iniScore: a.iniScore, simScore: a.simScore })) });
-  if (copy) { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { toast("Kunde inte kopiera"); } return; }
-  const file = new File([data], "skuggning-statistik.json", { type: "application/json" });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: "Skuggning statistik" }); return; } catch (e) { if (e.name === "AbortError") return; } }
-  const a = h("a", { href: URL.createObjectURL(file), download: file.name }); document.body.append(a); a.click(); a.remove();
-}
-
-/* ---------- riktiga inspelningar (audio-cmn) ---------- */
-const ACMN = "https://raw.githubusercontent.com/hugolpz/audio-cmn/master/64k/hsk/cmn-";
-let HSKIDX = null, TP = null;
-async function hskIndex() { if (HSKIDX) return HSKIDX; try { HSKIDX = new Set(await (await fetch("audio/hsk-index.json")).json()); } catch { HSKIDX = new Set(); } return HSKIDX; }
-async function tonparData() { if (TP) return TP; TP = await (await fetch("audio/tonpar.json")).json(); return TP; }
-const triedNative = new Set();
-async function fetchNative(zh) {
-  const clean = zh.replace(/[，。！？、,.!? ]/g, "");
-  const local = "audio/tonpar/" + encodeURIComponent(clean) + ".mp3";
-  for (const url of [local, ACMN + encodeURIComponent(clean) + ".mp3"]) {
-    if (url !== local && !(await hskIndex()).has(clean)) continue;
-    try { const r = await fetch(url); if (r.ok) { const b = await r.blob(); if (b.size > 1000) return b; } } catch { }
-  }
-  return null;
-}
-async function tryNativeAudio(it) {
-  if (!it || it.audio || triedNative.has(it.id)) return; triedNative.add(it.id);
-  const b = await fetchNative(it.zh); if (!b) return;
-  it.audio = b; it.audioSrc = "audio-cmn"; await DB.put("items", it);
-  if (CUR && CUR.id === it.id) { toast("Hämtade riktig inspelning"); renderItemSel(); renderItem(); }
-}
-async function ensureItem(w, src) {
-  let it = ITEMS.find(i => i.zh === w.zh);
-  if (!it) { it = { id: uid(), zh: w.zh, pinyin: w.pinyin, sv: w.en || "", audio: null, added: Date.now(), source: src || "tonpar" }; }
-  if (!it.audio) { const b = await fetchNative(w.zh); if (b) { it.audio = b; it.audioSrc = "audio-cmn"; } }
-  await DB.put("items", it); await loadItems(); return ITEMS.find(i => i.id === it.id);
-}
-const pairKey = py => { const s = MA.parsePinyin(py); return s.length === 2 ? "" + s[0].tone + s[1].tone : null; };
-const pairLabel = k => k[0] + "+" + (k[1] === "5" ? "0" : k[1]);
-async function pairStats() {
-  const speak = {}; const atts = await DB.all("attempts");
-  for (const a of atts) { const r = a.rows || []; if (r.length !== 2) continue; const it = ITEMS.find(i => i.id === a.itemId); const k = it ? pairKey(it.pinyin) : null; if (!k) continue; const o = speak[k] = speak[k] || { n: 0, ok: 0 }; o.n++; if (r.every(x => x.toneOk !== false)) o.ok++; }
-  const L = await getListenStats(); return { speak, listen: L.tp || {} };
-}
-let tpSel = null;
-async function renderTonpar() {
-  const tp = await tonparData(); const st = await pairStats(); const g = $("#tpGrid"); g.replaceChildren(h("div"));
-  [1, 2, 3, 4, 5].forEach(t => g.append(h("div", { class: "hd t" + t }, t === 5 ? "+0" : "+" + t)));
-  for (const a of [1, 2, 3, 4]) {
-    g.append(h("div", { class: "hd t" + a }, a + "+"));
-    for (const b of [1, 2, 3, 4, 5]) {
-      const k = "" + a + b; const sp = st.speak[k], li = st.listen[k];
-      const n = (sp ? sp.n : 0) + (li ? li.n : 0), ok = (sp ? sp.ok : 0) + (li ? li.ok : 0); const pc = n ? ok / n : null;
-      const bg = pc == null ? "" : pc >= 0.8 ? "background:var(--good-soft)" : pc >= 0.5 ? "background:var(--warn-soft)" : "background:var(--bad-soft)";
-      g.append(h("button", { class: tpSel === k ? "sel" : "", style: bg, "aria-label": "Tonpar " + pairLabel(k), onclick: () => { tpSel = k; renderTonpar(); showPair(k); } }, h("b", null, pairLabel(k)), h("small", null, pc == null ? (tp[k] || []).length + " ord" : Math.round(pc * 100) + " %")));
+    const n = normPy(q); const ql = q.toLowerCase(); const ex = [], pre = [], en = [];
+    for (const e of DICT.list) {
+      const np = normPy(e.p);
+      if (np === n) ex.push(e); else if (n.length >= 2 && np.startsWith(n) && pre.length < 25) pre.push(e);
+      else if (ql.length >= 3 && en.length < 25 && (" " + e.e.toLowerCase() + " ").includes(" " + ql)) en.push(e);
     }
+    const rank = e => (HSK[e.s] ? HSK[e.s] : 9) + (/^[A-Z]/.test(e.p) ? 5 : 0);
+    ex.sort((a, b) => rank(a) - rank(b)); pre.sort((a, b) => rank(a) - rank(b)); en.sort((a, b) => rank(a) - rank(b));
+    res = [...ex, ...pre, ...en].slice(0, 40);
   }
-  if (tpSel && !$("#tpArea").childNodes.length) showPair(tpSel);
+  if (!res.length) { out.append(h("div", { class: "note" }, "Inga träffar."), [...q].some(isCJK) ? h("button", { class: "btn", type: "button", onclick: () => addWord(q, { source: "manuellt" }).then(runSearch) }, "Lägg till «" + q + "» ändå") : null); return; }
+  for (const e of res) out.append(resultRow(e));
 }
-async function showPair(k) {
-  const tp = await tonparData(); const words = tp[k] || []; const area = $("#tpArea"); area.replaceChildren();
-  area.append(h("h2", null, "Tonpar " + pairLabel(k) + (k === "33" ? " (uttalas 2+3)" : "")));
-  area.append(h("div", { class: "row" },
-    h("button", { class: "btn primary", onclick: () => pairQuiz([k]) }, "Hörtest för paret"),
-    h("button", { class: "btn", onclick: async ev => { ev.target.disabled = true; let first = null; for (const w of words) { const it = await ensureItem(w, "tonpar " + pairLabel(k)); first = first || it; } toast(words.length + " ord i biblioteket"); ev.target.disabled = false; if (first) { await selectItem(first.id); location.hash = "ova"; } } }, "Skugga alla")));
+function resultRow(e) {
+  const has = STATE.byHanzi.has(e.s);
+  const btn = h("button", { class: "add" + (has ? " done" : ""), type: "button", "aria-label": has ? "Finns redan" : "Lägg till " + e.s }, has ? "✓" : "+");
+  if (!has) btn.onclick = async ev => { ev.stopPropagation(); btn.disabled = true; await addWord(e.s, { source: "sökning", pinyin: e.p, defs: cleanDefs(e.e) }); btn.textContent = "✓"; btn.classList.add("done"); };
+  return h("div", { class: "item", role: "button", tabindex: "0", onclick: () => openWordSheet(e.s) },
+    h("div", { class: "w" }, h("span", { class: "hz" }, e.s), e.t !== e.s ? h("span", { class: "muted small zh" }, " " + e.t) : null, pinyinNode(e.p, "pyi"), HSK[e.s] ? h("span", { class: "pill new", style: "margin-left:6px" }, "HSK " + HSK[e.s]) : null, h("span", { class: "def" }, cleanDefs(e.e))), btn);
+}
+$("#tabText").onclick = () => { $("#tabText").classList.add("on"); $("#tabFoto").classList.remove("on"); $("#addText").hidden = false; $("#addFoto").hidden = true; };
+$("#tabFoto").onclick = () => { $("#tabFoto").classList.add("on"); $("#tabText").classList.remove("on"); $("#addText").hidden = true; $("#addFoto").hidden = false; };
+
+/* ============ ADD: photo ============ */
+$("#photoInput").addEventListener("change", async ev => {
+  const file = ev.target.files && ev.target.files[0]; ev.target.value = "";
+  const out = $("#photoOut"); const note = $("#photoNote"); out.replaceChildren();
+  if (!file) return;
+  if (!STATE.sample) { note.textContent = NEED_KEY; return; }
+  if (!STATE.canImages) { note.textContent = SAMPLE_MSG.images_unavailable; return; }
+  const url = URL.createObjectURL(file);
+  out.append(h("img", { src: url, alt: "Ditt foto", style: "border-radius:12px;max-height:220px;object-fit:cover;width:100%" }));
+  note.textContent = "Claude läser bilden… (kan ta upp till en minut)";
+  try {
+    await loadDict().catch(() => { });
+    const r = await STATE.sample.json(
+`Bilden innehåller kinesisk text, till exempel en meny, skylt eller boksida. ${profileSummary()}.
+Skriv av all läsbar kinesisk text. Lista sedan de ord och uttryck i texten som är användbara att lära sig, högst 25, i den ordning de förekommer. Dela upp i ord, inte enstaka tecken (om tecknet inte är ett eget ord). Hoppa över namn och siffror.
+Svara endast med JSON: {"text":"all text","words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"kort svensk betydelse"}]}`, { images: file, modelTier: "default" });
+    note.textContent = "";
+    const words = (r && Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(x => ({ hanzi: String(x.hanzi).trim(), pinyin: String(x.pinyin || ""), sv: String(x.sv || "") }));
+    if (r && r.text) out.append(h("div", { class: "ctx" }, h("div", { class: "lblrow" }, h("span", null, "Text i bilden · tryck på ett ord")), zhText(String(r.text))));
+    if (!words.length) { out.append(h("div", { class: "note" }, "Hittade inga ord.")); return; }
+    renderPickList(out, words, "foto");
+  } catch (e) { note.textContent = sampleMsg(e); }
+});
+function renderPickList(out, words, source) {
+  const known = words.filter(w => STATE.byHanzi.has(w.hanzi)).length;
+  out.append(h("div", { class: "note" }, "Hittade " + words.length + " ord. " + (known ? known + " finns redan i din ordbank." : "")));
+  const list = h("div", { class: "list" }); const checks = [];
   for (const w of words) {
-    const s = MA.parsePinyin(w.pinyin);
-    area.append(h("div", { class: "item" },
-      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, w.zh), " ", h("span", { class: "mono small" }, pyNode(s)), w.hsk ? h("span", { class: "tag" }, "HSK " + w.hsk) : null, h("div", { class: "note" }, w.en)),
-      h("div", { class: "row", style: "flex:none" },
-        h("button", { class: "chip", "aria-label": "Lyssna", onclick: () => playTp(w.zh) }, "▶"),
-        h("button", { class: "chip", onclick: async () => { const it = await ensureItem(w, "tonpar " + pairLabel(k)); await selectItem(it.id); location.hash = "ova"; } }, "Skugga"))));
+    const has = STATE.byHanzi.has(w.hanzi); const lvl = HSK[w.hanzi];
+    const cb = h("input", { type: "checkbox", class: "check", "aria-label": "Välj " + w.hanzi });
+    cb.checked = !has && !(lvl && lvl <= 3); cb.disabled = has;
+    checks.push([cb, w]);
+    const be = bestEntry(w.hanzi);
+    list.append(h("label", { class: "item" }, cb,
+      h("div", { class: "w" }, h("span", { class: "hz zh" }, w.hanzi), be ? pinyinNode(be.p, "pyi") : h("span", { class: "pyi" }, w.pinyin), lvl ? h("span", { class: "pill new", style: "margin-left:6px" }, "HSK " + lvl) : null, h("span", { class: "def" }, w.sv || (be ? cleanDefs(be.e) : ""))),
+      has ? h("span", { class: "pill young" }, "Har") : null));
   }
+  out.append(list);
+  const btn = h("button", { class: "btn primary block", type: "button" }, "Lägg till valda ord");
+  btn.onclick = async () => { btn.disabled = true; let n = 0; for (const [cb, w] of checks) if (cb.checked && !cb.disabled) { await addWord(w.hanzi, { sv: w.sv, source, pinyinMarked: w.pinyin }); cb.disabled = true; n++; } toast(n ? "La till " + n + " ord" : "Inga ord valda"); btn.disabled = false; };
+  out.append(btn);
 }
-const tpAudio = new Audio();
-function playTp(zh) { return new Promise(res => { tpAudio.src = "audio/tonpar/" + encodeURIComponent(zh) + ".mp3"; tpAudio.onended = res; tpAudio.onerror = () => { speak(zh).then(res); }; tpAudio.play().catch(() => speak(zh).then(res)); }); }
-async function pairQuiz(keys) {
-  const tp = await tonparData(); const area = $("#tpArea"); area.replaceChildren();
-  const pool = keys.flatMap(k => (tp[k] || []).map(w => [k, w])); if (!pool.length) return;
-  let done = 0, right = 0;
-  const next = () => {
-    area.replaceChildren();
-    const [k, w] = pool[Math.floor(Math.random() * pool.length)];
-    const pick = [0, 0];
-    area.append(h("div", { class: "row", style: "justify-content:space-between" }, h("b", null, keys.length > 1 ? "Blandade tonpar" : "Tonpar " + pairLabel(keys[0])), h("span", { class: "note mono" }, done ? right + "/" + done + " rätt" : "")));
-    area.append(h("button", { class: "btn primary block", onclick: () => playTp(w.zh) }, "▶ Lyssna igen"));
-    const rows = [0, 1].map(i => { const r = h("div", { class: "toneopts" }); [1, 2, 3, 4, 5].forEach(t => { if (i === 0 && t === 5) { r.append(h("span")); return; } r.append(h("button", { onclick: ev => { pick[i] = t; [...r.children].forEach(b => b.classList && b.classList.toggle("sel", b === ev.target)); } }, t === 5 ? "0" : t)); }); return r; });
-    area.append(h("label", { class: "lbl" }, "Första stavelsen"), rows[0], h("label", { class: "lbl" }, "Andra stavelsen"), rows[1]);
-    const chk = h("button", { class: "btn block" }, "Rätta");
-    chk.onclick = async () => {
-      if (!pick[0] || !pick[1]) { toast("Välj båda tonerna"); return; }
-      const ans = [+k[0], +k[1]]; const ok = pick[0] === ans[0] && pick[1] === ans[1]; done++; if (ok) right++;
-      rows.forEach((r, i) => [...r.children].forEach((b, idx) => { if (!b.classList) return; const t = idx + 1; b.classList.remove("sel"); if (t === ans[i]) b.classList.add("right"); else if (t === pick[i]) b.classList.add("wrong"); }));
-      await bumpListen(s => { s.tp = s.tp || {}; const o = s.tp[k] = s.tp[k] || { n: 0, ok: 0 }; o.n++; if (ok) o.ok++; if (!ok) { s.tpConf = s.tpConf || {}; const c = pairLabel(k) + "→" + pick[0] + "+" + (pick[1] === 5 ? 0 : pick[1]); s.tpConf[c] = (s.tpConf[c] || 0) + 1; } });
-      area.append(h("div", { class: "card" }, h("div", { class: ok ? "ok" : "bad" }, ok ? "Rätt!" : "Det var " + pairLabel(k) + "."), h("div", null, h("span", { class: "zh", style: "font-size:1.4rem" }, w.zh), " ", pyNode(MA.parsePinyin(w.pinyin)), " ", h("span", { class: "note" }, w.en)), k === "33" ? h("div", { class: "note" }, "Två tredje toner: den första uttalas som andra ton.") : null));
-      chk.replaceWith(h("div", { class: "row" }, h("button", { class: "btn primary", onclick: next }, "Nästa"), h("button", { class: "btn", onclick: () => { area.replaceChildren(); renderTonpar(); } }, "Avsluta")));
-    };
-    area.append(chk);
-    setTimeout(() => playTp(w.zh), 150);
-  };
-  next();
-}
-$("#tpMix").onclick = async () => { const tp = await tonparData(); pairQuiz(Object.keys(tp)); };
 
-/* ---------- Tatoeba ---------- */
-let TQ = null;
-async function tatoebaPack() { if (TQ) return TQ; try { const r = await fetch("audio/tatoeba.json"); TQ = r.ok ? await r.json() : []; } catch { TQ = []; } return TQ; }
-function tqRow(x, local) {
-  const play = () => { tpAudio.src = local ? "audio/tatoeba/" + x.audio : x.audioUrl; tpAudio.play().catch(() => toast("Kunde inte spela upp")); };
-  return h("div", { class: "item" },
-    h("div", { style: "min-width:0;flex:1" }, h("div", { class: "zh" }, x.zh), h("div", { class: "note mono" }, pyNode(MA.parsePinyin(x.pinyin))), x.sv || x.en ? h("div", { class: "note" }, x.sv || x.en) : null,
-      h("div", { class: "note", style: "font-size:.7rem" }, "Ljud: ", h("a", { href: x.attribution, target: "_blank", rel: "noopener" }, x.author || "Tatoeba"), " · " + (x.licence || ""))),
-    h("div", { class: "row", style: "flex:none" }, h("button", { class: "chip", "aria-label": "Lyssna", onclick: play }, "▶"),
-      h("button", { class: "chip", onclick: async () => { const it = await tqItem(x, local); if (it) { await selectItem(it.id); location.hash = "ova"; } } }, "Skugga")));
-}
-async function tqItem(x, local) {
-  let it = ITEMS.find(i => i.zh === x.zh);
-  if (!it) it = { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, added: Date.now(), source: "tatoeba", credit: (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") };
-  if (!it.audio) { try { const r = await fetch(local ? "audio/tatoeba/" + x.audio : x.audioUrl); if (r.ok) it.audio = await r.blob(); } catch { } if (!it.audio) toast("Ljudet kunde inte hämtas, frasen sparas utan native-ljud"); }
-  await DB.put("items", it); await loadItems(); return ITEMS.find(i => i.id === it.id);
-}
-function parseTatoebaPinyin(s, n) { for (const t of s.transcriptions || []) { let txt = (t.text || "").toLowerCase().replace(/u:/g, "v").replace(/\[[^|\]]*\|([^\]]*)\]/g, "$1"); const m = txt.match(/[a-zü:v]+[1-5]/g) || []; if (m.length === n) return m.join(" "); } return null; }
-async function tqSearch() {
-  const q = $("#tqQ").value.trim(); const list = $("#tqList"); const note = $("#tqNote"); list.replaceChildren();
-  const pack = await tatoebaPack();
-  const hits = q ? pack.filter(x => x.zh.includes(q)) : pack.slice().sort(() => Math.random() - 0.5);
-  note.textContent = pack.length ? (q ? hits.length + " av " + pack.length + " sparade meningar innehåller «" + q + "»." : pack.length + " sparade meningar. Visar 20 slumpvis.") : "Inga sparade meningar än.";
-  hits.slice(0, 20).forEach(x => list.append(tqRow(x, true)));
-  if (q && hits.length < 5) {
-    const more = h("button", { class: "btn", onclick: async () => { more.disabled = true; more.textContent = "Söker…"; await tqLive(q, list); more.remove(); } }, "Sök fler direkt på Tatoeba");
-    list.append(more);
-  }
-}
-async function tqLive(q, list) {
-  const url = "https://api.tatoeba.org/v1/sentences?" + new URLSearchParams({ lang: "cmn", q, has_audio: "yes", sort: "relevance", limit: "20", include: "audios,transcriptions", showtrans: "all" });
+/* ============ IDAG ============ */
+$("#btnToday").onclick = async () => {
+  const text = $("#todayText").value.trim(); const note = $("#todayNote"); const out = $("#todayOut");
+  if (!text) { note.textContent = "Skriv vad du ska göra först."; return; }
+  if (!STATE.sample) { note.textContent = NEED_KEY; return; }
+  $("#btnToday").disabled = true; note.textContent = "Claude tänker… (kan ta upp till en minut)"; out.replaceChildren();
   try {
-    const r = await fetch(url); const j = await r.json(); let n = 0;
-    for (const s of j.data || []) {
-      const chars = [...(s.text || "")].filter(c => /[\u3400-\u9fff]/.test(c)); const py = parseTatoebaPinyin(s, chars.length);
-      const a = (s.audios || []).find(a => (a.license || a.licence || "").trim()); if (!py || !a) continue;
-      if (s.script === "Hant") { const alt = (s.transcriptions || []).find(t => t.type === "altscript" && t.script === "Hans"); if (alt && alt.text) s.text = alt.text; }
-      const tr = {}; (s.translations || []).forEach(t => { if ((t.lang === "eng" || t.lang === "swe") && !tr[t.lang]) tr[t.lang] = t.text; });
-      list.append(tqRow({ zh: s.text, pinyin: py, en: tr.eng || "", sv: tr.swe || "", author: a.author, licence: a.license || a.licence, attribution: a.attribution_url, audioUrl: a.download_url || "https://api.tatoeba.org/v1/audios/" + a.id + "/file" }, false)); n++;
+    await loadDict().catch(() => { });
+    const mine = [...STATE.words.keys()].map(id => STATE.words.get(id).hanzi).slice(0, 400);
+    const r = await STATE.sample.json(
+`En svensk som lär sig kinesiska skriver vad hen ska göra idag: «${text}». ${profileSummary()}.
+Ge de 12 mest användbara orden och uttrycken för situationen som eleven troligen inte kan än. Hoppa över grundord på HSK 1–3${mine.length ? " och dessa ord eleven redan har: " + mine.join("、") : ""}.
+Ge också 4 fraser eleven kan säga, och en kort realistisk dialog med 6 repliker (A = eleven, B = den andra personen).
+Svara endast med JSON: {"words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"svensk betydelse","note":"kort tips eller tom"}],"phrases":[{"zh":"...","sv":"..."}],"dialogue":[{"who":"A","zh":"...","sv":"..."}]}`, { modelTier: "default" });
+    note.textContent = "";
+    renderToday(r, text);
+    const p = Object.assign({}, STATE.profile); p.todayHistory = [{ date: dayKey(), text, words: (r.words || []).map(w => String(w.hanzi)).slice(0, 15) }, ...(p.todayHistory || [])].slice(0, 20);
+    Store.saveProfile(p).catch(() => { });
+  } catch (e) { note.textContent = sampleMsg(e); }
+  $("#btnToday").disabled = false;
+};
+function renderToday(r, text) {
+  const out = $("#todayOut"); out.replaceChildren();
+  const words = (Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(x => ({ hanzi: String(x.hanzi).trim(), pinyin: String(x.pinyin || ""), sv: String(x.sv || ""), note: String(x.note || "") }));
+  if (words.length) { out.append(h("h2", null, "Ord")); renderPickList(out, words, "idag: " + text); out.append(h("button", { class: "btn block", type: "button", onclick: () => cram(words) }, "Plugga dem nu (10 min)")); }
+  if (Array.isArray(r.phrases) && r.phrases.length) {
+    out.append(h("h2", null, "Säg så här"));
+    r.phrases.forEach(x => out.append(h("div", { class: "ctx" }, zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || "")), h("div", { class: "row", style: "margin-top:4px" }, speakBtn(String(x.zh || ""))))));
+  }
+  if (Array.isArray(r.dialogue) && r.dialogue.length) {
+    out.append(h("h2", null, "Dialog"));
+    r.dialogue.forEach(x => out.append(h("div", { class: "ctx", style: x.who === "A" ? "border-color:var(--accent)" : "" }, h("div", { class: "lblrow" }, h("span", null, x.who === "A" ? "Du" : "Den andra"), speakBtn(String(x.zh || ""))), zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || "")))));
+  }
+}
+function cram(words) {
+  let q = words.slice(); let shown = false;
+  const box = h("div", { class: "stack" });
+  const draw = () => {
+    box.replaceChildren();
+    if (!q.length) { box.append(h("div", { class: "empty" }, h("b", null, "Alla ord klara!"), "Lägg till de ord du vill behålla i ordbanken.")); box.append(h("button", { class: "btn block", type: "button", onclick: closeSheet }, "Stäng")); return; }
+    const w = q[0]; const be = bestEntry(w.hanzi);
+    box.append(h("div", { class: "progress" }, h("span", null, "Intensivplugg"), h("span", null, q.length + " kvar")));
+    box.append(h("div", { class: "big" }, w.hanzi));
+    if (!shown) box.append(h("button", { class: "btn primary block", type: "button", onclick: () => { shown = true; draw(); } }, "Visa"));
+    else {
+      box.append(h("div", { class: "py" }, be ? pinyinNode(be.p) : w.pinyin, " ", speakBtn(w.hanzi)), h("div", { class: "mean" }, w.sv, w.note ? h("span", { class: "en" }, w.note) : null));
+      box.append(h("div", { class: "grades", style: "grid-template-columns:1fr 1fr" },
+        h("button", { class: "g1", type: "button", onclick: () => { q.push(q.shift()); shown = false; draw(); } }, "Igen"),
+        h("button", { class: "g3", type: "button", onclick: () => { q.shift(); shown = false; draw(); } }, "Kunde")));
     }
-    if (!n) list.append(h("div", { class: "note" }, "Inga fler meningar med fritt ljud hittades."));
-  } catch (e) { list.append(h("div", { class: "note" }, "Kunde inte nå Tatoeba direkt från webbläsaren. De sparade meningarna fungerar ändå.")); }
-}
-$("#tqBtn").onclick = tqSearch; $("#tqQ").addEventListener("keydown", e => { if (e.key === "Enter") tqSearch(); });
-const isSentence = it => [...it.zh].filter(c => /[\u3400-\u9fff]/.test(c)).length > 4 || /[，。！？、,.!?]/.test(it.zh);
-function sentencesWith(q) { return practiceItems().filter(i => i.zh.includes(q) && i.zh !== q && isSentence(i)); }
-function sentRow(it) { return h("button", { class: "item", style: "text-align:left;width:100%", onclick: () => { selectItem(it.id); $("#sentHits").replaceChildren(); window.scrollTo({ top: 0, behavior: "smooth" }); } }, h("div", { style: "min-width:0;flex:1" }, h("div", { class: "zh" }, it.zh), h("div", { class: "note mono" }, pyNode(MA.parsePinyin(it.pinyin))), it.sv ? h("div", { class: "note" }, it.sv) : null), h("span", { class: "chip" }, "Öva")); }
-function showSentHits(q) {
-  const box = $("#sentHits"); box.replaceChildren(); if (!q) return;
-  const hits = sentencesWith(q);
-  box.append(h("div", { class: "row", style: "justify-content:space-between" }, h("b", null, hits.length ? hits.length + " meningar med " + q : "Inga meningar med native-ljud innehåller " + q), h("button", { class: "chip", onclick: () => { box.replaceChildren(); $("#sentQ").value = ""; } }, "Stäng")));
-  hits.slice(0, 30).forEach(it => box.append(sentRow(it)));
-}
-$("#sentQ").addEventListener("input", () => { clearTimeout(window._sq); window._sq = setTimeout(() => showSentHits($("#sentQ").value.trim()), 250); });
-$("#randSent").onclick = () => { const S = practiceItems().filter(isSentence); if (S.length) selectItem(S[Math.floor(Math.random() * S.length)].id); };
-async function renderRelated() {
-  const box = $("#related"); box.replaceChildren(); if (!CUR || isSentence(CUR)) return;
-  const hits = sentencesWith(CUR.zh).slice(0, 6); if (!hits.length) return;
-  box.append(h("details", { class: "card" }, h("summary", null, hits.length + " meningar med " + CUR.zh + " (native)"), h("div", { class: "stack", style: "margin-top:8px" }, hits.map(sentRow))));
+  };
+  draw(); openSheet(box);
 }
 
-/* ---------- routing ---------- */
-const VIEWS = ["ova", "tonpar", "bibliotek", "hor", "stat"];
-function route() { let [v, qs] = location.hash.slice(1).split("?"); if (!VIEWS.includes(v)) v = "ova";
-  const q = qs ? new URLSearchParams(qs).get("q") : null; if (q && v === "ova") setTimeout(() => deepLink(q), 0); VIEWS.forEach(n => $("#v-" + n).hidden = n !== v); document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.v === v)); if (v === "bibliotek") { renderLib(); if (!$("#tqList").childNodes.length) tqSearch(); } if (v === "tonpar") renderTonpar(); if (v === "stat") renderStats(); if (v === "hor") nextListen(); if (REC.on && v !== "ova") stopRec(); if (CONT.on && v !== "ova") contStop(); }
+/* ============ LÄS ============ */
+$("#tabIdag").onclick = () => { $("#tabIdag").classList.add("on"); $("#tabLas").classList.remove("on"); $("#idagBox").hidden = false; $("#todayOut").hidden = false; $("#lasBox").hidden = true; };
+$("#tabLas").onclick = () => { $("#tabLas").classList.add("on"); $("#tabIdag").classList.remove("on"); $("#idagBox").hidden = true; $("#todayOut").hidden = true; $("#lasBox").hidden = false; if (!$("#lasTopic").value && STATE.profile.interests) $("#lasTopic").placeholder = STATE.profile.interests; };
+$("#btnLas").onclick = async () => {
+  const note = $("#lasNote"), out = $("#lasOut"), btn = $("#btnLas");
+  if (!STATE.sample) { note.textContent = NEED_KEY; return; }
+  const topic = $("#lasTopic").value.trim() || STATE.profile.interests || "vardagsliv i Kina";
+  const len = +$("#lasLen").value;
+  const known = knownSample(250);
+  const learning = [...STATE.words.values()].filter(w => !w.suspended && w.card && (w.card.state === 1 || w.card.state === 3 || (w.card.state === 2 && w.card.due <= now() + DAY))).slice(0, 12).map(w => w.hanzi);
+  btn.disabled = true; note.textContent = "Claude skriver… (kan ta upp till en minut)"; out.replaceChildren();
+  try {
+    await loadDict().catch(() => { });
+    const r = await STATE.sample.json(
+`Skriv en sammanhängande, intressant text på förenklad kinesiska för en svensk som lär sig kinesiska. ${profileSummary()}.
+Ämne: ${topic}. Längd: cirka ${len} tecken.
+Viktigt (Hacking Chinese: läs texter där 95–98 % av orden är kända): använd i första hand ord på HSK 1–4-nivå${known.length ? " och ord eleven redan kan, till exempel: " + known.join("、") : ""}.${learning.length ? " Väv in så många som möjligt av dessa ord som eleven håller på att lära sig: " + learning.join("、") + "." : ""} Undvik ovanliga ord.
+Ge också en svensk översättning och 3 förståelsefrågor på kinesiska med korta svar.
+Svara endast med JSON: {"title":"kinesisk titel","text":"...","sv":"svensk översättning","questions":[{"q":"...","a":"..."}]}`, { modelTier: "default" });
+    note.textContent = "Tryck på ord du inte kan. Ord du slår upp ofta syns under Utveckling.";
+    const text = String(r.text || "");
+    const used = learning.filter(wd => text.includes(wd));
+    out.append(h("div", { class: "card stack" },
+      h("div", { class: "row", style: "justify-content:space-between" }, h("b", { class: "zh", style: "font-size:1.15rem" }, String(r.title || "")), h("button", { class: "chip", type: "button", onclick: () => speak(text) }, "🔊 Läs upp")),
+      h("div", { style: "font-size:1.15rem;line-height:2" }, zhText(text)),
+      used.length ? h("div", { class: "note" }, "Ord från din ordbank i texten: ", h("span", { class: "zh" }, used.join("、"))) : null,
+      (() => { const d = h("details", null, h("summary", { class: "small", style: "cursor:pointer" }, "Visa översättning")); d.append(h("div", { class: "small muted", style: "margin-top:6px" }, String(r.sv || ""))); return d; })()));
+    if (Array.isArray(r.questions) && r.questions.length) {
+      out.append(h("h2", null, "Frågor"));
+      r.questions.forEach(q => { const d = h("details", { class: "ctx" }, h("summary", { style: "cursor:pointer" }, zhText(String(q.q || "")))); d.append(h("div", { class: "small", style: "margin-top:4px" }, zhText(String(q.a || "")))); out.append(d); });
+    }
+    Store.appendLog({ k: "read", h: String(r.title || ""), n: text.length, t: now() });
+  } catch (e) { note.textContent = sampleMsg(e); }
+  btn.disabled = false;
+};
+
+/* ============ SKUGGNING (export/import) ============ */
+const STUDIO_URL = "skugga.html";
+// Meningar med native-ljud som finns i skuggningsstudion (bara texten), för länkar från glosorna
+let SHADOW_SENT = [];
+fetch("skuggmeningar.json").then(r => r.ok ? r.json() : []).then(a => { SHADOW_SENT = Array.isArray(a) ? a : []; }).catch(() => { });
+function shadowLink(word) {
+  if (!word || !SHADOW_SENT.length) return null;
+  const n = SHADOW_SENT.filter(z => z.includes(word) && z !== word).length; if (!n) return null;
+  return h("a", { class: "btn", href: STUDIO_URL + "#ova?q=" + encodeURIComponent(word), style: "text-decoration:none;text-align:center", onclick: ev => ev.stopPropagation() }, "🎙 Skugga " + n + (n === 1 ? " mening" : " meningar") + " med " + word);
+}
+function sentencePinyin(zh) {
+  const parts = []; for (const s of segment(zh)) { if (!s.w) { if ([...s.t].some(isCJK)) return null; continue; } const e = bestEntry(s.t); if (!e) return null; const ps = e.p.split(/\s+/); if (ps.length !== [...s.t].length) return null; parts.push(...ps.map(p => p.toLowerCase())); }
+  return parts.join(" ");
+}
+async function exportToStudio() {
+  await loadDict().catch(() => { });
+  let ws = [...STATE.words.values()].filter(w => w.shadow || w.flagged);
+  if (ws.length < 5) ws = ws.concat([...STATE.words.values()].filter(w => !ws.includes(w)).sort((a, b) => b.added - a.added).slice(0, 30 - ws.length));
+  const items = [];
+  for (const w of ws) {
+    if (w.pinyin) items.push({ zh: w.hanzi, pinyin: w.pinyin.toLowerCase(), sv: w.sv || (w.defs || "").split(";")[0] });
+    const s = (w.sentences || [])[(w.sentIdx || 0) % Math.max(1, (w.sentences || []).length)];
+    if (s && s.zh) { const p = sentencePinyin(s.zh); if (p) items.push({ zh: s.zh, pinyin: p, sv: s.sv || "" }); }
+  }
+  const data = JSON.stringify({ app: "mandapp-studio-import", version: 1, exported: new Date().toISOString(), items });
+  try { localStorage.setItem("mandapp-to-studio", data); location.href = STUDIO_URL + "#bibliotek"; return; } catch { }
+  const ta = h("textarea", { style: "min-height:160px", readonly: true }); ta.value = data;
+  openSheet(h("div", { class: "stack" }, h("div", null, "Kopiera och klistra in under Bibliotek i skuggningsstudion:"), ta, h("button", { class: "btn", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { ta.select(); } } }, "Kopiera")));
+}
+async function importPron(o) {
+  const p = Object.assign({}, STATE.profile);
+  p.pron = { imported: now(), perTone: o.perTone || {}, conf: o.conf || {}, asp: o.asp || {}, sib: o.sib || {}, listen: o.listen || {}, attempts: (o.attempts || []).slice(-150).map(a => ({ t: a.t, s: a.toneScore, i: a.iniScore })) };
+  await Store.saveProfile(p); toast("Uttalsstatistik importerad");
+}
+
+/* ============ ORD ============ */
+let wFilter = "alla";
+$("#wfilters").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; wFilter = b.dataset.f; [...$("#wfilters").children].forEach(c => c.classList.toggle("on", c === b)); renderWords(); });
+$("#wq").addEventListener("input", () => renderWords());
+function renderWords() {
+  const q = $("#wq").value.trim().toLowerCase(); const nq = normPy(q);
+  let ws = [...STATE.words.values()];
+  if (wFilter === "markerad") ws = ws.filter(w => w.flagged);
+  else if (wFilter === "ung" || wFilter === "lar") ws = ws.filter(w => ["lar", "ung"].includes(status(w)));
+  else if (wFilter !== "alla") ws = ws.filter(w => status(w) === wFilter);
+  if (q) ws = ws.filter(w => w.hanzi.includes(q) || (nq && normPy(w.pinyin || w.pinyinMarked || "").includes(nq)) || (w.sv || "").toLowerCase().includes(q) || (w.defs || "").toLowerCase().includes(q));
+  ws.sort((a, b) => b.added - a.added);
+  $("#wcount").textContent = ws.length + " ord";
+  const list = $("#wlist"); list.replaceChildren();
+  ws.slice(0, 300).forEach(w => list.append(h("button", { class: "item", type: "button", onclick: () => openWordDetail(w.id) },
+    h("div", { class: "w" }, h("span", { class: "hz" }, w.hanzi), wordPinyinNode(w, "pyi"), h("span", { class: "def" }, w.sv || w.defs)),
+    h("div", { class: "row", style: "flex:none" }, w.flagged ? h("span", { class: "pill flag" }, "★") : null, statusPill(w)))));
+  if (ws.length > 300) list.append(h("div", { class: "note" }, "Visar de 300 senaste. Sök för att hitta fler."));
+}
+function openWordDetail(id) {
+  const w = STATE.words.get(id); if (!w) return;
+  const box = h("div", { class: "stack" });
+  box.append(h("div", { class: "row", style: "justify-content:space-between" }, h("div", null, h("span", { class: "hw" }, w.hanzi), " ", wordPinyinNode(w, "mono")), h("div", { class: "row" }, speakBtn(w.hanzi), statusPill(w))));
+  box.append(h("div", { class: "small muted" }, w.defs));
+  const sv = h("input", { type: "text", id: "svEdit", value: w.sv || "", placeholder: "Svensk betydelse" });
+  box.append(h("label", { class: "lbl", for: "svEdit" }, "Svensk betydelse"), sv);
+  const c = w.card || {};
+  box.append(h("div", { class: "small muted" },
+    "Tillagd " + new Date(w.added).toLocaleDateString("sv") + (w.source ? " · " + w.source : "") + " · repetitioner " + (c.reps || 0) + " · missar " + (c.lapses || 0) + (c.state ? " · nästa " + (c.due > now() ? "om " + fmtIvl(c.due - now()) : "nu") : "")));
+  if (w.sentences && w.sentences.length) { const s = w.sentences[(w.sentIdx || 0) % w.sentences.length]; box.append(h("div", { class: "ctx" }, zhText(s.zh, w.hanzi), h("div", { class: "sv" }, s.sv))); }
+  const del = h("button", { class: "btn danger", type: "button" }, "Ta bort");
+  del.onclick = async () => { if (del.dataset.arm) { await Store.deleteWord(w.id).catch(handleDbError); closeSheet(); toast("Borttaget"); } else { del.dataset.arm = "1"; del.textContent = "Tryck igen för att ta bort"; } };
+  box.append(h("div", { class: "row" },
+    h("button", { class: "btn primary", type: "button", onclick: async () => { w.sv = sv.value.trim(); await Store.saveWord(w).catch(handleDbError); closeSheet(); toast("Sparat"); } }, "Spara"),
+    h("button", { class: "btn", type: "button", onclick: async () => { w.suspended = !w.suspended; await Store.saveWord(w).catch(handleDbError); closeSheet(); } }, w.suspended ? "Återuppta" : "Pausa"),
+    h("button", { class: "btn", type: "button", onclick: async () => { w.flagged = !w.flagged; await Store.saveWord(w).catch(handleDbError); closeSheet(); } }, w.flagged ? "Ta bort markering" : "Markera"),
+    h("button", { class: "btn ghost", type: "button", onclick: async () => { w.card = newCardData(); await Store.saveWord(w).catch(handleDbError); closeSheet(); toast("Kortet börjar om"); } }, "Börja om"),
+    del));
+  openSheet(box);
+}
+
+/* ============ STATISTIK ============ */
+async function renderStats() {
+  const area = $("#statsArea"); area.replaceChildren(h("div", { class: "note" }, "Räknar…"));
+  let logs = {}; try { logs = await Store.allLogs(); } catch { }
+  const ws = [...STATE.words.values()];
+  const counts = { ny: 0, lar: 0, ung: 0, mogen: 0, igel: 0, pausad: 0 }; ws.forEach(w => counts[status(w)]++);
+  const days = Object.keys(logs).sort();
+  const revByDay = {}; let mature = 0, matureOk = 0; const btn = { 1: 0, 2: 0, 3: 0, 4: 0 }; let msSum = 0, msN = 0;
+  const cutoff = now() - 30 * DAY;
+  for (const d of days) for (const e of (logs[d].entries || [])) {
+    if (e.k !== "rev") continue;
+    revByDay[d] = (revByDay[d] || 0) + 1;
+    if (e.t >= cutoff) { btn[e.r] = (btn[e.r] || 0) + 1; if (e.s === 2) { mature++; if (e.r > 1) matureOk++; } if (e.ms && e.s === 2) { msSum += Math.min(e.ms, 20000); msN++; } }
+  }
+  // streak
+  let streak = 0; for (let t = now(); ; t -= DAY) { if (revByDay[dayKey(t)]) streak++; else if (dayKey(t) === dayKey()) continue; else break; if (streak > 3650) break; }
+  const today = revByDay[dayKey()] || 0;
+  area.replaceChildren();
+  area.append(h("div", { class: "tiles" },
+    h("div", { class: "tile" }, h("b", null, counts.mogen), "mogna ord"),
+    h("div", { class: "tile" }, h("b", null, mature ? Math.round(matureOk / mature * 100) + " %" : "–"), "minne (30 d)"),
+    h("div", { class: "tile" }, h("b", null, streak + " d"), "svit")));
+  area.append(h("div", { class: "tiles" },
+    h("div", { class: "tile" }, h("b", null, ws.length), "ord totalt"),
+    h("div", { class: "tile" }, h("b", null, today), "repetitioner idag"),
+    h("div", { class: "tile" }, h("b", null, msN ? (msSum / msN / 1000).toFixed(1).replace(".", ",") + " s" : "–"), "svarstid")));
+  // words over time (cumulative added)
+  area.append(h("h2", null, "Ordbanken över tid"));
+  area.append(chartBox(cumulativeAdded(ws), "ord"));
+  area.append(h("h2", null, "Repetitioner per dag (30 d)"));
+  area.append(barChart(revByDay));
+  area.append(h("h2", null, "Status"));
+  area.append(distBlock([["Nya", counts.ny, "var(--muted)"], ["Lär", counts.lar, "var(--warn)"], ["Unga", counts.ung, "var(--accent)"], ["Mogna", counts.mogen, "var(--accent)"], ["Iglar", counts.igel, "var(--bad)"], ["Pausade", counts.pausad, "var(--muted)"]], ws.length));
+  const tot = btn[1] + btn[2] + btn[3] + btn[4];
+  area.append(h("h2", null, "Knappar (30 d)"));
+  area.append(distBlock([["Igen", btn[1], "var(--bad)"], ["Svårt", btn[2], "var(--warn)"], ["Bra", btn[3], "var(--accent)"], ["Lätt", btn[4], "var(--blue)"]], tot, true));
+  area.append(h("div", { class: "note" }, "Sikta på runt 90 % minne på mogna kort. Mycket högre kan betyda att du är för snäll mot dig själv, mycket lägre att du är för sträng eller lägger till för många nya ord."));
+  // forecast
+  const fc = []; for (let i = 0; i < 7; i++) { const end = new Date(); end.setHours(23, 59, 59, 999); const lim = +end + i * DAY; const start = i ? +end + (i - 1) * DAY : 0; fc.push(ws.filter(w => !w.suspended && w.card && w.card.state !== 0 && w.card.due > start && w.card.due <= lim).length); }
+  area.append(h("h2", null, "Prognos kommande 7 dagar"));
+  area.append(h("div", { class: "row" }, ...fc.map((n, i) => h("span", { class: "chip" }, (i ? new Date(now() + i * DAY).toLocaleDateString("sv", { weekday: "short" }) : "idag") + " " + n))));
+  // hardest + looked up
+  const hard = ws.filter(w => (w.card?.lapses || 0) > 0).sort((a, b) => b.card.lapses - a.card.lapses).slice(0, 10);
+  if (hard.length) { area.append(h("h2", null, "Svåraste orden")); const r = h("div", { class: "row" }); hard.forEach(w => r.append(h("button", { class: "chip", type: "button", onclick: () => openWordDetail(w.id) }, h("span", { class: "zh" }, w.hanzi), " ×" + w.card.lapses))); area.append(r); }
+  const looks = {}; for (const d of days) for (const e of (logs[d].entries || [])) if (e.k === "lookup" && !STATE.byHanzi.has(e.h)) looks[e.h] = (looks[e.h] || 0) + 1;
+  const topLooks = Object.entries(looks).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  if (topLooks.length) { area.append(h("h2", null, "Slår ofta upp men har inte lagt till")); const r = h("div", { class: "row" }); topLooks.forEach(([w, n]) => r.append(h("button", { class: "chip", type: "button", onclick: () => openWordSheet(w) }, h("span", { class: "zh" }, w), " ×" + n))); area.append(r); }
+  // uttal
+  const P = STATE.profile.pron;
+  area.append(h("h2", null, "Uttal"));
+  if (P) {
+    const at = P.attempts || []; const avg = a => { const v = a.map(x => x.s).filter(x => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
+    const f = avg(at.slice(0, 10)), l = avg(at.slice(-10));
+    const pc = o => o && o.n ? Math.round(o.ok / o.n * 100) : null;
+    area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, at.length), "inspelningar"), h("div", { class: "tile" }, h("b", null, f == null ? "–" : f + " %"), "toner i början"), h("div", { class: "tile" }, h("b", null, l == null ? "–" : l + " %"), "toner nu")));
+    area.append(distBlock([1, 2, 3, 4].map(t => ["Ton " + t, pc(P.perTone[t]) || 0, "var(--t" + t + ")"]), 100, true));
+    const rows = [["Aspirerade", pc(P.asp.asp)], ["Oaspirerade", pc(P.asp.unasp)], ["s", pc(P.sib.s)], ["sh", pc(P.sib.sh)], ["x", pc(P.sib.x)]].filter(r => r[1] != null);
+    if (rows.length) area.append(distBlock(rows.map(([k, v]) => [k, v, "var(--accent)"]), 100, true));
+    const lt = P.listen && P.listen.tones || {}; const lr = [1, 2, 3, 4, 5].filter(t => lt[t]).map(t => ["Hör ton " + (t === 5 ? "0" : t), pc(lt[t]), "var(--blue)"]);
+    if (lr.length) area.append(h("label", { class: "lbl" }, "Hörträning"), distBlock(lr, 100, true));
+    const conf = Object.entries(P.conf || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (conf.length) area.append(h("div", { class: "note" }, "Vanligaste tonförväxlingar när du talar: " + conf.map(([k, n]) => k + " (" + n + ")").join(", ") + "."));
+    area.append(h("div", { class: "note" }, "Importerad " + new Date(P.imported).toLocaleDateString("sv") + " från skuggningsstudion."));
+  } else area.append(h("div", { class: "note" }, "Ingen uttalsstatistik än. Öva i skuggningsstudion och importera statistiken under Inställningar."));
+  // veckorapport
+  area.append(h("h2", null, "Veckorapport"));
+  const repBox = h("div", { class: "stack" }); area.append(repBox);
+  const showRep = r => { repBox.replaceChildren(h("div", { class: "ctx small stack" }, h("div", { class: "note" }, "Vecka till " + r.date), h("div", null, r.summary || ""), (r.wins || []).length ? h("div", null, h("b", null, "Bra: "), r.wins.join(" · ")) : null, (r.focus || []).length ? h("div", null, h("b", null, "Fokus: "), r.focus.join(" · ")) : null, r.plan ? h("div", null, h("b", null, "Nästa vecka: "), r.plan) : null)); };
+  const reps = STATE.profile.reports || []; if (reps[0]) showRep(reps[0]);
+  if (STATE.sample) {
+    const rb = h("button", { class: "btn", type: "button" }, reps[0] && reps[0].date === dayKey() ? "Gör om veckorapporten" : "Gör veckorapport med Claude");
+    rb.onclick = async () => {
+      rb.disabled = true; rb.textContent = "Claude skriver…";
+      const wk = now() - 7 * DAY; let rv = 0, ok = 0, lapsesN = 0; const days = new Set(); let reads = 0, looks = 0;
+      for (const d of Object.keys(logs)) for (const e of (logs[d].entries || [])) { if (e.t < wk) continue; if (e.k === "rev") { rv++; days.add(d); if (e.r > 1) ok++; else lapsesN++; } if (e.k === "read") reads++; if (e.k === "lookup") looks++; }
+      const added = ws.filter(w => w.added >= wk).map(w => w.hanzi);
+      const facts = { repetitioner: rv, dagarMedRepetition: days.size, andelRatt: rv ? Math.round(ok / rv * 100) : null, nyaOrd: added.length, exempelNyaOrd: added.slice(0, 15), mognaOrd: counts.mogen, totaltOrd: ws.length, iglar: ws.filter(w => status(w) === "igel").map(w => w.hanzi).slice(0, 8), svaraste: hard.map(w => w.hanzi).slice(0, 8), lastaTexter: reads, uppslag: looks, svit: streak, uttal: P ? { tonerProcentPerTon: Object.fromEntries([1, 2, 3, 4].map(t => [t, P.perTone[t] && P.perTone[t].n ? Math.round(P.perTone[t].ok / P.perTone[t].n * 100) : null])), forvaxlingar: P.conf } : null };
+      try {
+        const r = await STATE.sample.json(
+`Du är en uppmuntrande men ärlig kinesisklärare som följer råden på Hacking Chinese. ${profileSummary()}.
+Här är elevens siffror för senaste veckan (JSON): ${JSON.stringify(facts)}
+Skriv en kort veckorapport på svenska: en sammanfattning (högst 60 ord), 2–3 saker som gått bra, 2–3 konkreta saker att fokusera på (t.ex. vissa ord, toner, mer läsning, färre nya ord om andelen rätt är låg), och en plan för nästa vecka i en mening.
+Svara endast med JSON: {"summary":"...","wins":["..."],"focus":["..."],"plan":"..."}`, { modelTier: "default" });
+        const rep = { date: dayKey(), summary: String(r.summary || ""), wins: (r.wins || []).map(String).slice(0, 4), focus: (r.focus || []).map(String).slice(0, 4), plan: String(r.plan || "") };
+        const p = Object.assign({}, STATE.profile); p.reports = [rep, ...(p.reports || []).filter(x => x.date !== rep.date)].slice(0, 8);
+        await Store.saveProfile(p).catch(handleDbError); showRep(rep); repBox.append(rb); rb.textContent = "Gör om veckorapporten";
+      } catch (e) { toast(sampleMsg(e)); rb.textContent = "Försök igen"; }
+      rb.disabled = false;
+    };
+    repBox.append(rb);
+  }
+  // kvot
+  const cs = callStats(); const c7 = Object.entries(cs).filter(([d]) => now() - new Date(d).getTime() < 7 * DAY).reduce((s, [, n]) => s + n, 0);
+  area.append(h("h2", null, "Claude-användning"));
+  area.append(h("div", { class: "note" }, "Idag " + (cs[dayKey()] || 0) + " anrop, senaste 7 dagarna " + c7 + ". Anropen debiteras ditt API-konto hos Anthropic. Exempelmeningar sparas och återanvänds, så det kostar mest när du lägger till nya ord. Räknas per enhet."));
+  // memory
+  area.append(h("h2", null, "Det appen minns om dig"));
+  area.append(h("div", { class: "ctx small" }, profileSummary(), h("div", { style: "margin-top:6px" }, h("button", { class: "chip", type: "button", onclick: openSettings }, "Redigera"))));
+}
+function cumulativeAdded(ws) {
+  if (!ws.length) return [];
+  const sorted = ws.map(w => w.added).sort((a, b) => a - b);
+  const start = sorted[0]; const end = now(); const pts = []; const steps = 20;
+  for (let i = 0; i <= steps; i++) { const t = start + (end - start) * i / steps; pts.push([t, sorted.filter(x => x <= t).length]); }
+  return pts;
+}
+function chartBox(pts, unit) {
+  const box = h("div", { class: "chartbox" });
+  if (pts.length < 2) { box.append(h("div", { class: "note" }, "Visas när du har lagt till ord.")); return box; }
+  const W = 320, H = 130, L = 34, B = 18, T = 8, Rr = 8;
+  const maxY = Math.max(5, ...pts.map(p => p[1])); const niceMax = Math.ceil(maxY / 5) * 5;
+  const x = t => L + (t - pts[0][0]) / ((pts[pts.length - 1][0] - pts[0][0]) || 1) * (W - L - Rr);
+  const y = v => T + (1 - v / niceMax) * (H - T - B);
+  const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Antal ord över tid");
+  const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  [0, niceMax / 2, niceMax].forEach(v => { svg.append(mk("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t.textContent = Math.round(v); svg.append(t); });
+  const d = pts.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1)).join(" ");
+  svg.append(mk("path", { d: d + ` L${x(pts[pts.length - 1][0])} ${y(0)} L${x(pts[0][0])} ${y(0)} Z`, fill: "var(--accent)", opacity: ".12" }));
+  svg.append(mk("path", { d, fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round" }));
+  const last = pts[pts.length - 1]; svg.append(mk("circle", { cx: x(last[0]), cy: y(last[1]), r: 3.5, fill: "var(--accent)" }));
+  [[pts[0][0], "start"], [last[0], "end"]].forEach(([t, anc]) => { const e = mk("text", { x: x(t), y: H - 4, "text-anchor": anc, "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); e.textContent = new Date(t).toLocaleDateString("sv", { day: "numeric", month: "short" }); svg.append(e); });
+  box.append(svg); return box;
+}
+function barChart(byDay) {
+  const box = h("div", { class: "chartbox" });
+  const W = 320, H = 110, L = 26, B = 16, T = 6; const n = 30;
+  const vals = []; for (let i = n - 1; i >= 0; i--) vals.push(byDay[dayKey(now() - i * DAY)] || 0);
+  const maxV = Math.max(5, ...vals); const nice = Math.ceil(maxV / 5) * 5;
+  const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Repetitioner per dag");
+  const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const y = v => T + (1 - v / nice) * (H - T - B); const bw = (W - L - 4) / n;
+  [0, nice].forEach(v => { svg.append(mk("line", { x1: L, x2: W - 4, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t.textContent = v; svg.append(t); });
+  vals.forEach((v, i) => { if (v) svg.append(mk("rect", { x: L + i * bw + 1, y: y(v), width: Math.max(1, bw - 2), height: y(0) - y(v), rx: 1.5, fill: i === n - 1 ? "var(--accent)" : "var(--accent)", opacity: i === n - 1 ? 1 : .55 })); });
+  const t1 = mk("text", { x: L, y: H - 3, "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t1.textContent = "30 d sedan"; svg.append(t1);
+  const t2 = mk("text", { x: W - 4, y: H - 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t2.textContent = "idag"; svg.append(t2);
+  box.append(svg); return box;
+}
+function distBlock(rows, total, pct) {
+  const d = h("div", { class: "dist" });
+  rows.forEach(([l, v, c]) => d.append(h("span", null, l), h("span", { class: "track" }, h("i", { style: `width:${total ? Math.round(v / total * 100) : 0}%;background:${c}` })), h("span", { class: "mono", style: "text-align:right" }, pct ? (total ? Math.round(v / total * 100) + " %" : "–") : v)));
+  return d;
+}
+
+/* ============ SETTINGS / EXPORT / IMPORT ============ */
+function openSettings() {
+  const p = STATE.profile;
+  const level = h("input", { type: "text", id: "sLevel", value: p.level || "" });
+  const interests = h("input", { type: "text", id: "sInt", value: p.interests || "", placeholder: "t.ex. mat, ekonomi, resor" });
+  const goals = h("input", { type: "text", id: "sGoals", value: p.goals || "", placeholder: "t.ex. klara HSK 5 i juni" });
+  const npd = h("input", { type: "number", id: "sNew", value: p.newPerDay || 15, min: 0, max: 100 });
+  const tier = h("select", { id: "sTier" }, h("option", { value: "quick" }, "Snabb och billig (Haiku)"), h("option", { value: "default" }, "Bättre, långsammare (Sonnet)"));
+  tier.value = p.tierSentences || "quick";
+  const theme = h("select", { id: "sTheme" }, h("option", { value: "" }, "Följ systemet"), h("option", { value: "light" }, "Ljust"), h("option", { value: "dark" }, "Mörkt"));
+  try { theme.value = localStorage.getItem("mandapp-theme") || ""; } catch { }
+  const keyIn = h("input", { type: "password", id: "sKey", value: apiKey(), placeholder: "sk-ant-…", autocomplete: "off", spellcheck: "false" });
+  const keyNote = h("div", { class: "note" }, apiKey() ? "Claude är på. Nyckeln sparas bara i den här webbläsaren och skickas bara till api.anthropic.com." : "Claude är av. Skapa en nyckel i Anthropic Console (platform.claude.com → API keys) och klistra in den här. Den sparas bara i den här webbläsaren.");
+  const keyTest = h("button", { class: "btn", type: "button", onclick: async () => {
+    saveKey(keyIn.value); if (!apiKey()) { keyNote.textContent = "Ingen nyckel sparad."; return; }
+    keyNote.textContent = "Testar…";
+    try { const r = await claudeJson('Svara med JSON {"ok":true,"zh":"你好"}', { modelTier: "quick" }); keyNote.textContent = r && r.ok ? "Nyckeln fungerar. Claude är på." : "Fick ett oväntat svar, men nyckeln verkar fungera."; }
+    catch (e) { keyNote.textContent = sampleMsg(e); }
+  } }, "Spara och testa");
+  const keyDel = h("button", { class: "btn", type: "button", onclick: () => { keyIn.value = ""; saveKey(""); keyNote.textContent = "Nyckeln är borttagen. Claude är av."; } }, "Ta bort");
+  const fileIn = h("input", { type: "file", accept: ".json,.txt,.tsv,.csv,text/plain,application/json", hidden: true });
+  fileIn.onchange = () => { const f = fileIn.files[0]; if (f) importFile(f); };
+  const box = h("div", { class: "stack" },
+    h("h2", { style: "margin-top:0" }, "Inställningar och minne"),
+    h("label", { class: "lbl", for: "sKey" }, "Anthropic API-nyckel"), keyIn,
+    h("div", { class: "row" }, keyTest, keyDel), keyNote,
+    h("label", { class: "lbl", for: "sLevel" }, "Nivå"), level,
+    h("label", { class: "lbl", for: "sInt" }, "Intressen (används i exempelmeningar)"), interests,
+    h("label", { class: "lbl", for: "sGoals" }, "Mål"), goals,
+    h("label", { class: "lbl", for: "sNew" }, "Nya ord per dag"), npd,
+    h("label", { class: "lbl", for: "sTier" }, "Claude-nivå för exempelmeningar"), tier,
+    h("label", { class: "lbl", for: "sTheme" }, "Tema"), theme,
+    h("button", { class: "btn primary", type: "button", onclick: async () => {
+      if (keyIn.value.trim() !== apiKey()) saveKey(keyIn.value);
+      const np = Object.assign({}, STATE.profile, { level: level.value.trim(), interests: interests.value.trim(), goals: goals.value.trim(), newPerDay: Math.max(0, Math.min(100, +npd.value || 0)), tierSentences: tier.value });
+      try { localStorage.setItem("mandapp-theme", theme.value); } catch { }
+      applyTheme();
+      await Store.saveProfile(np).catch(handleDbError); closeSheet(); toast("Sparat");
+    } }, "Spara"),
+    h("h2", null, "Backup"),
+    h("div", { class: "row" },
+      h("button", { class: "btn", type: "button", onclick: exportData }, "Exportera allt (JSON)"),
+      h("label", { class: "btn" }, "Importera", fileIn)),
+    h("div", { class: "note" }, "Import tar emot en Mandapp-backup (JSON), statistik från skuggningsstudion, eller en textfil med ett ord per rad (Pleco/Anki: tecken, tab, pinyin, tab, betydelse)."),
+    h("h2", null, "Skuggning och uttal"),
+    h("div", { class: "row" },
+      h("button", { class: "btn", type: "button", onclick: exportToStudio }, "Skicka till skuggning"),
+      h("a", { class: "btn", href: STUDIO_URL + "#ova", style: "text-decoration:none" }, "Öppna skuggning")),
+    h("div", { class: "note" }, "Skickar ord du markerat med 🎙 Skugga eller ★ (annars de senaste 30) plus deras exempelmeningar, med pinyin, till skuggningens bibliotek. Under Statistik i skuggningen kan du skicka uttalsstatistiken tillbaka hit."),
+    h("div", { class: "note" }, "Lagring: bara den här webbläsaren på den här enheten. Exportera en backup då och då. Uppläsning: " + (zhVoice ? zhVoice.name : "ingen kinesisk röst hittades på enheten") + ".")
+  );
+  openSheet(box);
+}
+async function exportData() {
+  const logs = await Store.allLogs().catch(() => ({}));
+  const data = JSON.stringify({ app: "mandapp", version: 1, exported: new Date().toISOString(), profile: STATE.profile, words: [...STATE.words.values()], logs }, null, 1);
+  const name = "mandapp-backup-" + dayKey() + ".json";
+  if (STATE.downloads) { try { await STATE.downloads.save({ filename: name, data }); toast("Backup sparad"); return; } catch (e) { if (e && e.code === "cancelled") return; } }
+  // fallback: show text to copy
+  const ta = h("textarea", { style: "min-height:200px", readonly: true }); ta.value = data;
+  openSheet(h("div", { class: "stack" }, h("div", null, "Kopiera texten och spara den som en fil:"), ta, h("button", { class: "btn", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { ta.select(); } } }, "Kopiera")));
+}
+async function importFile(f) {
+  const txt = await f.text(); await loadDict().catch(() => { });
+  let n = 0;
+  try {
+    if (/^\s*\{/.test(txt)) {
+      const o = JSON.parse(txt);
+      if (o.app === "mandapp-studio-stats") { await importPron(o); closeSheet(); return; }
+      for (const w of (o.words || [])) { if (!w || !w.hanzi || STATE.byHanzi.has(w.hanzi)) continue; const nw = Object.assign(makeWord(w.hanzi), w, { id: w.id || uid36() }); await Store.saveWord(nw); n++; }
+      if (o.profile) await Store.saveProfile(Object.assign({}, STATE.profile, o.profile));
+      if (o.logs) { const lo = localLoad(); lo.log = lo.log || {}; for (const [k, v] of Object.entries(o.logs)) { const cur = await Store.getLog(k); if (!(cur.entries || []).length && v && Array.isArray(v.entries)) { lo.log[k] = v; STATE.logCache.set(k, v); } } localSave(lo); }
+    } else {
+      for (const line of txt.split(/\r?\n/)) {
+        const parts = line.split(/\t|,(?=[^,]*$)/); const hz = (parts[0] || "").trim().split(/[\[［(]/)[0].trim();
+        if (!hz || !/[\u3400-\u9fff]/.test(hz) || STATE.byHanzi.has(hz)) continue;
+        await Store.saveWord(makeWord(hz, { source: "import", sv: (parts[2] || "").trim().slice(0, 120) })); n++;
+      }
+    }
+    await localFlush(); hideBanner(); updateSubtitle();
+    closeSheet(); toast("Importerade " + n + " ord");
+  } catch (e) { toast("Importen misslyckades"); console.warn(e); }
+}
+function saveKey(v) { v = String(v || "").trim(); try { if (v) localStorage.setItem(KEY_LS, v); else localStorage.removeItem(KEY_LS); } catch { } setupClaude(); updateSubtitle(); }
+function applyTheme() { let t = ""; try { t = localStorage.getItem("mandapp-theme") || ""; } catch { } if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+$("#btnSettings").onclick = openSettings;
+
+/* ============ routing ============ */
+const VIEWS = ["repetera", "lagg-till", "idag", "ord", "statistik"];
+function route() {
+  let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "repetera";
+  VIEWS.forEach(n => { $("#v-" + n).hidden = n !== v; });
+  document.querySelectorAll("nav.tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === v));
+  closeSheet();
+  if (v === "ord") renderWords();
+  if (v === "statistik") renderStats();
+  if (v === "repetera" && !RV.sessionStarted) renderReview();
+  if (v === "lagg-till") loadDict().catch(() => { });
+}
 window.addEventListener("hashchange", route);
-async function deepLink(q) {
-  await READY; $("#sentQ").value = q;
-  const w = ITEMS.find(i => i.zh === q && (i.audio || i.audioPath)); if (w && (!CUR || CUR.id !== w.id)) await selectItem(w.id);
-  showSentHits(q); history.replaceState(null, "", "#ova");
+function onWordsChanged() {
+  const n = dueCountForBadge(); const b = $("#dueBadge"); b.textContent = n; b.hidden = !n;
+  const v = location.hash.slice(1) || "repetera";
+  if (v === "ord" && !sheetEls) renderWords();
+  if ((v === "repetera" || !VIEWS.includes(v)) && !RV.sessionStarted) renderReview();
 }
+setInterval(() => { const n = dueCountForBadge(); const b = $("#dueBadge"); b.textContent = n; b.hidden = !n; }, 60000);
 
-let READY_RES; const READY = new Promise(r => READY_RES = r);
-(async () => {
-  await loadItems();
-  let last = null; try { last = localStorage.getItem("studio-cur"); } catch { }
-  const lastIt = last && ITEMS.find(i => i.id === last && (i.audio || i.audioPath));
-  await selectItem(lastIt ? lastIt.id : (practiceItems()[0] || ITEMS[0] || {}).id);
-  seedSentences().then(n => { READY_RES(); if (n) { toast(n + " meningar med native-ljud tillagda"); if (!CUR || !(CUR.audio || CUR.audioPath)) { const P = practiceItems(); if (P[0]) selectItem(P[0].id); } else renderItemSel(); } fillNative(); });
-  route();
-  if (!window.isSecureContext) $("#hdrNote").textContent = "Mikrofonen kräver https";
-  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => { reg.update().catch(() => { }); }).catch(() => { });
-  if ("serviceWorker" in navigator && navigator.serviceWorker.controller) { let reloaded = false; navigator.serviceWorker.addEventListener("controllerchange", () => { if (reloaded) return; reloaded = true; location.reload(); }); }
-})();
+/* ============ boot ============ */
+applyTheme();
+route();
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => { reg.update().catch(() => { }); }).catch(() => { });
+initStorage().then(() => { route(); loadDict().catch(() => { }); }).catch(e => { console.error(e); showBanner("Appen kunde inte starta lagringen."); });
 </script>
 </body>
 </html>
