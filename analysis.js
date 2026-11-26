@@ -380,5 +380,35 @@ function fmt(v) { return (Math.round(v * 10) / 10).toString().replace(".", ",");
 // syntetisk tonkurva för ritning när förlaga saknas
 function templateCurve(tones, durs) { const pts = []; tones.forEach((t, i) => { const tpl = t === 5 ? [0, 0, -0.5, -1, -1.2, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5] : TPL[t]; const n = Math.max(4, Math.round((durs[i] || 250) / 20)); for (let k = 0; k < n; k++) pts.push(tpl[Math.round(k * 11 / (n - 1))]); pts.push(null); }); return pts; }
 
-window.MA = { SR, parsePinyin, splitIF, sylInfo, sandhi, marked, toMono16k, resample, analyze, classifyTone, compareToModel, judge, yin, templateCurve, normContour, TONE_NAME, INI_INFO, ASP, UNASP };
+/* ---------------- snabb tonkurva (för härmningsläget) ---------------- */
+// Returnerar tonhöjd i halvtoner relativt talarens median, 10 ms per punkt, trimmad från tystnad i början/slutet.
+function pitchTrack(x) {
+  const n = Math.max(0, Math.floor((x.length - WIN) / HOP) + 1);
+  if (n < 5) return null;
+  const db = new Float32Array(n), f0 = new Float32Array(n), ap = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const off = i * HOP; let s = 0; for (let j = 0; j < WIN; j++) { const v = x[off + j]; s += v * v; }
+    db[i] = 10 * Math.log10(s / WIN + 1e-12);
+    const r = yin(x, off, WIN, SR, FMIN, FMAX); f0[i] = r[0]; ap[i] = r[1];
+  }
+  const floor = pct(db, 0.1), peak = pct(db, 0.98);
+  if (peak - floor < 12) return null;
+  const th = floor + Math.max(10, (peak - floor) * 0.25);
+  let a = 0, b = n - 1; while (a < n && db[a] < th) a++; while (b > a && db[b] < th) b--;
+  if (b - a < 5) return null;
+  a = Math.max(0, a - 4); b = Math.min(n - 1, b + 4);
+  const voiced = new Uint8Array(n); const vf = [];
+  for (let i = a; i <= b; i++) if (db[i] > th - 4 && f0[i] > 0 && ap[i] < 0.3) { voiced[i] = 1; vf.push(f0[i]); }
+  if (vf.length < 3) return null;
+  const med = pct(vf, 0.5);
+  for (let i = a; i <= b; i++) if (voiced[i]) { let f = f0[i]; while (f > med * 1.8) f /= 2; while (f < med / 1.8) f *= 2; f0[i] = f; }
+  const fs = medianFilter(f0, voiced, 5);
+  const st = []; const en = [];
+  for (let i = a; i <= b; i++) { st.push(voiced[i] && fs[i] > 0 ? 12 * Math.log2(fs[i] / med) : null); en.push(Math.max(0, Math.min(1, (db[i] - floor) / ((peak - floor) || 1)))); }
+  // fyll korta luckor (< 60 ms) för en sammanhängande kurva
+  for (let i = 0; i < st.length; i++) if (st[i] == null) { let j = i; while (j < st.length && st[j] == null) j++; if (i > 0 && j < st.length && j - i <= 6) for (let k = i; k < j; k++) st[k] = st[i - 1] + (st[j] - st[i - 1]) * (k - i + 1) / (j - i + 1); i = j; }
+  return { st, en, startSec: a * HOP / SR, endSec: (b * HOP + WIN) / SR, medHz: med };
+}
+
+window.MA = { pitchTrack, SR, parsePinyin, splitIF, sylInfo, sandhi, marked, toMono16k, resample, analyze, classifyTone, compareToModel, judge, yin, templateCurve, normContour, TONE_NAME, INI_INFO, ASP, UNASP };
 })();
