@@ -4,64 +4,73 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mandapp</title>
-<meta name="theme-color" content="#0d7a6a">
+<meta name="theme-color" content="#2346A8">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<script>
-// Gamla adresser till skuggningsstudion (#ova, #tonpar …) leder vidare till skugga.html
-(function () { function go() { var v = location.hash.slice(1).split("?")[0]; if (["ova", "tonpar", "bibliotek", "hor", "stat"].indexOf(v) >= 0) { location.replace("skugga.html" + location.hash); return true; } } go(); window.addEventListener("hashchange", go); })();
-</script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
 <style>
-/* Layout: en kolumn för mobil (max 560px), fast flikrad i botten, bottenark för uppslag. */
+/* Layout: en kolumn för mobil (max 560px), fast flikrad med fyra flikar i botten, bottenark för paneler.
+   Färg: porslinsvit botten, kobolt för handlingar, sigillrött bara för inspelning. Tonfärgerna är desamma som tidigare. */
 :root{
-  --bg:#f3f6f5; --surface:#ffffff; --sunk:#e7eeec; --fg:#14201d; --muted:#55645f; --line:#cfdbd7;
-  --accent:#0d7a6a; --accent-soft:#d5ece7; --on-accent:#ffffff;
-  --warn:#a85a00; --warn-soft:#fbecd7; --bad:#b3261e; --bad-soft:#f8dedb; --blue:#1565c0;
-  --t1:#c62828; --t2:#2e7d32; --t3:#1565c0; --t4:#6a1b9a; --t5:#6b7773;
-  --display:"Sora","Segoe UI",system-ui,sans-serif;
-  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --bg:#EDF0F4; --surface:#FFFFFF; --sunk:#E3E8EF; --fg:#172033; --muted:#5A6477; --line:#D3DAE4;
+  --accent:#2346A8; --accent-soft:#DCE4F8; --on-accent:#FFFFFF;
+  --seal:#C33B2F; --seal-soft:#F7DEDA;
+  --warn:#A85A00; --warn-soft:#FBECD7; --bad:#B3261E; --bad-soft:#F8DEDB; --good:#23935A; --good-soft:#DCEFE2; --blue:#2C68D0;
+  --t1:#D23B3B; --t2:#23935A; --t3:#2C68D0; --t4:#8A3FB0; --t5:#7D8799;
+  --display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --zh:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --han:"Noto Serif SC","Songti SC","SimSun",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
-  --accent:#4cc2ad; --accent-soft:#163a34; --on-accent:#08201c;
-  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --blue:#6aa8f0;
-  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c; color-scheme:dark;}}
+  --bg:#0D121C; --surface:#161D2B; --sunk:#1E2738; --fg:#E6EBF4; --muted:#98A3B7; --line:#2A3448;
+  --accent:#86A2FF; --accent-soft:#22305A; --on-accent:#0D121C;
+  --seal:#F06A5E; --seal-soft:#4A2522;
+  --warn:#E3A945; --warn-soft:#3A2A12; --bad:#F2877E; --bad-soft:#3D1C19; --good:#4CCB86; --good-soft:#163323; --blue:#6E9CFF;
+  --t1:#FF6B6B; --t2:#4CCB86; --t3:#6E9CFF; --t4:#C98AF0; --t5:#8C96A8; color-scheme:dark;}}
 :root[data-theme="dark"]{
-  --bg:#0f1514; --surface:#17201e; --sunk:#1e2a27; --fg:#e4ecea; --muted:#9db0aa; --line:#2c3b37;
-  --accent:#4cc2ad; --accent-soft:#163a34; --on-accent:#08201c;
-  --warn:#f0a948; --warn-soft:#3a2a12; --bad:#f2877e; --bad-soft:#3d1c19; --blue:#6aa8f0;
-  --t1:#ef6b6b; --t2:#6cc770; --t3:#6aa8f0; --t4:#c08ae0; --t5:#93a19c; color-scheme:dark;}
+  --bg:#0D121C; --surface:#161D2B; --sunk:#1E2738; --fg:#E6EBF4; --muted:#98A3B7; --line:#2A3448;
+  --accent:#86A2FF; --accent-soft:#22305A; --on-accent:#0D121C;
+  --seal:#F06A5E; --seal-soft:#4A2522;
+  --warn:#E3A945; --warn-soft:#3A2A12; --bad:#F2877E; --bad-soft:#3D1C19; --good:#4CCB86; --good-soft:#163323; --blue:#6E9CFF;
+  --t1:#FF6B6B; --t2:#4CCB86; --t3:#6E9CFF; --t4:#C98AF0; --t5:#8C96A8; color-scheme:dark;}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);margin:0}
 .app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(76px + env(safe-area-inset-bottom,0px))}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:env(safe-area-inset-top,0px) calc(84px + env(safe-area-inset-bottom,0px))}
 header.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-block:14px 8px}
-header.top h1{font:700 1.25rem var(--display);margin:0;letter-spacing:-.01em}
+header.top h1{font:700 1.6rem var(--display);margin:0;letter-spacing:-.015em}
 header.top .sub{font:500 .72rem var(--mono);color:var(--muted)}
+.me{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font:700 1rem var(--han);color:var(--accent);display:grid;place-items:center;flex:none}
+body.focus header.top,body.focus .banner{display:none}
 .banner{font-size:.85rem;background:var(--warn-soft);color:var(--fg);border-left:3px solid var(--warn);padding:8px 10px;border-radius:0 8px 8px 0;margin:6px 0}
-.banner[hidden]{display:none}
-h2{font:600 1.05rem var(--display);margin:18px 0 8px}
-.muted{color:var(--muted)} .small{font-size:.85rem} .mono{font-family:var(--mono)}
+h2{font:700 1.08rem var(--display);margin:18px 0 8px}
+.muted{color:var(--muted)} .small{font-size:.85rem} .mono{font-family:var(--mono)} .center{text-align:center}
 .zh{font-family:var(--zh)}
 .t1{color:var(--t1)}.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}.t5{color:var(--t5)}
-button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600;color:var(--fg);text-decoration:none;display:inline-block}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.rec{background:var(--seal);border-color:var(--seal);color:#fff}
 .btn.ghost{background:transparent}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn:disabled{opacity:.5;cursor:default}
-.btn.block{width:100%}
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--fg);border:0}
+.btn.block{width:100%;text-align:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--sunk);color:var(--fg);border:0}
 button.chip{cursor:pointer}
 .chip.on{background:var(--accent);color:var(--on-accent)}
+.chip:disabled{opacity:.45}
 .pill{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}
 .pill.new{background:var(--sunk);color:var(--muted)} .pill.learn{background:var(--warn-soft);color:var(--warn)}
 .pill.young{background:var(--accent-soft);color:var(--accent)} .pill.mature{background:var(--accent);color:var(--on-accent)}
@@ -70,18 +79,35 @@ button.chip{cursor:pointer}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .stack{display:flex;flex-direction:column;gap:10px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
-input[type=text],input[type=search],input[type=number],textarea,select{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+input[type=text],input[type=search],input[type=number],input[type=password],textarea,select{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+select{width:auto}
 textarea{min-height:90px;resize:vertical}
-label.lbl{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+label.lbl,.lbl{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .view{display:flex;flex-direction:column;gap:12px}
-.view[hidden]{display:none}
+.note{font-size:.82rem;color:var(--muted)}
+.thinking{font-size:.85rem;color:var(--muted);font-style:italic}
+details summary{cursor:pointer;font-weight:600}
+.tag{display:inline-block;font-size:.72rem;padding:1px 7px;border-radius:999px;background:var(--sunk);margin:1px 2px 1px 0}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.ok{color:var(--good)}.bad{color:var(--bad)}.mid{color:var(--warn)}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .68rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+canvas{width:100%;display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.tips li{margin:2px 0}
+.subhead{display:flex;align-items:center;gap:10px}
+.subhead a{text-decoration:none;font-weight:600;font-size:.9rem}
+.subhead h2{margin:0}
+.subtabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--sunk);border-radius:12px;padding:3px}
+.subtabs a{text-align:center;text-decoration:none;color:var(--muted);padding:7px 4px;border-radius:9px;font-weight:600;font-size:.88rem}
+.subtabs a.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 
 /* review */
 .progress{display:flex;justify-content:space-between;font:500 .75rem var(--mono);color:var(--muted)}
 .bar{height:4px;background:var(--sunk);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);width:0}
 .rcard{min-height:340px;display:flex;flex-direction:column;gap:12px}
-.big{font-family:var(--zh);font-size:clamp(2.6rem,13vw,3.6rem);font-weight:700;text-align:center;letter-spacing:.06em;line-height:1.15;margin-top:10px;word-break:break-all}
-.py{text-align:center;font:500 1.05rem var(--mono)}
+.big{font-family:var(--han);font-size:clamp(2.6rem,13vw,3.6rem);font-weight:700;text-align:center;letter-spacing:.06em;line-height:1.15;margin-top:10px;word-break:break-all}
+.py{text-align:center;font:600 1.05rem var(--body)}
 .mean{text-align:center}
 .mean .en{color:var(--muted);font-size:.88rem;display:block;margin-top:2px}
 .ctx{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -94,19 +120,18 @@ label.lbl{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:upperc
 .grades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .grades button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 2px;font-weight:600}
 .grades small{display:block;font:400 .7rem var(--mono);color:var(--muted)}
-.grades .g1{color:var(--bad)} .grades .g2{color:var(--warn)} .grades .g3{color:var(--accent)} .grades .g4{color:var(--blue)}
+.grades .g1{color:var(--bad)} .grades .g2{color:var(--warn)} .grades .g3{color:var(--accent)} .grades .g4{color:var(--good)}
 .grades .suggest{outline:2px solid var(--warn);outline-offset:1px}
 .empty{text-align:center;padding:30px 10px;color:var(--muted)}
-.empty b{display:block;color:var(--fg);font:600 1.05rem var(--display);margin-bottom:6px}
-.note{font-size:.82rem;color:var(--muted)}
-.thinking{font-size:.85rem;color:var(--muted);font-style:italic}
+.empty b{display:block;color:var(--fg);font:700 1.1rem var(--display);margin-bottom:6px}
 
 /* lists */
 .list{display:flex;flex-direction:column;gap:6px}
 .item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;text-align:left;width:100%}
 .item .w{min-width:0;flex:1}
 .item .hz{font-family:var(--zh);font-size:1.12rem;font-weight:500}
-.item .pyi{font:500 .8rem var(--mono);margin-left:6px}
+.item .zh{font-size:1.1rem}
+.item .pyi{font:600 .8rem var(--body);margin-left:6px}
 .item .def{display:block;font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .add{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-weight:700;border:0;flex:none}
 .add.done{background:var(--sunk);color:var(--muted)}
@@ -118,30 +143,140 @@ label.lbl{font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:upperc
 /* stats */
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:.75rem;color:var(--muted)}
-.tile b{display:block;font:600 1.3rem var(--display);color:var(--fg);font-variant-numeric:tabular-nums}
+.tile b{display:block;font:700 1.3rem var(--display);color:var(--fg);font-variant-numeric:tabular-nums}
 .chartbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
 .chartbox svg{display:block;width:100%;height:auto}
 .dist{display:grid;grid-template-columns:70px 1fr 44px;gap:6px 8px;align-items:center;font-size:.82rem}
 .dist .track{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}.dist .track i{display:block;height:100%;border-radius:4px}
 
+/* skugga: start */
+.pass{background:var(--accent);color:var(--on-accent);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.pass .lbl{color:inherit;opacity:.75}
+.pass h3{margin:0;font:700 1.35rem var(--display);letter-spacing:-.01em}
+.pass .meta{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;opacity:.9}
+.pass .pbar{height:6px;border-radius:9px;background:rgba(255,255,255,.25);overflow:hidden}
+.pass .pbar i{display:block;height:100%;background:var(--on-accent);border-radius:9px}
+.pass .go{background:var(--on-accent);color:var(--accent);border:0;border-radius:12px;padding:11px;font-weight:700;text-align:center;text-decoration:none}
+.pass .alt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.82rem}
+.pass .alt select{background:transparent;color:inherit;border-color:rgba(255,255,255,.4);padding:3px 8px;font-size:.82rem}
+.pass .alt option{color:#172033}
+.vpill{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 11px;white-space:nowrap;max-width:60vw;overflow:hidden;text-overflow:ellipsis}
+.vpill .dot{width:8px;height:8px;border-radius:50%;background:var(--t2);flex:none}
+.hlist{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 14px}
+.hlist .lbl{display:block;padding:8px 0 2px}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--fg);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.hrow:first-of-type{border-top:0}
+.hrow .zh{font-size:1.05rem}
+.hrow small{color:var(--muted);font-size:.78rem}
+.cnt{font:500 .72rem var(--mono);color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.cnt.z{color:var(--muted);background:var(--sunk)}
+.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile2:first-child{grid-column:1/-1}
+.tile2{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:1px}
+.tile2 i{font-style:normal;font-family:var(--han);font-size:1.35rem;color:var(--accent);line-height:1.2}
+.tile2 b{font-size:.92rem}
+.tile2 small{color:var(--muted);font-size:.76rem}
+
+/* skugga: spelaren */
+.ptop{display:flex;align-items:center;gap:10px;padding-top:12px}
+.xbtn{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--fg);flex:none;font-size:.9rem}
+.dots{flex:1;display:flex;gap:3px;align-items:center;min-width:0}
+.dots i{flex:1;height:5px;border-radius:5px;background:var(--line)}
+.dots i.d{background:var(--accent)}
+.dots i.n{background:var(--accent);opacity:.45}
+.modeseg{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:999px;padding:3px;width:190px;align-self:center}
+.modeseg button{border:0;background:transparent;border-radius:999px;padding:5px 0;font-weight:600;font-size:.85rem;color:var(--muted)}
+.modeseg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.sentcard{text-align:center;display:flex;flex-direction:column;gap:4px;padding:4px 0}
+.pzh{font-family:var(--han);font-size:clamp(2rem,10vw,2.9rem);font-weight:700;letter-spacing:.05em;line-height:1.25}
+.pyl{font:600 1.1rem var(--body);letter-spacing:.02em}
+.svl{color:var(--muted)}
+.curvebox{display:flex;flex-direction:column;gap:4px}
+.leg{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.segctl{display:grid;grid-template-columns:repeat(3,1fr);background:var(--sunk);border-radius:12px;padding:3px;gap:3px}
+.segctl .chip{justify-content:center;background:transparent;border-radius:9px;padding:7px 0;font-weight:600;font-size:.88rem;color:var(--muted)}
+.segctl .chip.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.ctrl{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:4px 8px}
+.cbtn{display:grid;justify-items:center;gap:4px;font-size:.8rem;color:var(--muted);background:none;border:0}
+.cbtn .r{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);font-size:1.1rem;color:var(--fg)}
+.cbtn.nat .r{color:var(--accent);border-color:var(--accent);border-width:1.5px}
+.cbtn:disabled{opacity:.4;cursor:default}
+.recbtn{width:84px;height:84px;border-radius:50%;background:var(--seal);border:0;display:grid;place-items:center;box-shadow:0 0 0 7px var(--seal-soft)}
+.recbtn i{width:28px;height:28px;border-radius:50%;background:#fff;display:block;transition:border-radius .15s,width .15s,height .15s}
+.recbtn.live i{border-radius:6px;width:24px;height:24px}
+.recbtn:disabled{opacity:.45;cursor:default}
+@media (prefers-reduced-motion:no-preference){.recbtn.live{animation:pulse 1.6s ease-out infinite}@keyframes pulse{0%{box-shadow:0 0 0 0 var(--seal-soft)}100%{box-shadow:0 0 0 18px transparent}}}
+.mini{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.mini .chip{background:var(--surface);border:1px solid var(--line)}
+.takes{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;align-items:center}
+.liveline{text-align:center;font-weight:600;font-size:.88rem;color:var(--seal)}
+.rate{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rate button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 0;font-weight:700}
+.rate .h{color:var(--seal)} .rate .e{color:var(--good)}
+.done{text-align:center;display:flex;flex-direction:column;gap:10px;padding:30px 10px}
+.done b{font:700 1.3rem var(--display)}
+.vrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;color:var(--fg)}
+.vrow .pl{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:.75rem;color:var(--accent);background:var(--surface)}
+.vrow small{display:block;color:var(--muted);font-size:.78rem}
+.vrow.sel{background:var(--accent-soft);border-radius:10px;border-top-color:transparent;padding-inline:8px}
+.vrow .chk{color:var(--accent);font-weight:700}
+
+/* skugga: tonpar, hör */
+.toneopts{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.toneopts button{padding:8px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.toneopts button.sel{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.toneopts button.right{background:var(--good-soft);border-color:var(--good)}
+.toneopts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.pairs button{padding:14px 4px;font:600 1.1rem var(--body);border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.pairs button.right{background:var(--good-soft);border-color:var(--good)}
+.pairs button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.tpgrid{display:grid;grid-template-columns:34px repeat(5,minmax(0,1fr));gap:4px;font-size:.78rem}
+.tpgrid .hd{display:grid;place-items:center;color:var(--muted);font:600 .72rem var(--mono)}
+.tpgrid button{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px 0;line-height:1.15}
+.tpgrid button b{display:block;font:600 .9rem var(--mono)}
+.tpgrid button small{color:var(--muted);font-size:.66rem}
+.tpgrid button.sel{outline:2px solid var(--accent);outline-offset:1px}
+
+/* ämne */
+.wrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.wrow:first-child{border-top:0}
+.wrow .w{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.wrow .hz{font-family:var(--han);font-size:1.25rem;font-weight:700}
+.wrow .p{font-weight:600;font-size:.85rem}
+.wrow small{display:block;color:var(--muted);font-size:.8rem}
+.wrow .zhline{font-size:1.05rem;line-height:1.7}
+.ib{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);font-size:1rem;color:var(--accent);flex:none}
+.ib.done{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.ib:disabled{opacity:.5}
+.shim{height:34px;border-radius:8px;background:linear-gradient(90deg,var(--sunk) 0%,var(--surface) 50%,var(--sunk) 100%);background-size:200% 100%}
+@media (prefers-reduced-motion:no-preference){.shim{animation:sh 1.3s linear infinite}@keyframes sh{to{background-position:-200% 0}}}
+.gtabs{display:flex;gap:16px;border-bottom:1px solid var(--line);overflow-x:auto}
+.gtabs button{border:0;background:none;padding:8px 0;font-weight:600;color:var(--muted);white-space:nowrap}
+.gtabs button.on{color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
+.more{border:1px dashed var(--line);background:none;border-radius:12px;padding:9px;font-weight:600;color:var(--accent);width:100%}
+.stickybar{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:4px;box-shadow:0 10px 24px -14px rgba(10,20,40,.5)}
+.stickybar .btn{background:var(--seal);border-color:var(--seal);color:#fff}
+.stickybar small{text-align:center;color:var(--muted);font-size:.78rem}
+
 /* tabs */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:20;
   padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
-nav.tabs a{text-decoration:none;color:var(--muted);text-align:center;font-size:.68rem;padding:8px 2px 10px;position:relative}
-nav.tabs a i{display:block;font-style:normal;font-family:var(--zh);font-size:1.2rem;line-height:1.2}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs a{text-decoration:none;color:var(--muted);text-align:center;font-size:.72rem;padding:8px 2px 10px;position:relative}
+nav.tabs a i{display:block;font-style:normal;font-family:var(--han);font-size:1.3rem;line-height:1.2}
 nav.tabs a.on{color:var(--accent);font-weight:600}
-nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--bad);color:#fff;font:600 .62rem var(--mono);border-radius:999px;padding:0 5px;min-width:16px}
+nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--seal);color:#fff;font:600 .62rem var(--mono);border-radius:999px;padding:0 5px;min-width:16px}
 
 /* sheet */
-.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--line);
+.scrim{position:fixed;inset:0;background:rgba(5,10,20,.45);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
   max-height:82vh;overflow:auto;box-shadow:0 -12px 30px -12px rgba(0,0,0,.4);
   padding:10px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .sheet .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 .sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 4px}
-.sheet .hw{font-family:var(--zh);font-size:2rem;font-weight:700}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;z-index:60;max-width:90vw}
+.sheet .hw{font-family:var(--han);font-size:2rem;font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;z-index:60;max-width:90vw}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
 </style>
 </head>
@@ -149,18 +284,195 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
 
 <div class="app">
   <header class="top">
-    <div><h1>Mandapp</h1><div class="sub" id="subtitle">laddar…</div></div>
-    <button class="chip" id="btnSettings" type="button" aria-label="Inställningar">⚙ Inställningar</button>
+    <div><h1 id="pageTitle">Skugga</h1><div class="sub" id="subtitle">laddar…</div></div>
+    <button class="me" id="btnSettings" type="button" aria-label="Profil och inställningar">我</button>
   </header>
   <div class="banner" id="banner" hidden></div>
+
+  <!-- SKUGGA: START -->
+  <section class="view" id="v-skugga">
+    <div id="passCard"></div>
+    <div id="homeLists" class="stack"></div>
+    <div class="tiles2">
+      <a class="tile2" href="#ova?fri=1"><i>说</i><b>Fri övning</b><small>Sök och välj bland alla meningar</small></a>
+      <a class="tile2" href="#tonpar"><i>调</i><b>Tonpar</b><small>Alla 20 par med riktiga röster</small></a>
+      <a class="tile2" href="#hor"><i>听</i><b>Hörträning</b><small>Toner och minimala par</small></a>
+      <a class="tile2" href="#bibliotek"><i>库</i><b>Bibliotek</b><small>Egna fraser och Tatoeba</small></a>
+      <a class="tile2" href="#stat"><i>统</i><b>Uttal</b><small>Toner och initialer över tid</small></a>
+    </div>
+  </section>
+
+  <!-- SKUGGA: SPELAREN -->
+  <section class="view" id="v-ova">
+    <div class="ptop">
+      <a class="xbtn" href="#skugga" aria-label="Tillbaka till Skugga">✕</a>
+      <div class="dots" id="passDots"></div>
+      <button class="vpill" id="voiceBtn" type="button" aria-label="Välj röst"><span class="dot"></span><span id="voiceLbl">Röst</span> ▾</button>
+    </div>
+    <div class="modeseg" role="group" aria-label="Läge"><button type="button" id="modeMan" class="on">Manuell</button><button type="button" id="modeLoop">Loop</button></div>
+    <div class="sentcard">
+      <div class="pzh" id="oZh"></div>
+      <div class="pyl" id="oPy"></div>
+      <div class="svl" id="oSv"></div>
+      <div class="note" id="oVoice"></div>
+    </div>
+    <div class="curvebox" id="mimicCard">
+      <canvas id="live" data-ratio="0.42" aria-label="Tonkurvor för native och dig"></canvas>
+      <div class="leg"><span><span>━ native</span> &nbsp; <span style="color:var(--accent)">━ du</span> &nbsp; <span class="mono" id="takeInfo"></span></span>
+        <label><input type="checkbox" id="sameLen" checked> Samma längd</label></div>
+    </div>
+    <div class="segctl" id="speedChips" role="group" aria-label="Hastighet"><button type="button" class="chip" data-r="1">1×</button><button type="button" class="chip" data-r="0.75">0,75×</button><button type="button" class="chip" data-r="0.5">0,5×</button></div>
+    <div class="ctrl">
+      <button type="button" class="cbtn nat" id="playNative"><span class="r">▶</span>Native</button>
+      <button type="button" class="recbtn" id="recBtn" aria-label="Spela in"><i></i></button>
+      <button type="button" class="cbtn" id="playMe" disabled><span class="r">▶</span>Jag</button>
+    </div>
+    <div class="liveline" id="contNote" hidden></div>
+    <div class="mini" id="playRow">
+      <button type="button" class="chip" id="playBoth" disabled>Båda samtidigt</button>
+      <button type="button" class="chip" id="playSeq" disabled>Native → jag</button>
+      <button type="button" class="chip" id="analyzeBtn" disabled>Analysera</button>
+    </div>
+    <div class="takes" id="takesRow"></div>
+    <div class="note center" id="recNote"></div>
+    <div class="rate" id="rateRow" role="group" aria-label="Hur gick det?">
+      <button type="button" class="h" data-g="1">Svår</button><button type="button" data-g="3">OK</button><button type="button" class="e" data-g="4">Lätt</button>
+    </div>
+    <div class="note center" id="missNote"></div>
+    <details class="card" id="pickBox">
+      <summary>Byt mening</summary>
+      <div class="stack" style="margin-top:10px">
+        <div class="row">
+          <button class="btn" id="prevItem" type="button" aria-label="Föregående">‹</button>
+          <select id="itemSel" style="flex:1;min-width:0"></select>
+          <button class="btn" id="nextItem" type="button" aria-label="Nästa">›</button>
+        </div>
+        <div class="row">
+          <input type="text" id="sentQ" placeholder="Hitta meningar med ett ord, t.ex. 银行" style="flex:1;min-width:0">
+          <button class="btn" id="randSent" type="button">Slumpa</button>
+        </div>
+        <div id="sentHits" class="stack"></div>
+      </div>
+    </details>
+    <details class="card" id="modelBox">
+      <summary>Fler inställningar</summary>
+      <div class="stack" style="margin-top:10px">
+        <label class="row small"><input type="checkbox" id="withModel"> Hör native samtidigt när jag spelar in (hörlurar)</label>
+        <div class="lbl">Loop-läget</div>
+        <label class="row small"><input type="checkbox" id="contNative" checked> Native före varje försök</label>
+        <label class="row small">Sedan: <select id="contPlay"><option value="me">spela upp mig</option><option value="both">båda samtidigt</option><option value="seq">native → mig</option><option value="none">ingen uppspelning</option></select></label>
+        <button type="button" id="contBtn" hidden></button>
+        <div class="lbl">Native</div>
+        <div class="row" id="modelRow"></div>
+        <div class="row small">
+          <select id="speed" hidden><option value="1">1×</option><option value="0.75">0,75×</option><option value="0.5">0,5×</option></select>
+          <span>Loopa en del:</span><button type="button" class="chip" id="setA">A</button><button type="button" class="chip" id="setB">B</button><button type="button" class="chip" id="loopBtn">⟲ Loop</button>
+          <span class="mono note" id="abInfo"></span>
+        </div>
+        <div class="note" id="modelNote"></div>
+      </div>
+    </details>
+    <details class="card" id="breakdownBox">
+      <summary>Ljud för ljud: initial, final, ton</summary>
+      <div id="breakdown" style="margin-top:8px"></div>
+    </details>
+    <div id="related" class="stack"></div>
+    <div id="result" class="stack"></div>
+  </section>
+
+  <!-- SKUGGA: TONPAR -->
+  <section class="view" id="v-tonpar">
+    <div class="subhead"><a href="#skugga">‹ Skugga</a></div>
+    <div class="note">Alla 20 tonpar med riktiga inspelningar av vanliga ord. Tryck på ett par för att lyssna, skugga eller köra hörtest. Färgen visar hur säker du är (tal och hörsel).</div>
+    <div class="tpgrid" id="tpGrid"></div>
+    <div class="row"><button class="btn primary" id="tpMix" type="button">Hörtest: blandade tonpar</button></div>
+    <div id="tpArea" class="stack"></div>
+    <div class="note">Inspelningar: Yue Tan via <a href="https://github.com/hugolpz/audio-cmn" target="_blank" rel="noopener">audio-cmn</a>, CC BY-SA. Paren följer skriven ton; 3+3 uttalas som 2+3.</div>
+  </section>
+
+  <!-- SKUGGA: BIBLIOTEK -->
+  <section class="view" id="v-bibliotek">
+    <div class="subhead"><a href="#skugga">‹ Skugga</a></div>
+    <div class="card stack">
+      <label class="lbl">Från ordbanken</label>
+      <div class="note">Lägger till ord du markerat med Skugga eller ★ (annars de senaste 30) och deras exempelmeningar. De får native-ljud om det finns en riktig inspelning.</div>
+      <div class="row"><button class="btn primary" id="fromBank" type="button">Hämta från ordbanken</button><label class="btn">Välj fil<input type="file" id="impFile" accept=".json,application/json,text/plain" hidden></label><button class="btn" id="impPasteBtn" type="button">Klistra in</button></div>
+      <textarea id="impPaste" placeholder="Klistra in JSON" hidden></textarea>
+    </div>
+    <div class="card stack">
+      <label class="lbl">Lägg till fras</label>
+      <input type="text" id="nZh" placeholder="Tecken, t.ex. 我想开一个账户">
+      <input type="text" id="nPy" placeholder="Pinyin, t.ex. wo3 xiang3 kai1 yi2 ge4 zhang4 hu4 eller wǒ xiǎng…">
+      <input type="text" id="nSv" placeholder="Svenska (valfritt)">
+      <label class="small">Native-ljud (ljudfil, valfritt) <input type="file" id="nAudio" accept="audio/*,video/*"></label>
+      <button class="btn primary" id="nAdd" type="button">Lägg till</button>
+    </div>
+    <div class="card stack">
+      <label class="lbl">Meningar med ljud (Tatoeba)</label>
+      <div class="row"><input type="text" id="tqQ" placeholder="Sök ord, t.ex. 银行" style="flex:1;min-width:0"><button class="btn" id="tqBtn" type="button">Sök</button></div>
+      <div class="note" id="tqNote"></div>
+      <div class="stack" id="tqList"></div>
+    </div>
+    <div class="note" id="libCount"></div>
+    <div class="stack" id="libList"></div>
+  </section>
+
+  <!-- SKUGGA: HÖR -->
+  <section class="view" id="v-hor">
+    <div class="subhead"><a href="#skugga">‹ Skugga</a></div>
+    <div class="row"><button class="chip on" id="hTones" type="button">Toner</button><button class="chip" id="hPairs" type="button">Minimala par</button></div>
+    <div id="hNote" class="note"></div>
+    <div id="hArea" class="stack"></div>
+  </section>
+
+  <!-- SKUGGA: UTTALSSTATISTIK -->
+  <section class="view" id="v-stat">
+    <div class="subhead"><a href="#skugga">‹ Skugga</a></div>
+    <div id="statArea" class="stack"></div>
+  </section>
+
+  <!-- ÄMNE -->
+  <section class="view" id="v-amne">
+    <label class="lbl" for="topicText">Vad ska du göra eller läsa om?</label>
+    <textarea id="topicText" placeholder="t.ex. gå till banken och öppna ett konto, och fråga om att föra över pengar till Sverige"></textarea>
+    <div class="lbl">Jag vill ha</div>
+    <div class="row" id="wantChips">
+      <button type="button" class="chip on" data-k="words">Ord</button><button type="button" class="chip on" data-k="phrases">Fraser</button><button type="button" class="chip on" data-k="dialogue">Dialog</button><button type="button" class="chip" data-k="text">Text att läsa</button>
+    </div>
+    <div class="row" id="lenRow" hidden><label class="small" for="lasLen">Textens längd</label><select id="lasLen"><option value="150">Kort (~150 tecken)</option><option value="300" selected>Mellan (~300 tecken)</option><option value="500">Lång (~500 tecken)</option></select></div>
+    <div class="stack" id="recentBox"></div>
+    <button class="btn primary block" id="btnGen" type="button">Generera</button>
+    <div class="note" id="genNote"></div>
+    <div id="genOut" class="stack"></div>
+  </section>
 
   <!-- REPETERA -->
   <section class="view" id="v-repetera">
     <div id="reviewArea"></div>
   </section>
 
-  <!-- LÄGG TILL -->
-  <section class="view" id="v-lagg-till" hidden>
+  <!-- ORD: ORDBANK -->
+  <section class="view" id="v-ord">
+    <div class="subtabs"><a href="#ord" class="on">Ordbank</a><a href="#lagg-till">Lägg till</a><a href="#statistik">Utveckling</a></div>
+    <div class="row">
+      <input type="search" id="wq" placeholder="Sök i din ordbank" style="flex:1;min-width:0">
+    </div>
+    <div class="row" id="wfilters">
+      <button class="chip on" data-f="alla" type="button">Alla</button>
+      <button class="chip" data-f="ny" type="button">Nya</button>
+      <button class="chip" data-f="lar" type="button">Lär</button>
+      <button class="chip" data-f="mogen" type="button">Mogna</button>
+      <button class="chip" data-f="markerad" type="button">Markerade</button>
+      <button class="chip" data-f="igel" type="button">Iglar</button>
+      <button class="chip" data-f="pausad" type="button">Pausade</button>
+    </div>
+    <div class="note" id="wcount"></div>
+    <div class="list" id="wlist"></div>
+  </section>
+
+  <!-- ORD: LÄGG TILL -->
+  <section class="view" id="v-lagg-till">
+    <div class="subtabs"><a href="#ord">Ordbank</a><a href="#lagg-till" class="on">Lägg till</a><a href="#statistik">Utveckling</a></div>
     <div class="segtabs" role="tablist">
       <button type="button" id="tabText" class="on">Skriv</button>
       <button type="button" id="tabFoto">Foto</button>
@@ -182,66 +494,23 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
     </div>
   </section>
 
-  <!-- IDAG -->
-  <section class="view" id="v-idag" hidden>
-    <div class="segtabs" role="tablist">
-      <button type="button" id="tabIdag" class="on">Idag ska jag…</button>
-      <button type="button" id="tabLas">Läs en text</button>
-    </div>
-    <div id="lasBox" class="stack" hidden>
-      <label class="lbl" for="lasTopic">Ämne</label>
-      <input type="text" id="lasTopic" placeholder="t.ex. mat i Sichuan, en dag på banken, AI">
-      <div class="row">
-        <select id="lasLen" style="width:auto"><option value="150">Kort (~150 tecken)</option><option value="300" selected>Mellan (~300 tecken)</option><option value="500">Lång (~500 tecken)</option></select>
-        <button class="btn primary" id="btnLas" type="button" style="flex:1">Skriv en text till mig</button>
-      </div>
-      <div class="note" id="lasNote">Claude skriver en text där nästan alla ord är sådana du kan, plus några ord du håller på att lära dig. Tryck på ord du inte kan.</div>
-      <div id="lasOut" class="stack"></div>
-    </div>
-    <div class="stack" id="idagBox">
-      <label class="lbl" for="todayText">Idag ska jag…</label>
-      <textarea id="todayText" placeholder="t.ex. gå till banken och öppna ett konto, och fråga om att föra över pengar till Sverige"></textarea>
-      <button class="btn primary" id="btnToday" type="button">Ge mig orden jag behöver</button>
-      <div class="note" id="todayNote"></div>
-    </div>
-    <div id="todayOut" class="stack" data-idag="1"></div>
-  </section>
-
-  <!-- ORD -->
-  <section class="view" id="v-ord" hidden>
-    <div class="row">
-      <input type="search" id="wq" placeholder="Sök i din ordbank" style="flex:1;min-width:0">
-    </div>
-    <div class="row" id="wfilters">
-      <button class="chip on" data-f="alla" type="button">Alla</button>
-      <button class="chip" data-f="ny" type="button">Nya</button>
-      <button class="chip" data-f="lar" type="button">Lär</button>
-      <button class="chip" data-f="mogen" type="button">Mogna</button>
-      <button class="chip" data-f="markerad" type="button">Markerade</button>
-      <button class="chip" data-f="igel" type="button">Iglar</button>
-      <button class="chip" data-f="pausad" type="button">Pausade</button>
-    </div>
-    <div class="note" id="wcount"></div>
-    <div class="list" id="wlist"></div>
-  </section>
-
-  <!-- STATISTIK -->
-  <section class="view" id="v-statistik" hidden>
+  <!-- ORD: UTVECKLING -->
+  <section class="view" id="v-statistik">
+    <div class="subtabs"><a href="#ord">Ordbank</a><a href="#lagg-till">Lägg till</a><a href="#statistik" class="on">Utveckling</a></div>
     <div id="statsArea" class="stack"></div>
   </section>
 </div>
 
 <nav class="tabs" aria-label="Huvudmeny"><div class="in">
+  <a href="#skugga" data-v="skugga"><i>声</i>Skugga</a>
+  <a href="#amne" data-v="amne"><i>题</i>Ämne</a>
   <a href="#repetera" data-v="repetera"><i>复</i>Repetera<span class="badge" id="dueBadge" hidden></span></a>
-  <a href="#lagg-till" data-v="lagg-till"><i>+</i>Lägg till</a>
-  <a href="#idag" data-v="idag"><i>今</i>Idag</a>
   <a href="#ord" data-v="ord"><i>词</i>Ord</a>
-  <a href="#statistik" data-v="statistik"><i>统</i>Utveckling</a>
-  <a href="skugga.html#ova"><i>声</i>Skugga</a>
 </div></nav>
 
 <script src="vendor/ts-fsrs-5.4.2.umd.js"></script>
 <script src="analysis.js"></script>
+<script src="skugga.js"></script>
 <script>
 "use strict";
 /* ============ helpers ============ */
@@ -431,9 +700,8 @@ async function initStorage() {
   STATE.profile = Object.assign({}, PROFILE_DEFAULT, LOCAL.profile || {});
   for (const [k, w] of Object.entries(LOCAL.words || {})) STATE.words.set(k, w);
   indexWords();
-  if (!STATE.words.size) showBanner("Har du ord i den gamla Mandapp i Claude? Exportera dem där (Inställningar → Exportera allt) och importera filen här under ⚙ Inställningar.");
+  if (!STATE.words.size) showBanner("Har du ord i den gamla Mandapp i Claude? Exportera dem där (Inställningar → Exportera allt) och importera filen här under Inställningar (我 uppe till höger).");
   onWordsChanged();
-  try { const t = localStorage.getItem("mandapp-from-studio"); if (t) { localStorage.removeItem("mandapp-from-studio"); await importPron(JSON.parse(t)); } } catch (e) { console.warn(e); }
   updateSubtitle();
 }
 function updateSubtitle() { $("#subtitle").textContent = STATE.words.size + " ord · " + (STATE.sample ? "Claude på" : "Claude av (ingen API-nyckel)"); }
@@ -554,10 +822,10 @@ async function claudeJson(prompt, opts) {
   if (!text.trim()) throw { code: "empty_completion" };
   return parseJsonText(text);
 }
-const NEED_KEY = "Lägg in din Anthropic API-nyckel under ⚙ Inställningar för att använda Claude här.";
+const NEED_KEY = "Lägg in din Anthropic API-nyckel under Inställningar (我 uppe till höger) för att använda Claude här.";
 const SAMPLE_MSG = {
   not_granted: NEED_KEY, no_key: NEED_KEY,
-  bad_key: "API-nyckeln fungerar inte. Kontrollera den under ⚙ Inställningar.",
+  bad_key: "API-nyckeln fungerar inte. Kontrollera den under Inställningar.",
   permission: "API-nyckeln saknar behörighet för den här modellen.",
   no_credit: "Det finns ingen kredit kvar på API-kontot. Fyll på i Anthropic Console.",
   network: "Kunde inte nå Claude. Kontrollera nätet.",
@@ -611,7 +879,7 @@ function speak(text) {
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   } catch { toast("Uppläsning fungerade inte"); }
 }
-const speakBtn = text => h("button", { class: "chip", type: "button", "aria-label": "Lyssna", onclick: ev => { ev.stopPropagation(); speak(text); } }, "🔊");
+const speakBtn = text => h("button", { class: "chip", type: "button", "aria-label": "Lyssna", onclick: ev => { ev.stopPropagation(); speak(text); } }, "▶");
 
 /* ============ tappable text + sheets ============ */
 function zhText(text, target) {
@@ -762,7 +1030,7 @@ function renderReview() {
     const due = dueCountForBadge();
     const newAvail = [...STATE.words.values()].filter(w => !w.suspended && w.card && w.card.state === 0).length;
     if (!STATE.words.size) {
-      area.append(h("div", { class: "card empty" }, h("b", null, "Din ordbank är tom"), "Lägg till ord genom att skriva, fota eller använda \"Idag ska jag…\".", h("div", { style: "margin-top:14px" }, h("a", { class: "btn primary", href: "#lagg-till", style: "text-decoration:none;display:inline-block" }, "Lägg till ord"))));
+      area.append(h("div", { class: "card empty" }, h("b", null, "Din ordbank är tom"), "Lägg till ord genom att skriva, fota eller använda Ämne.", h("div", { style: "margin-top:14px" }, h("a", { class: "btn primary", href: "#lagg-till", style: "text-decoration:none;display:inline-block" }, "Lägg till ord"))));
       return;
     }
     area.append(h("div", { class: "card stack" },
@@ -802,7 +1070,7 @@ function renderReview() {
     card.append(gradeButtons(w));
     card.append(h("div", { class: "row", style: "justify-content:center" },
       h("button", { class: "chip", type: "button", onclick: async () => { w.flagged = !w.flagged; await Store.saveWord(w).catch(handleDbError); toast(w.flagged ? "Markerat för senare" : "Markering borttagen"); renderReview(); } }, w.flagged ? "★ Markerad" : "☆ Markera för senare"),
-      h("button", { class: "chip", type: "button", onclick: async () => { w.shadow = !w.shadow; await Store.saveWord(w).catch(handleDbError); toast(w.shadow ? "Med i nästa export till skuggning" : "Borttaget från skuggning"); renderReview(); } }, w.shadow ? "🎙 Ska skuggas" : "🎙 Skugga")));
+      h("button", { class: "chip", type: "button", onclick: async () => { w.shadow = !w.shadow; await Store.saveWord(w).catch(handleDbError); toast(w.shadow ? "Hämtas till Skugga från Bibliotek" : "Borttaget från Skugga"); renderReview(); } }, w.shadow ? "Ska skuggas ✓" : "Skugga")));
     if (w.pinyin) card.append(pronBlock(w.pinyin, w.hanzi));
     { const sl = shadowLink(w.hanzi); if (sl) card.append(sl); }
   }
@@ -842,7 +1110,7 @@ async function grade(w, rating) {
   nextCard();
 }
 document.addEventListener("keydown", e => {
-  if (location.hash.slice(1) !== "repetera" && location.hash) return;
+  if (location.hash.slice(1) !== "repetera") return;
   if (sheetEls || !RV.cur || e.target.matches("input,textarea")) return;
   if (!RV.revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); reveal(); }
   else if (RV.revealed && ["1", "2", "3", "4"].includes(e.key)) grade(RV.cur, +e.key);
@@ -929,38 +1197,161 @@ function renderPickList(out, words, source) {
   out.append(btn);
 }
 
-/* ============ IDAG ============ */
-$("#btnToday").onclick = async () => {
-  const text = $("#todayText").value.trim(); const note = $("#todayNote"); const out = $("#todayOut");
-  if (!text) { note.textContent = "Skriv vad du ska göra först."; return; }
+/* ============ ÄMNE (Idag ska jag + Läs en text) ============ */
+// Ett fält för både "Idag ska jag…" och "Läs en text". Varje ord, fras och replik kan genereras om en i taget (↻).
+const AM = { want: new Set(["words", "phrases", "dialogue"]), topic: "", words: [], phrases: [], dialogue: [], text: null, rejected: new Set(), tab: "words" };
+$("#wantChips").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b) return; const k = b.dataset.k; if (AM.want.has(k)) AM.want.delete(k); else AM.want.add(k); b.classList.toggle("on", AM.want.has(k)); $("#lenRow").hidden = !AM.want.has("text"); });
+function renderRecent() {
+  const box = $("#recentBox"); box.replaceChildren(); const hist = (STATE.profile.todayHistory || []).slice(0, 6); if (!hist.length) return;
+  box.append(h("div", { class: "lbl" }, "Senaste ämnen"), h("div", { class: "row" }, hist.map(x => h("button", { class: "chip", type: "button", onclick: () => { $("#topicText").value = x.text; } }, x.text.length > 30 ? x.text.slice(0, 29) + "…" : x.text))));
+}
+const bankList = n => [...STATE.words.values()].map(w => w.hanzi).slice(0, n);
+const cleanWord = x => ({ hanzi: String(x.hanzi || "").trim(), pinyin: String(x.pinyin || ""), sv: String(x.sv || ""), note: String(x.note || "") });
+const avoidList = () => [...new Set([...AM.words.map(w => w.hanzi), ...AM.rejected, ...bankList(400)])].filter(Boolean);
+function genIdag(text, parts) {
+  const mine = bankList(400); const asks = [], form = [];
+  if (parts.includes("words")) { asks.push("Ge de 12 mest användbara orden och uttrycken för situationen som eleven troligen inte kan än. Hoppa över grundord på HSK 1–3" + (mine.length ? " och dessa ord eleven redan har: " + mine.join("、") : "") + "."); form.push('"words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"svensk betydelse","note":"kort tips eller tom"}]'); }
+  if (parts.includes("phrases")) { asks.push("Ge 4 fraser eleven kan säga."); form.push('"phrases":[{"zh":"...","sv":"..."}]'); }
+  if (parts.includes("dialogue")) { asks.push("Ge en kort realistisk dialog med 6 repliker (A = eleven, B = den andra personen)."); form.push('"dialogue":[{"who":"A","zh":"...","sv":"..."}]'); }
+  return STATE.sample.json(
+`En svensk som lär sig kinesiska skriver vad hen ska göra idag eller vill kunna prata om: «${text}». ${profileSummary()}.
+${asks.join("\n")}
+Svara endast med JSON: {${form.join(",")}}`, { modelTier: "default" });
+}
+function genText(topic, len) {
+  const known = knownSample(250);
+  const learning = [...STATE.words.values()].filter(w => !w.suspended && w.card && (w.card.state === 1 || w.card.state === 3 || (w.card.state === 2 && w.card.due <= now() + DAY))).slice(0, 12).map(w => w.hanzi);
+  return STATE.sample.json(
+`Skriv en sammanhängande, intressant text på förenklad kinesiska för en svensk som lär sig kinesiska. ${profileSummary()}.
+Ämne: ${topic}. Längd: cirka ${len} tecken.
+Viktigt (Hacking Chinese: läs texter där 95–98 % av orden är kända): använd i första hand ord på HSK 1–4-nivå${known.length ? " och ord eleven redan kan, till exempel: " + known.join("、") : ""}.${learning.length ? " Väv in så många som möjligt av dessa ord som eleven håller på att lära sig: " + learning.join("、") + "." : ""} Undvik ovanliga ord.
+Ge också en svensk översättning och 3 förståelsefrågor på kinesiska med korta svar.
+Svara endast med JSON: {"title":"kinesisk titel","text":"...","sv":"svensk översättning","questions":[{"q":"...","a":"..."}]}`, { modelTier: "default" }).then(r => Object.assign(r || {}, { learning }));
+}
+$("#btnGen").onclick = async () => {
+  const text = $("#topicText").value.trim(); const note = $("#genNote");
+  if (!text) { note.textContent = "Skriv vad du ska göra eller läsa om först."; return; }
   if (!STATE.sample) { note.textContent = NEED_KEY; return; }
-  $("#btnToday").disabled = true; note.textContent = "Claude tänker… (kan ta upp till en minut)"; out.replaceChildren();
-  try {
-    await loadDict().catch(() => { });
-    const mine = [...STATE.words.keys()].map(id => STATE.words.get(id).hanzi).slice(0, 400);
-    const r = await STATE.sample.json(
-`En svensk som lär sig kinesiska skriver vad hen ska göra idag: «${text}». ${profileSummary()}.
-Ge de 12 mest användbara orden och uttrycken för situationen som eleven troligen inte kan än. Hoppa över grundord på HSK 1–3${mine.length ? " och dessa ord eleven redan har: " + mine.join("、") : ""}.
-Ge också 4 fraser eleven kan säga, och en kort realistisk dialog med 6 repliker (A = eleven, B = den andra personen).
-Svara endast med JSON: {"words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"svensk betydelse","note":"kort tips eller tom"}],"phrases":[{"zh":"...","sv":"..."}],"dialogue":[{"who":"A","zh":"...","sv":"..."}]}`, { modelTier: "default" });
-    note.textContent = "";
-    renderToday(r, text);
-    const p = Object.assign({}, STATE.profile); p.todayHistory = [{ date: dayKey(), text, words: (r.words || []).map(w => String(w.hanzi)).slice(0, 15) }, ...(p.todayHistory || [])].slice(0, 20);
-    Store.saveProfile(p).catch(() => { });
-  } catch (e) { note.textContent = sampleMsg(e); }
-  $("#btnToday").disabled = false;
+  if (!AM.want.size) { note.textContent = "Välj minst en sak att få tillbaka."; return; }
+  Object.assign(AM, { topic: text, words: [], phrases: [], dialogue: [], text: null, rejected: new Set() });
+  $("#btnGen").disabled = true; note.textContent = "Claude tänker… (kan ta upp till en minut)"; $("#genOut").replaceChildren();
+  await loadDict().catch(() => { });
+  const jobs = []; const parts = ["words", "phrases", "dialogue"].filter(k => AM.want.has(k));
+  if (parts.length) jobs.push(genIdag(text, parts).then(r => {
+    AM.words = (Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(cleanWord);
+    AM.phrases = (Array.isArray(r.phrases) ? r.phrases : []).filter(x => x && x.zh).map(x => ({ zh: String(x.zh), sv: String(x.sv || "") }));
+    AM.dialogue = (Array.isArray(r.dialogue) ? r.dialogue : []).filter(x => x && x.zh).map(x => ({ who: x.who === "B" ? "B" : "A", zh: String(x.zh), sv: String(x.sv || "") }));
+  }));
+  if (AM.want.has("text")) jobs.push(genText(text, +$("#lasLen").value).then(r => { AM.text = r; Store.appendLog({ k: "read", h: String(r.title || ""), n: String(r.text || "").length, t: now() }); }));
+  const res = await Promise.allSettled(jobs); const err = res.find(r => r.status === "rejected");
+  note.textContent = err ? sampleMsg(err.reason) : "";
+  AM.tab = AM.words.length ? "words" : AM.phrases.length ? "phrases" : AM.dialogue.length ? "dialogue" : "text";
+  renderGen();
+  if (AM.words.length) { const p = Object.assign({}, STATE.profile); p.todayHistory = [{ date: dayKey(), text, words: AM.words.map(w => w.hanzi).slice(0, 15) }, ...(p.todayHistory || []).filter(x => x.text !== text)].slice(0, 20); Store.saveProfile(p).catch(() => { }); renderRecent(); }
+  $("#btnGen").disabled = false;
 };
-function renderToday(r, text) {
-  const out = $("#todayOut"); out.replaceChildren();
-  const words = (Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(x => ({ hanzi: String(x.hanzi).trim(), pinyin: String(x.pinyin || ""), sv: String(x.sv || ""), note: String(x.note || "") }));
-  if (words.length) { out.append(h("h2", null, "Ord")); renderPickList(out, words, "idag: " + text); out.append(h("button", { class: "btn block", type: "button", onclick: () => cram(words) }, "Plugga dem nu (10 min)")); }
-  if (Array.isArray(r.phrases) && r.phrases.length) {
-    out.append(h("h2", null, "Säg så här"));
-    r.phrases.forEach(x => out.append(h("div", { class: "ctx" }, zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || "")), h("div", { class: "row", style: "margin-top:4px" }, speakBtn(String(x.zh || ""))))));
-  }
-  if (Array.isArray(r.dialogue) && r.dialogue.length) {
-    out.append(h("h2", null, "Dialog"));
-    r.dialogue.forEach(x => out.append(h("div", { class: "ctx", style: x.who === "A" ? "border-color:var(--accent)" : "" }, h("div", { class: "lblrow" }, h("span", null, x.who === "A" ? "Du" : "Den andra"), speakBtn(String(x.zh || ""))), zhText(String(x.zh || "")), h("div", { class: "sv" }, String(x.sv || "")))));
+function saveTopicWords() {
+  const p = Object.assign({}, STATE.profile); const hist = (p.todayHistory || []).slice(); const i = hist.findIndex(x => x.text === AM.topic);
+  if (i < 0) return; hist[i] = Object.assign({}, hist[i], { words: AM.words.filter(w => !w.loading).map(w => w.hanzi).slice(0, 20) }); p.todayHistory = hist; Store.saveProfile(p).catch(() => { });
+}
+async function regenWord(i) {
+  const old = AM.words[i]; if (!old || old.loading) return;
+  if (!STATE.sample) { toast(NEED_KEY); return; }
+  AM.rejected.add(old.hanzi); AM.words[i] = { loading: true, hanzi: old.hanzi }; renderGen();
+  try {
+    const r = await STATE.sample.json(
+`En svensk som lär sig kinesiska förbereder sig för: «${AM.topic}». ${profileSummary()}.
+Ge 1 nytt användbart ord eller uttryck för situationen som eleven troligen inte kan än. Det får inte vara något av dessa: ${avoidList().join("、")}. Hoppa över grundord på HSK 1–3.
+Svara endast med JSON: {"hanzi":"...","pinyin":"med tonmärken","sv":"svensk betydelse","note":"kort tips eller tom"}`, { modelTier: "quick" });
+    const w = cleanWord(r && r.hanzi ? r : (r && Array.isArray(r.words) && r.words[0]) || {});
+    if (!w.hanzi) throw { code: "invalid_json" };
+    AM.words[i] = w; saveTopicWords();
+  } catch (e) { AM.words[i] = old; AM.rejected.delete(old.hanzi); toast(sampleMsg(e)); }
+  renderGen();
+}
+async function moreWords(n) {
+  if (!STATE.sample) { toast(NEED_KEY); return; }
+  const start = AM.words.length; for (let k = 0; k < n; k++) AM.words.push({ loading: true, hanzi: "" }); renderGen();
+  try {
+    const r = await STATE.sample.json(
+`En svensk som lär sig kinesiska förbereder sig för: «${AM.topic}». ${profileSummary()}.
+Ge ${n} nya användbara ord eller uttryck för situationen som eleven troligen inte kan än. Inga av dessa: ${avoidList().join("、")}. Hoppa över grundord på HSK 1–3.
+Svara endast med JSON: {"words":[{"hanzi":"...","pinyin":"med tonmärken","sv":"svensk betydelse","note":"kort tips eller tom"}]}`, { modelTier: "quick" });
+    const got = (r && Array.isArray(r.words) ? r.words : []).filter(x => x && x.hanzi).map(cleanWord).filter(w => !AM.words.some(x => x.hanzi === w.hanzi));
+    AM.words.splice(start, n, ...got); saveTopicWords();
+  } catch (e) { AM.words.splice(start, n); toast(sampleMsg(e)); }
+  renderGen();
+}
+async function regenLine(kind, i) {
+  const arr = AM[kind]; const old = arr[i]; if (!old || old.loading) return;
+  if (!STATE.sample) { toast(NEED_KEY); return; }
+  arr[i] = Object.assign({}, old, { loading: true }); renderGen();
+  const prompt = kind === "phrases"
+    ? `En svensk som lär sig kinesiska förbereder sig för: «${AM.topic}». ${profileSummary()}.
+Nuvarande fraser: ${AM.phrases.map(p => p.zh).join(" / ")}.
+Ge 1 ny fras eleven kan säga i situationen, som inte liknar någon av dem.
+Svara endast med JSON: {"zh":"...","sv":"svensk översättning"}`
+    : `En svensk som lär sig kinesiska förbereder sig för: «${AM.topic}». ${profileSummary()}.
+Dialog (A = eleven, B = den andra personen):
+${AM.dialogue.map((d, k) => (k + 1) + ". " + d.who + ": " + d.zh).join("\n")}
+Skriv om replik ${i + 1} (${old.who}) så att den säger något annat men fortfarande passar mellan replikerna före och efter.
+Svara endast med JSON: {"zh":"...","sv":"svensk översättning"}`;
+  try {
+    const r = await STATE.sample.json(prompt, { modelTier: "quick" });
+    if (!r || !r.zh) throw { code: "invalid_json" };
+    arr[i] = kind === "phrases" ? { zh: String(r.zh), sv: String(r.sv || "") } : { who: old.who, zh: String(r.zh), sv: String(r.sv || "") };
+  } catch (e) { arr[i] = old; toast(sampleMsg(e)); }
+  renderGen();
+}
+function wordRow(w, i) {
+  if (w.loading) return h("div", { class: "wrow" }, h("div", { class: "shim", "aria-label": "Hämtar nytt ord" }), h("span", { class: "ib" }, "+"), h("span", { class: "ib" }, "↻"));
+  const be = bestEntry(w.hanzi); const has = STATE.byHanzi.has(w.hanzi); const c = window.SK ? SK.countWith(w.hanzi) : 0;
+  const add = h("button", { class: "ib" + (has ? " done" : ""), type: "button", "aria-label": has ? w.hanzi + " finns i ordbanken" : "Lägg till " + w.hanzi + " i ordbanken", disabled: has, onclick: async () => { await addWord(w.hanzi, { sv: w.sv, source: "ämne: " + AM.topic, pinyinMarked: w.pinyin }); renderGen(); } }, has ? "✓" : "+");
+  const re = h("button", { class: "ib", type: "button", "aria-label": "Byt ut " + w.hanzi + " mot ett annat ord", onclick: () => regenWord(i) }, "↻");
+  return h("div", { class: "wrow" },
+    h("div", { style: "min-width:0" },
+      h("div", { class: "w" }, h("span", { class: "hz", role: "button", tabindex: "0", onclick: () => openWordSheet(w.hanzi) }, w.hanzi), be ? pinyinNode(be.p, "p") : h("span", { class: "p" }, w.pinyin),
+        c ? h("a", { class: "cnt", href: "#ova?q=" + encodeURIComponent(w.hanzi), title: "Native-meningar med ordet" }, c + " ljud") : h("span", { class: "cnt z" }, "0 ljud")),
+      h("small", null, w.sv + (w.note ? " · " + w.note : ""))),
+    add, re);
+}
+function lineRow(kind, x, i) {
+  if (x.loading) return h("div", { class: "wrow" }, h("div", { class: "shim" }), h("span", { class: "ib" }, "▶"), h("span", { class: "ib" }, "↻"));
+  return h("div", { class: "wrow" },
+    h("div", { style: "min-width:0" }, kind === "dialogue" ? h("div", { class: "lbl" }, x.who === "A" ? "Du" : "Den andra") : null, zhText(x.zh), h("small", null, x.sv)),
+    h("button", { class: "ib", type: "button", "aria-label": "Läs upp", onclick: () => speak(x.zh) }, "▶"),
+    h("button", { class: "ib", type: "button", "aria-label": "Byt ut raden", onclick: () => regenLine(kind, i) }, "↻"));
+}
+function renderGen() {
+  const out = $("#genOut"); out.replaceChildren();
+  const tabs = [["words", "Ord", AM.words.length], ["phrases", "Fraser", AM.phrases.length], ["dialogue", "Dialog", AM.dialogue.length], ["text", "Text", AM.text ? 1 : 0]].filter(t => t[2]);
+  if (!tabs.length) return;
+  if (!tabs.some(t => t[0] === AM.tab)) AM.tab = tabs[0][0];
+  out.append(h("div", { class: "row", style: "justify-content:space-between" }, h("b", null, AM.topic.length > 40 ? AM.topic.slice(0, 39) + "…" : AM.topic)));
+  out.append(h("div", { class: "gtabs", role: "tablist" }, tabs.map(([k, l, n]) => h("button", { type: "button", role: "tab", class: AM.tab === k ? "on" : "", onclick: () => { AM.tab = k; renderGen(); } }, l + (k === "words" || k === "phrases" ? " " + n : "")))));
+  const body = h("div", { class: "card", style: "padding:4px 14px" });
+  if (AM.tab === "words") {
+    AM.words.forEach((w, i) => body.append(wordRow(w, i))); out.append(body);
+    out.append(h("button", { class: "more", type: "button", onclick: () => moreWords(6) }, "+ Generera 6 till"));
+    const ready = AM.words.filter(w => !w.loading);
+    out.append(h("button", { class: "btn block", type: "button", onclick: () => cram(ready) }, "Plugga orden nu (10 min)"));
+    const ws = ready.map(w => w.hanzi); const n = window.SK ? SK.topicCount(ws) : 0;
+    out.append(h("div", { class: "stickybar" }, h("button", { class: "btn block", type: "button", disabled: !n, onclick: () => SK.startTopic(ws, AM.topic) }, "Skugga ämnet"), h("small", null, n ? n + " native-meningar innehåller orden" : "Inga native-meningar innehåller orden än")));
+  } else if (AM.tab === "phrases" || AM.tab === "dialogue") {
+    AM[AM.tab].forEach((x, i) => body.append(lineRow(AM.tab, x, i))); out.append(body);
+    out.append(h("div", { class: "note" }, "▶ läser upp med telefonens röst. I Skugga används bara riktiga inspelningar."));
+  } else if (AM.tab === "text") {
+    const r = AM.text; const text = String(r.text || ""); const used = (r.learning || []).filter(wd => text.includes(wd));
+    out.append(h("div", { class: "card stack" },
+      h("div", { class: "row", style: "justify-content:space-between" }, h("b", { class: "zh", style: "font-size:1.15rem" }, String(r.title || "")), h("button", { class: "chip", type: "button", onclick: () => speak(text) }, "▶ Läs upp")),
+      h("div", { style: "font-size:1.15rem;line-height:2" }, zhText(text)),
+      used.length ? h("div", { class: "note" }, "Ord från din ordbank i texten: ", h("span", { class: "zh" }, used.join("、"))) : null,
+      (() => { const d = h("details", null, h("summary", { class: "small" }, "Visa översättning")); d.append(h("div", { class: "small muted", style: "margin-top:6px" }, String(r.sv || ""))); return d; })()));
+    out.append(h("div", { class: "note" }, "Tryck på ord du inte kan. Ord du slår upp ofta syns under Ord → Utveckling."));
+    if (Array.isArray(r.questions) && r.questions.length) {
+      out.append(h("h2", null, "Frågor"));
+      r.questions.forEach(q => { const d = h("details", { class: "ctx" }, h("summary", null, zhText(String(q.q || "")))); d.append(h("div", { class: "small", style: "margin-top:4px" }, zhText(String(q.a || "")))); out.append(d); });
+    }
   }
 }
 function cram(words) {
@@ -983,51 +1374,15 @@ function cram(words) {
   draw(); openSheet(box);
 }
 
-/* ============ LÄS ============ */
-$("#tabIdag").onclick = () => { $("#tabIdag").classList.add("on"); $("#tabLas").classList.remove("on"); $("#idagBox").hidden = false; $("#todayOut").hidden = false; $("#lasBox").hidden = true; };
-$("#tabLas").onclick = () => { $("#tabLas").classList.add("on"); $("#tabIdag").classList.remove("on"); $("#idagBox").hidden = true; $("#todayOut").hidden = true; $("#lasBox").hidden = false; if (!$("#lasTopic").value && STATE.profile.interests) $("#lasTopic").placeholder = STATE.profile.interests; };
-$("#btnLas").onclick = async () => {
-  const note = $("#lasNote"), out = $("#lasOut"), btn = $("#btnLas");
-  if (!STATE.sample) { note.textContent = NEED_KEY; return; }
-  const topic = $("#lasTopic").value.trim() || STATE.profile.interests || "vardagsliv i Kina";
-  const len = +$("#lasLen").value;
-  const known = knownSample(250);
-  const learning = [...STATE.words.values()].filter(w => !w.suspended && w.card && (w.card.state === 1 || w.card.state === 3 || (w.card.state === 2 && w.card.due <= now() + DAY))).slice(0, 12).map(w => w.hanzi);
-  btn.disabled = true; note.textContent = "Claude skriver… (kan ta upp till en minut)"; out.replaceChildren();
-  try {
-    await loadDict().catch(() => { });
-    const r = await STATE.sample.json(
-`Skriv en sammanhängande, intressant text på förenklad kinesiska för en svensk som lär sig kinesiska. ${profileSummary()}.
-Ämne: ${topic}. Längd: cirka ${len} tecken.
-Viktigt (Hacking Chinese: läs texter där 95–98 % av orden är kända): använd i första hand ord på HSK 1–4-nivå${known.length ? " och ord eleven redan kan, till exempel: " + known.join("、") : ""}.${learning.length ? " Väv in så många som möjligt av dessa ord som eleven håller på att lära sig: " + learning.join("、") + "." : ""} Undvik ovanliga ord.
-Ge också en svensk översättning och 3 förståelsefrågor på kinesiska med korta svar.
-Svara endast med JSON: {"title":"kinesisk titel","text":"...","sv":"svensk översättning","questions":[{"q":"...","a":"..."}]}`, { modelTier: "default" });
-    note.textContent = "Tryck på ord du inte kan. Ord du slår upp ofta syns under Utveckling.";
-    const text = String(r.text || "");
-    const used = learning.filter(wd => text.includes(wd));
-    out.append(h("div", { class: "card stack" },
-      h("div", { class: "row", style: "justify-content:space-between" }, h("b", { class: "zh", style: "font-size:1.15rem" }, String(r.title || "")), h("button", { class: "chip", type: "button", onclick: () => speak(text) }, "🔊 Läs upp")),
-      h("div", { style: "font-size:1.15rem;line-height:2" }, zhText(text)),
-      used.length ? h("div", { class: "note" }, "Ord från din ordbank i texten: ", h("span", { class: "zh" }, used.join("、"))) : null,
-      (() => { const d = h("details", null, h("summary", { class: "small", style: "cursor:pointer" }, "Visa översättning")); d.append(h("div", { class: "small muted", style: "margin-top:6px" }, String(r.sv || ""))); return d; })()));
-    if (Array.isArray(r.questions) && r.questions.length) {
-      out.append(h("h2", null, "Frågor"));
-      r.questions.forEach(q => { const d = h("details", { class: "ctx" }, h("summary", { style: "cursor:pointer" }, zhText(String(q.q || "")))); d.append(h("div", { class: "small", style: "margin-top:4px" }, zhText(String(q.a || "")))); out.append(d); });
-    }
-    Store.appendLog({ k: "read", h: String(r.title || ""), n: text.length, t: now() });
-  } catch (e) { note.textContent = sampleMsg(e); }
-  btn.disabled = false;
-};
-
 /* ============ SKUGGNING (export/import) ============ */
-const STUDIO_URL = "skugga.html";
+const STUDIO_URL = "";
 // Meningar med native-ljud som finns i skuggningsstudion (bara texten), för länkar från glosorna
 let SHADOW_SENT = [];
 fetch("skuggmeningar.json").then(r => r.ok ? r.json() : []).then(a => { SHADOW_SENT = Array.isArray(a) ? a : []; }).catch(() => { });
 function shadowLink(word) {
   if (!word || !SHADOW_SENT.length) return null;
   const n = SHADOW_SENT.filter(z => z.includes(word) && z !== word).length; if (!n) return null;
-  return h("a", { class: "btn", href: STUDIO_URL + "#ova?q=" + encodeURIComponent(word), style: "text-decoration:none;text-align:center", onclick: ev => ev.stopPropagation() }, "🎙 Skugga " + n + (n === 1 ? " mening" : " meningar") + " med " + word);
+  return h("a", { class: "btn", href: STUDIO_URL + "#ova?q=" + encodeURIComponent(word), style: "text-decoration:none;text-align:center", onclick: ev => ev.stopPropagation() }, "Skugga " + n + (n === 1 ? " mening" : " meningar") + " med " + word);
 }
 function sentencePinyin(zh) {
   const parts = []; for (const s of segment(zh)) { if (!s.w) { if ([...s.t].some(isCJK)) return null; continue; } const e = bestEntry(s.t); if (!e) return null; const ps = e.p.split(/\s+/); if (ps.length !== [...s.t].length) return null; parts.push(...ps.map(p => p.toLowerCase())); }
@@ -1044,14 +1399,14 @@ async function exportToStudio() {
     if (s && s.zh) { const p = sentencePinyin(s.zh); if (p) items.push({ zh: s.zh, pinyin: p, sv: s.sv || "" }); }
   }
   const data = JSON.stringify({ app: "mandapp-studio-import", version: 1, exported: new Date().toISOString(), items });
-  try { localStorage.setItem("mandapp-to-studio", data); location.href = STUDIO_URL + "#bibliotek"; return; } catch { }
+  if (window.SK) { await SK.importText(data); location.hash = "bibliotek"; return; }
   const ta = h("textarea", { style: "min-height:160px", readonly: true }); ta.value = data;
-  openSheet(h("div", { class: "stack" }, h("div", null, "Kopiera och klistra in under Bibliotek i skuggningsstudion:"), ta, h("button", { class: "btn", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { ta.select(); } } }, "Kopiera")));
+  openSheet(h("div", { class: "stack" }, h("div", null, "Kopiera och klistra in under Skugga → Bibliotek:"), ta, h("button", { class: "btn", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { ta.select(); } } }, "Kopiera")));
 }
-async function importPron(o) {
+async function importPron(o, silent) {
   const p = Object.assign({}, STATE.profile);
   p.pron = { imported: now(), perTone: o.perTone || {}, conf: o.conf || {}, asp: o.asp || {}, sib: o.sib || {}, listen: o.listen || {}, attempts: (o.attempts || []).slice(-150).map(a => ({ t: a.t, s: a.toneScore, i: a.iniScore })) };
-  await Store.saveProfile(p); toast("Uttalsstatistik importerad");
+  await Store.saveProfile(p); if (!silent) toast("Uttalsstatistik uppdaterad");
 }
 
 /* ============ ORD ============ */
@@ -1157,8 +1512,8 @@ async function renderStats() {
     if (lr.length) area.append(h("label", { class: "lbl" }, "Hörträning"), distBlock(lr, 100, true));
     const conf = Object.entries(P.conf || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
     if (conf.length) area.append(h("div", { class: "note" }, "Vanligaste tonförväxlingar när du talar: " + conf.map(([k, n]) => k + " (" + n + ")").join(", ") + "."));
-    area.append(h("div", { class: "note" }, "Importerad " + new Date(P.imported).toLocaleDateString("sv") + " från skuggningsstudion."));
-  } else area.append(h("div", { class: "note" }, "Ingen uttalsstatistik än. Öva i skuggningsstudion och importera statistiken under Inställningar."));
+    area.append(h("div", { class: "note" }, "Importerad " + new Date(P.imported).toLocaleDateString("sv") + " från Skugga."));
+  } else area.append(h("div", { class: "note" }, "Ingen uttalsstatistik än. Spela in och analysera i Skugga, så syns den här."));
   // veckorapport
   area.append(h("h2", null, "Veckorapport"));
   const repBox = h("div", { class: "stack" }); area.append(repBox);
@@ -1210,12 +1565,12 @@ function chartBox(pts, unit) {
   const y = v => T + (1 - v / niceMax) * (H - T - B);
   const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Antal ord över tid");
   const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
-  [0, niceMax / 2, niceMax].forEach(v => { svg.append(mk("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t.textContent = Math.round(v); svg.append(t); });
+  [0, niceMax / 2, niceMax].forEach(v => { svg.append(mk("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "JetBrains Mono,monospace" }); t.textContent = Math.round(v); svg.append(t); });
   const d = pts.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1)).join(" ");
   svg.append(mk("path", { d: d + ` L${x(pts[pts.length - 1][0])} ${y(0)} L${x(pts[0][0])} ${y(0)} Z`, fill: "var(--accent)", opacity: ".12" }));
   svg.append(mk("path", { d, fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round" }));
   const last = pts[pts.length - 1]; svg.append(mk("circle", { cx: x(last[0]), cy: y(last[1]), r: 3.5, fill: "var(--accent)" }));
-  [[pts[0][0], "start"], [last[0], "end"]].forEach(([t, anc]) => { const e = mk("text", { x: x(t), y: H - 4, "text-anchor": anc, "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); e.textContent = new Date(t).toLocaleDateString("sv", { day: "numeric", month: "short" }); svg.append(e); });
+  [[pts[0][0], "start"], [last[0], "end"]].forEach(([t, anc]) => { const e = mk("text", { x: x(t), y: H - 4, "text-anchor": anc, "font-size": 9, fill: "var(--muted)", "font-family": "JetBrains Mono,monospace" }); e.textContent = new Date(t).toLocaleDateString("sv", { day: "numeric", month: "short" }); svg.append(e); });
   box.append(svg); return box;
 }
 function barChart(byDay) {
@@ -1226,10 +1581,10 @@ function barChart(byDay) {
   const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Repetitioner per dag");
   const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
   const y = v => T + (1 - v / nice) * (H - T - B); const bw = (W - L - 4) / n;
-  [0, nice].forEach(v => { svg.append(mk("line", { x1: L, x2: W - 4, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t.textContent = v; svg.append(t); });
+  [0, nice].forEach(v => { svg.append(mk("line", { x1: L, x2: W - 4, y1: y(v), y2: y(v), stroke: "var(--line)" })); const t = mk("text", { x: L - 4, y: y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "JetBrains Mono,monospace" }); t.textContent = v; svg.append(t); });
   vals.forEach((v, i) => { if (v) svg.append(mk("rect", { x: L + i * bw + 1, y: y(v), width: Math.max(1, bw - 2), height: y(0) - y(v), rx: 1.5, fill: i === n - 1 ? "var(--accent)" : "var(--accent)", opacity: i === n - 1 ? 1 : .55 })); });
-  const t1 = mk("text", { x: L, y: H - 3, "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t1.textContent = "30 d sedan"; svg.append(t1);
-  const t2 = mk("text", { x: W - 4, y: H - 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "IBM Plex Mono,monospace" }); t2.textContent = "idag"; svg.append(t2);
+  const t1 = mk("text", { x: L, y: H - 3, "font-size": 9, fill: "var(--muted)", "font-family": "JetBrains Mono,monospace" }); t1.textContent = "30 d sedan"; svg.append(t1);
+  const t2 = mk("text", { x: W - 4, y: H - 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "JetBrains Mono,monospace" }); t2.textContent = "idag"; svg.append(t2);
   box.append(svg); return box;
 }
 function distBlock(rows, total, pct) {
@@ -1281,12 +1636,11 @@ function openSettings() {
     h("div", { class: "row" },
       h("button", { class: "btn", type: "button", onclick: exportData }, "Exportera allt (JSON)"),
       h("label", { class: "btn" }, "Importera", fileIn)),
-    h("div", { class: "note" }, "Import tar emot en Mandapp-backup (JSON), statistik från skuggningsstudion, eller en textfil med ett ord per rad (Pleco/Anki: tecken, tab, pinyin, tab, betydelse)."),
-    h("h2", null, "Skuggning och uttal"),
+    h("div", { class: "note" }, "Import tar emot en Mandapp-backup (JSON), uttalsstatistik, eller en textfil med ett ord per rad (Pleco/Anki: tecken, tab, pinyin, tab, betydelse)."),
+    h("h2", null, "Skugga"),
     h("div", { class: "row" },
-      h("button", { class: "btn", type: "button", onclick: exportToStudio }, "Skicka till skuggning"),
-      h("a", { class: "btn", href: STUDIO_URL + "#ova", style: "text-decoration:none" }, "Öppna skuggning")),
-    h("div", { class: "note" }, "Skickar ord du markerat med 🎙 Skugga eller ★ (annars de senaste 30) plus deras exempelmeningar, med pinyin, till skuggningens bibliotek. Under Statistik i skuggningen kan du skicka uttalsstatistiken tillbaka hit."),
+      h("button", { class: "btn", type: "button", onclick: () => { closeSheet(); exportToStudio(); } }, "Hämta ord till Skugga")),
+    h("div", { class: "note" }, "Lägger ord du markerat med Skugga eller ★ (annars de senaste 30) plus deras exempelmeningar i Skuggas bibliotek."),
     h("div", { class: "note" }, "Lagring: bara den här webbläsaren på den här enheten. Exportera en backup då och då. Uppläsning: " + (zhVoice ? zhVoice.name : "ingen kinesisk röst hittades på enheten") + ".")
   );
   openSheet(box);
@@ -1326,23 +1680,34 @@ function applyTheme() { let t = ""; try { t = localStorage.getItem("mandapp-them
 $("#btnSettings").onclick = openSettings;
 
 /* ============ routing ============ */
-const VIEWS = ["repetera", "lagg-till", "idag", "ord", "statistik"];
+const VIEWS = ["skugga", "ova", "tonpar", "bibliotek", "hor", "stat", "amne", "repetera", "ord", "lagg-till", "statistik"];
+const TAB_OF = { skugga: "skugga", ova: "skugga", tonpar: "skugga", bibliotek: "skugga", hor: "skugga", stat: "skugga", amne: "amne", repetera: "repetera", ord: "ord", "lagg-till": "ord", statistik: "ord" };
+const TITLE_OF = { skugga: "Skugga", ova: "Skugga", tonpar: "Tonpar", bibliotek: "Bibliotek", hor: "Hörträning", stat: "Uttal", amne: "Ämne", repetera: "Repetera", ord: "Ord", "lagg-till": "Ord", statistik: "Ord" };
+let lastView = null;
 function route() {
-  let v = location.hash.slice(1); if (!VIEWS.includes(v)) v = "repetera";
+  let [v, qs] = location.hash.slice(1).split("?");
+  if (v === "idag") v = "amne";
+  if (!VIEWS.includes(v)) v = "skugga";
   VIEWS.forEach(n => { $("#v-" + n).hidden = n !== v; });
-  document.querySelectorAll("nav.tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === v));
+  document.querySelectorAll("nav.tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === TAB_OF[v]));
+  $("#pageTitle").textContent = TITLE_OF[v];
+  document.body.classList.toggle("focus", v === "ova");
   closeSheet();
+  if (v !== lastView) window.scrollTo(0, 0); lastView = v;
+  if (window.SK) SK.show(v, qs);
   if (v === "ord") renderWords();
-  if (v === "statistik") renderStats();
+  if (v === "statistik") { (window.SK && SK.syncPron ? SK.syncPron().catch(() => { }) : Promise.resolve()).then(renderStats); }
   if (v === "repetera" && !RV.sessionStarted) renderReview();
   if (v === "lagg-till") loadDict().catch(() => { });
+  if (v === "amne") renderRecent();
 }
 window.addEventListener("hashchange", route);
 function onWordsChanged() {
   const n = dueCountForBadge(); const b = $("#dueBadge"); b.textContent = n; b.hidden = !n;
-  const v = location.hash.slice(1) || "repetera";
+  const v = location.hash.slice(1).split("?")[0] || "skugga";
   if (v === "ord" && !sheetEls) renderWords();
-  if ((v === "repetera" || !VIEWS.includes(v)) && !RV.sessionStarted) renderReview();
+  if (v === "repetera" && !RV.sessionStarted) renderReview();
+  if (v === "skugga" && window.SK) SK.show("skugga");
 }
 setInterval(() => { const n = dueCountForBadge(); const b = $("#dueBadge"); b.textContent = n; b.hidden = !n; }, 60000);
 
