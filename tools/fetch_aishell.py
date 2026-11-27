@@ -2,7 +2,7 @@
 Skriver audio/aishell/*.mp3 och audio/aishell.json ({voices, items})."""
 import json, os, re, subprocess, urllib.request, collections
 H = "https://huggingface.co/datasets/AISHELL/AISHELL-3/resolve/main/"
-N = int(os.environ.get("N_VOICES", "5")); PER = int(os.environ.get("PER_SPEAKER", "150"))
+GROUPS = [g.split(":") for g in os.environ.get("GROUPS", "male:north:4,male:south:3,female:north:3,female:south:3").split(",")]; PER = int(os.environ.get("PER_SPEAKER", "150"))
 OUT = "audio/aishell"; os.makedirs(OUT, exist_ok=True)
 def get(p): return urllib.request.urlopen(H + p, timeout=120).read()
 hsk = json.load(open("artifact/hsk.json", encoding="utf-8"))
@@ -15,7 +15,7 @@ spk = {}
 for line in get("spk-info.txt").decode("utf-8").splitlines():
     p = line.split()
     if len(p) == 4 and not line.startswith("#"): spk[p[0]] = p[1:]
-males = {s for s, v in spk.items() if v[1] == "male" and v[2] == "north"}
+males = {s for s, v in spk.items() if any(v[1] == g and v[2] == a for g, a, _ in GROUPS)}
 AGE = {"A": "under 14", "B": "14–25", "C": "26–40", "D": "över 40"}
 cand = collections.defaultdict(list)
 for split in ("train", "test"):
@@ -33,7 +33,7 @@ for split in ("train", "test"):
         if len(hard) > 1: continue
         score = sum(lvl.get(c, 9) for c in ch) / len(ch) + 3 * len(hard) + (2 if len(ch) > 14 else 0)
         cand[s].append((score, f, split, zh, " ".join(py)))
-chosen = sorted(males, key=lambda s: -len(cand[s]))[:N]
+chosen = [s for g, a, n in GROUPS for s in sorted([s for s in males if spk[s][1] == g and spk[s][2] == a], key=lambda s: -len(cand[s]))[:int(n)]]
 voices, items = [], []
 for k, s in enumerate(chosen, 1):
     seen = set(); n = 0
@@ -47,8 +47,9 @@ for k, s in enumerate(chosen, 1):
         if r.returncode or not os.path.exists(fn): continue
         seen.add(zh); n += 1
         items.append({"id": f[:-4], "zh": zh, "pinyin": py, "audio": f[:-4] + ".mp3", "speaker": s, "voice": f"Röst {k}"})
-    label = f"Röst {k}: man, {AGE.get(spk[s][0], '')} år, nordlig accent"
-    voices.append({"speaker": s, "label": label, "age": spk[s][0], "n": n})
+    gen = spk[s][1]; acc = spk[s][2]
+    label = f"Röst {k}: {'man' if gen == 'male' else 'kvinna'}, {AGE.get(spk[s][0], '')} år, {'nord' if acc == 'north' else 'syd'}"
+    voices.append({"speaker": s, "label": label, "age": spk[s][0], "gender": gen, "accent": acc, "n": n})
     print("röst", k, s, spk[s], "kandidater", len(cand[s]), "valda", n, [i["zh"] for i in items if i["speaker"] == s][:8])
 json.dump({"voices": voices, "items": items}, open("audio/aishell.json", "w", encoding="utf-8"), ensure_ascii=False)
 print("Klart:", voices)

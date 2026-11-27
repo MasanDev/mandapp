@@ -2,9 +2,9 @@ name: Hämta AISHELL-3-röster
 on:
   workflow_dispatch:
     inputs:
-      voices:
-        description: "Antal manliga röster"
-        default: "5"
+      groups:
+        description: "kön:accent:antal, kommaseparerat"
+        default: "male:north:4,male:south:3,female:north:3,female:south:3"
       per:
         description: "Meningar per röst"
         default: "150"
@@ -13,13 +13,13 @@ permissions:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Hämta röster
         env:
-          N_VOICES: ${{ github.event.inputs.voices }}
+          GROUPS: ${{ github.event.inputs.groups }}
           PER_SPEAKER: ${{ github.event.inputs.per }}
         run: python tools/fetch_aishell.py
       - name: Spara i repot
