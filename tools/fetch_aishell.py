@@ -1,10 +1,16 @@
 """Hämtar utvalda manliga, nordliga röster ur AISHELL-3 (Apache 2.0) från Hugging Face.
 Skriver audio/aishell/*.mp3 och audio/aishell.json ({voices, items})."""
-import json, os, re, subprocess, urllib.request, collections
+import json, os, re, subprocess, urllib.request, urllib.error, collections, time
 H = "https://huggingface.co/datasets/AISHELL/AISHELL-3/resolve/main/"
 GROUPS = [g.split(":") for g in os.environ.get("GROUPS", "male:north:4,male:south:3,female:north:3,female:south:3").split(",")]; PER = int(os.environ.get("PER_SPEAKER", "150"))
 OUT = "audio/aishell"; os.makedirs(OUT, exist_ok=True)
-def get(p): return urllib.request.urlopen(H + p, timeout=120).read()
+def get(p):
+    for t in range(8):
+        try:
+            d = urllib.request.urlopen(H + p, timeout=120).read(); time.sleep(0.4); return d
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or t == 7: raise
+            w = int(e.headers.get("Retry-After") or 0) or 30 * (t + 1); print("429, väntar", w, "s"); time.sleep(min(w, 300))
 hsk = json.load(open("artifact/hsk.json", encoding="utf-8"))
 lvl = {}
 for w, l in hsk.items():
@@ -41,6 +47,9 @@ for k, s in enumerate(chosen, 1):
         if n >= PER: break
         if zh in seen: continue
         fn = f"{OUT}/{f[:-4]}.mp3"
+        if os.path.exists(fn) and os.path.getsize(fn) > 1000:
+            seen.add(zh); n += 1
+            items.append({"id": f[:-4], "zh": zh, "pinyin": py, "audio": f[:-4] + ".mp3", "speaker": s, "voice": f"Röst {k}"}); continue
         try: wav = get(f"{split}/wav/{s}/{f}")
         except Exception as e: print("miss", f, e); continue
         r = subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", "pipe:0", "-af", "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=150", "-ac", "1", "-ar", "22050", "-b:a", "48k", fn], input=wav)
@@ -49,7 +58,7 @@ for k, s in enumerate(chosen, 1):
         items.append({"id": f[:-4], "zh": zh, "pinyin": py, "audio": f[:-4] + ".mp3", "speaker": s, "voice": f"Röst {k}"})
     gen = spk[s][1]; acc = spk[s][2]
     label = f"Röst {k}: {'man' if gen == 'male' else 'kvinna'}, {AGE.get(spk[s][0], '')} år, {'nord' if acc == 'north' else 'syd'}"
-    voices.append({"speaker": s, "label": label, "age": spk[s][0], "gender": gen, "accent": acc, "n": n})
+    if n: voices.append({"speaker": s, "label": label, "age": spk[s][0], "gender": gen, "accent": acc, "n": n})
     print("röst", k, s, spk[s], "kandidater", len(cand[s]), "valda", n, [i["zh"] for i in items if i["speaker"] == s][:8])
 json.dump({"voices": voices, "items": items}, open("audio/aishell.json", "w", encoding="utf-8"), ensure_ascii=False)
 print("Klart:", voices)
