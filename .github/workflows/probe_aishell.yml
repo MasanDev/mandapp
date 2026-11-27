@@ -4,9 +4,10 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: |
-          H=https://huggingface.co/datasets/AISHELL/AISHELL-3
-          curl -sL $H/resolve/main/spk-info.txt -o spk.txt; echo "== spk-info"; head -8 spk.txt; echo "== män"; grep -i "male" spk.txt | grep -vi female
-          echo "== tree root"; curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main" | head -c 2000; echo
-          echo "== tree train"; curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main/train" | head -c 3000; echo
-          echo "== tree test"; curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main/test" | head -c 1500; echo
+          H=https://huggingface.co/datasets/AISHELL/AISHELL-3/resolve/main
+          curl -sL $H/spk-info.txt -o spk.txt; curl -sL $H/train/content.txt -o train.txt; curl -sL $H/test/content.txt -o test.txt
+          curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main/train/wav" | head -c 600; echo
+          curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main/train/wav/SSB0073" | head -c 600; echo
+          echo "== resultat"; python3 tools/probe_aishell.py
