@@ -700,7 +700,6 @@ async function initStorage() {
   STATE.profile = Object.assign({}, PROFILE_DEFAULT, LOCAL.profile || {});
   for (const [k, w] of Object.entries(LOCAL.words || {})) STATE.words.set(k, w);
   indexWords();
-  if (!STATE.words.size) showBanner("Har du ord i den gamla Mandapp i Claude? Exportera dem där (Inställningar → Exportera allt) och importera filen här under Inställningar (我 uppe till höger).");
   onWordsChanged();
   updateSubtitle();
 }
