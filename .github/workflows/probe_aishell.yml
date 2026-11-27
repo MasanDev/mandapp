@@ -1,0 +1,12 @@
+name: Undersök AISHELL-3
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          H=https://huggingface.co/datasets/AISHELL/AISHELL-3
+          curl -sL $H/resolve/main/spk-info.txt -o spk.txt; echo "== spk-info"; head -8 spk.txt; echo "== män"; grep -i "male" spk.txt | grep -vi female
+          echo "== tree root"; curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main" | head -c 2000; echo
+          echo "== tree train"; curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main/train" | head -c 3000; echo
+          echo "== tree test"; curl -sL "https://huggingface.co/api/datasets/AISHELL/AISHELL-3/tree/main/test" | head -c 1500; echo
