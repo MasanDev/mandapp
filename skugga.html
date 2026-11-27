@@ -98,9 +98,15 @@ details summary{cursor:pointer;font-weight:600}
 
   <!-- ÖVA -->
   <section class="view stack" id="v-ova">
-    <div class="row" id="voiceRow" hidden>
-      <label class="lbl" for="voiceSel" style="margin:0">Röst</label>
-      <select id="voiceSel" style="flex:1;min-width:0"></select>
+    <div class="stack" id="voiceRow" hidden>
+      <div class="row small">
+        <select id="genSel" aria-label="Kön"><option value="any">Alla kön</option><option value="male">Män</option><option value="female">Kvinnor</option></select>
+        <select id="accSel" aria-label="Accent"><option value="any">Nord och syd</option><option value="north">Nordlig accent</option><option value="south">Sydlig accent</option></select>
+      </div>
+      <div class="row">
+        <label class="lbl" for="voiceSel" style="margin:0">Röst</label>
+        <select id="voiceSel" style="flex:1;min-width:0"></select>
+      </div>
     </div>
     <div class="row">
       <button class="btn" id="prevItem" aria-label="Föregående">‹</button>
@@ -128,6 +134,7 @@ details summary{cursor:pointer;font-weight:600}
         <button class="btn" id="playNative" style="flex:1">▶ Native</button>
         <button class="btn rec" id="recBtn" style="flex:2">● Spela in</button>
       </div>
+      <div class="row small" id="speedChips"><span class="note">Hastighet</span><button class="chip" data-r="1">1×</button><button class="chip" data-r="0.75">0,75×</button><button class="chip" data-r="0.5">0,5×</button></div>
       <div class="row" id="playRow">
         <button class="btn" id="playMe" disabled>▶ Jag</button>
         <button class="btn" id="playBoth" disabled>▶ Båda samtidigt</button>
@@ -150,7 +157,7 @@ details summary{cursor:pointer;font-weight:600}
       <div class="stack" style="margin-top:8px">
         <div class="row" id="modelRow"></div>
         <div class="row small">
-          <label>Hastighet <select id="speed"><option value="1">1×</option><option value="0.85">0,85×</option><option value="0.7">0,7×</option><option value="0.5">0,5×</option></select></label>
+          <label>Hastighet <select id="speed"><option value="1">1×</option><option value="0.85">0,85×</option><option value="0.75">0,75×</option><option value="0.7">0,7×</option><option value="0.5">0,5×</option></select></label>
           <button class="chip" id="setA">A</button><button class="chip" id="setB">B</button><button class="chip" id="loopBtn">⟲ Loop</button>
           <span class="mono note" id="abInfo"></span>
         </div>
@@ -273,19 +280,23 @@ function pyNode(syls, tones) { const w = h("span"); syls.forEach((s, i) => { if 
 const audioEl = new Audio(); audioEl.preload = "auto"; let audioUrl = null;
 const AB = { a: null, b: null, loop: false };
 let modelAn = null, modelAnFor = null;
-// Röster: utvalda manliga talare (audio/rost.json). VOICE = "sel" (alla utvalda), "all" eller ett talar-id.
+// Röster ur AISHELL-3 (audio/aishell.json). VOICE = "sel" (alla som passar filtret), "all" eller ett talar-id.
 let VOICES = []; let VOICE = "sel"; try { VOICE = localStorage.getItem("studio-voice") || "sel"; } catch { }
+let GEN = "any", ACC = "any"; try { GEN = localStorage.getItem("studio-gen") || "any"; ACC = localStorage.getItem("studio-acc") || "any"; } catch { }
+const voiceList = () => VOICES.filter(v => (GEN === "any" || !v.gender || v.gender === GEN) && (ACC === "any" || !v.accent || v.accent === ACC));
 function voiceOk(i) {
   if (!VOICES.length || VOICE === "all") return true;
   if (!isSentence(i)) return true; // enstaka ord har en egen inläsare (audio-cmn)
-  return VOICE === "sel" ? VOICES.some(v => v.speaker === i.speaker) : i.speaker === VOICE;
+  return VOICE === "sel" ? voiceList().some(v => v.speaker === i.speaker) : i.speaker === VOICE;
 }
 const practiceItems = () => ITEMS.filter(i => (i.audio || i.audioPath) && voiceOk(i));
 function renderVoiceSel() {
   const row = $("#voiceRow"); row.hidden = !VOICES.length; if (!VOICES.length) return;
-  const sel = $("#voiceSel"); const tot = VOICES.reduce((a, v) => a + v.n, 0);
-  sel.replaceChildren(h("option", { value: "sel" }, "Utvalda manliga röster (" + tot + " meningar)"), ...VOICES.map(v => h("option", { value: v.speaker }, v.label + " (" + v.n + ")")), h("option", { value: "all" }, "Alla inspelningar (blandade röster)"));
-  sel.value = VOICE === "all" || VOICE === "sel" || VOICES.some(v => v.speaker === VOICE) ? VOICE : "sel";
+  $("#genSel").value = GEN; $("#accSel").value = ACC;
+  const L = voiceList(); const sel = $("#voiceSel"); const tot = L.reduce((a, v) => a + v.n, 0);
+  sel.replaceChildren(h("option", { value: "sel" }, "Alla röster som passar filtret (" + L.length + " röster, " + tot + " meningar)"), ...L.map(v => h("option", { value: v.speaker }, v.label + " (" + v.n + ")")), h("option", { value: "all" }, "Alla inspelningar (blandade röster)"));
+  if (!(VOICE === "all" || VOICE === "sel" || L.some(v => v.speaker === VOICE))) { VOICE = "sel"; try { localStorage.setItem("studio-voice", VOICE); } catch { } }
+  sel.value = VOICE;
 }
 function setVoice(v) {
   VOICE = v; try { localStorage.setItem("studio-voice", v); } catch { }
@@ -305,7 +316,8 @@ function renderItemSel() {
 const SENT_PACKS = [
   { name: "tatoeba", file: "audio/tatoeba.json", dir: "audio/tatoeba/", credit: x => (x.author || "") + " " + (x.licence || "") + " " + (x.attribution || "") },
   { name: "stcmds", file: "audio/stcmds.json", dir: "audio/stcmds/", credit: () => "Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" },
-  { name: "rost", file: "audio/rost.json", dir: "audio/rost/", voices: true, credit: x => x.voice + " · Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" }
+  { name: "rost", file: "audio/rost.json", dir: "audio/rost/", credit: x => x.voice + " · Free ST Chinese Mandarin Corpus (OpenSLR 38), CC BY-NC-ND 4.0" },
+  { name: "aishell", file: "audio/aishell.json", dir: "audio/aishell/", voices: true, credit: x => x.voice + " · AISHELL-3 (OpenSLR 93), Apache 2.0" }
 ];
 // Lägg in alla meningar med native-ljud i biblioteket. Ljudet hämtas först när meningen öppnas.
 async function seedSentences() {
@@ -316,7 +328,7 @@ async function seedSentences() {
     if (!Array.isArray(pack)) pack = (pack && pack.items) || [];
     const key = "seeded-" + P.name + "-" + pack.length; if (!pack.length || await DB.get("kv", key)) continue;
     for (const x of pack) {
-      if (P.voices && have.has(x.zh)) { const old = byZh.get(x.zh); if (old && old.source !== "rost") { Object.assign(old, { audio: null, audioPath: P.dir + x.audio, speaker: x.speaker, voice: x.voice, source: P.name, credit: P.credit(x) }); await DB.put("items", old); n++; } continue; }
+      if (P.voices && have.has(x.zh)) { const old = byZh.get(x.zh); if (old && old.source !== P.name) { Object.assign(old, { audio: null, audioPath: P.dir + x.audio, speaker: x.speaker, voice: x.voice, source: P.name, credit: P.credit(x) }); await DB.put("items", old); n++; } continue; }
       if (have.has(x.zh)) continue; have.add(x.zh); const it = { id: uid(), zh: x.zh, pinyin: x.pinyin, sv: x.sv || x.en || "", audio: null, audioPath: P.dir + x.audio, added: Date.now() + n, source: P.name, credit: P.credit(x), speaker: x.speaker || null, voice: x.voice || null }; await DB.put("items", it); byZh.set(x.zh, it); n++; }
     await DB.put("kv", true, key);
   }
@@ -396,7 +408,7 @@ $("#setA").onclick = () => { AB.a = audioEl.currentTime || 0; updAB(); };
 $("#setB").onclick = () => { AB.b = audioEl.currentTime || null; updAB(); };
 $("#loopBtn").onclick = () => { AB.loop = !AB.loop; $("#loopBtn").classList.toggle("on", AB.loop); if (AB.loop) playModel(); else audioEl.pause(); };
 function updAB() { $("#abInfo").textContent = (AB.a != null ? "A " + fmt1(AB.a) + " s " : "") + (AB.b != null ? "B " + fmt1(AB.b) + " s" : ""); }
-$("#speed").onchange = () => { audioEl.playbackRate = +$("#speed").value; };
+$("#speed").onchange = () => setSpeed($("#speed").value);
 
 /* ---------- inspelning ---------- */
 const REC = { on: false, stream: null, mr: null, chunks: [], ac: null, an: null, raf: 0, live: [], t0: 0, target: "user" };
@@ -987,6 +999,11 @@ function showSentHits(q) {
 }
 $("#sentQ").addEventListener("input", () => { clearTimeout(window._sq); window._sq = setTimeout(() => showSentHits($("#sentQ").value.trim()), 250); });
 $("#voiceSel").onchange = e => setVoice(e.target.value);
+$("#genSel").onchange = e => { GEN = e.target.value; try { localStorage.setItem("studio-gen", GEN); } catch { } renderVoiceSel(); setVoice(VOICE); };
+$("#accSel").onchange = e => { ACC = e.target.value; try { localStorage.setItem("studio-acc", ACC); } catch { } renderVoiceSel(); setVoice(VOICE); };
+function setSpeed(r) { $("#speed").value = String(r); audioEl.playbackRate = +r; try { localStorage.setItem("studio-speed", r); } catch { } document.querySelectorAll("#speedChips .chip").forEach(b => b.classList.toggle("on", b.dataset.r === String(r))); }
+document.querySelectorAll("#speedChips .chip").forEach(b => b.onclick = () => setSpeed(b.dataset.r));
+{ let r = "1"; try { r = localStorage.getItem("studio-speed") || "1"; } catch { } setSpeed(r); };
 $("#randSent").onclick = () => { const S = practiceItems().filter(isSentence); if (S.length) selectItem(S[Math.floor(Math.random() * S.length)].id); };
 async function renderRelated() {
   const box = $("#related"); box.replaceChildren(); if (!CUR || isSentence(CUR)) return;
