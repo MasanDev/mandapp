@@ -50,7 +50,6 @@ function pyNode(syls, tones) { const w = h("span"); syls.forEach((s, i) => { if 
 /* ---------- ÖVA ---------- */
 const audioEl = new Audio(); audioEl.preload = "auto"; let audioUrl = null;
 const AB = { a: null, b: null, loop: false };
-let modelAn = null, modelAnFor = null;
 // Röster ur AISHELL-3 (audio/aishell.json). VOICE = "sel" (alla som passar filtret), "all" eller ett talar-id.
 let VOICES = []; let VOICE = "sel"; try { VOICE = localStorage.getItem("studio-voice") || "sel"; } catch { }
 let GEN = "any", ACC = "any"; try { GEN = localStorage.getItem("studio-gen") || "any"; ACC = localStorage.getItem("studio-acc") || "any"; } catch { }
@@ -168,7 +167,7 @@ function renderItem() {
   tb.append(body);
   const box = $("#breakdown"); box.replaceChildren(tb);
   if (sd.notes.length) box.append(h("div", { class: "note", style: "margin-top:6px" }, "Tonsandhi: " + sd.notes.join(". ") + "."));
-  if (syls.length !== chars.length && chars.length) box.append(h("div", { class: "banner", style: "margin-top:6px" }, "Antalet stavelser i pinyin (" + syls.length + ") stämmer inte med antalet tecken (" + chars.length + "). Rätta pinyin i biblioteket för bästa analys."));
+  if (syls.length !== chars.length && chars.length) box.append(h("div", { class: "banner", style: "margin-top:6px" }, "Antalet stavelser i pinyin (" + syls.length + ") stämmer inte med antalet tecken (" + chars.length + "). Rätta pinyin i biblioteket."));
   // model
   const mr = $("#modelRow"); mr.replaceChildren();
   if (audioUrl) { URL.revokeObjectURL(audioUrl); audioUrl = null; }
@@ -176,7 +175,6 @@ function renderItem() {
     audioUrl = URL.createObjectURL(CUR.audio); audioEl.src = audioUrl;
     mr.append(h("button", { class: "btn primary", onclick: playModel }, "▶ Native"), h("button", { class: "btn", onclick: () => { audioEl.pause(); } }, "■"));
     $("#modelNote").textContent = "Riktig inspelning. Tonkurvan jämförs med den.";
-    if (modelAnFor !== CUR.id) { modelAn = null; analyzeModel(CUR); }
     nativeTrack(CUR);
   } else {
     audioEl.removeAttribute("src");
@@ -190,9 +188,6 @@ function renderItem() {
   $("#recBtn").disabled = !CUR.audio || CONT.on; $("#playNative").disabled = !CUR.audio; $("#contBtn").disabled = !CUR.audio; $("#modeLoop").disabled = !CUR.audio;
   $("#recNote").textContent = CUR.audio ? "Lyssna, tryck på den röda knappen och härma. Tryck igen när du är klar." : "Den här frasen saknar native-ljud. Lägg till det under Fler inställningar.";
   renderHistory(); renderRelated();
-}
-async function analyzeModel(it) {
-  try { const ab = await it.audio.arrayBuffer(); const x = await MA.toMono16k(ab); const an = MA.analyze(x, itemSyls(it).length); if (CUR && CUR.id === it.id) { modelAn = an.ok ? an : null; modelAnFor = it.id; } } catch (e) { console.warn(e); }
 }
 function playModel() {
   if (!CUR || !CUR.audio) return;
@@ -255,7 +250,7 @@ async function onRecStop() {
   const blob = new Blob(REC.chunks, { type: (REC.mr && REC.mr.mimeType) || "audio/webm" });
   if (blob.size < 1000) { $("#recNote").textContent = "Inspelningen blev tom. Försök igen."; return; }
   if (REC.target === "model") {
-    CUR.audio = blob; await DB.put("items", CUR); modelAnFor = null; toast("Native sparad"); renderItemSel(); renderItem(); $("#recNote").textContent = "Native-inspelningen är sparad. Spela nu in dig själv."; return;
+    CUR.audio = blob; await DB.put("items", CUR); toast("Native sparad"); renderItemSel(); renderItem(); $("#recNote").textContent = "Native-inspelningen är sparad. Spela nu in dig själv."; return;
   }
   try {
     const x = await MA.toMono16k(await blob.arrayBuffer());
@@ -264,28 +259,6 @@ async function onRecStop() {
     $("#recNote").textContent = "Försök " + take.n + ". Lyssna, jämför och spela in igen.";
   } catch (e) { console.error(e); $("#recNote").textContent = "Kunde inte läsa ljudet (" + (e.message || e) + ")."; }
 }
-async function analyzeTake() {
-  const take = TAKES[TAKE_SEL]; if (!take) return;
-  $("#analyzeBtn").disabled = true; $("#recNote").textContent = "Analyserar…";
-  try {
-    if (CUR.audio && modelAnFor !== CUR.id) await analyzeModel(CUR);
-    const syls = itemSyls(CUR); const sd = MA.sandhi(syls, CUR.zh);
-    const an = MA.analyze(take.x, syls.length);
-    if (!an.ok) { $("#recNote").textContent = an.reason; return; }
-    const cmp = modelAn ? MA.compareToModel(an, modelAn) : null;
-    const j = MA.judge(an, syls, sd.tones, cmp);
-    const att = (await DB.get("attempts", take.attId)) || { id: take.attId || uid(), itemId: CUR.id, zh: CUR.zh, t: take.t, audio: take.blob };
-    Object.assign(att, { toneScore: j.toneScore, iniScore: j.iniScore, simScore: j.simScore, withModel: !!modelAn, quick: false,
-      rows: j.rows.map(r => ({ syl: r.py.syl, exp: r.exp, heard: r.heard, toneOk: r.toneOk, ini: r.info.ini, iniOk: r.ini ? r.ini.ok : null, iniKind: r.ini ? r.ini.kind : null, ms: r.ini ? r.ini.ms : null })) });
-    await DB.put("attempts", att);
-    $("#recNote").textContent = "Analys av försök " + take.n + " nedan.";
-    renderResult(an, j, cmp, sd.tones, take.blob);
-    renderHistory();
-    $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (e) { console.error(e); $("#recNote").textContent = "Kunde inte analysera ljudet (" + (e.message || e) + ")."; }
-  finally { $("#analyzeBtn").disabled = false; }
-}
-
 /* ---------- pip ---------- */
 let BEEPAC = null;
 function beep(kind) {
@@ -302,7 +275,7 @@ async function addTake(blob, x) {
   const take = { blob, x, pt, url: URL.createObjectURL(blob), t: Date.now(), n: (TAKES.length ? TAKES[TAKES.length - 1].n : 0) + 1 };
   TAKES.push(take); if (TAKES.length > 6) { const old = TAKES.shift(); URL.revokeObjectURL(old.url); }
   TAKE_SEL = TAKES.length - 1; $("#result").replaceChildren(); renderTakes(); drawMimic();
-  const att = { id: uid(), itemId: CUR.id, zh: CUR.zh, t: take.t, toneScore: null, iniScore: null, simScore: null, quick: true, rows: [], audio: blob };
+  const att = { id: uid(), itemId: CUR.id, zh: CUR.zh, t: take.t, audio: blob };
   take.attId = att.id; DB.put("attempts", att).then(() => { pruneAttempts(CUR.id); renderHistory(); });
   return take;
 }
@@ -392,7 +365,7 @@ async function nativeTrack(it) {
 }
 function renderTakes() {
   const row = $("#takesRow"); row.replaceChildren();
-  const has = TAKE_SEL >= 0; ["#playMe", "#playBoth", "#playSeq", "#analyzeBtn"].forEach(s => $(s).disabled = !has);
+  const has = TAKE_SEL >= 0; ["#playMe", "#playBoth", "#playSeq"].forEach(s => $(s).disabled = !has);
   $("#takeInfo").textContent = TAKES.length ? TAKES.length + " försök" : "";
   if (TAKES.length > 1) { row.append(h("span", { class: "note" }, "Försök:")); TAKES.forEach((t, i) => row.append(h("button", { class: "chip" + (i === TAKE_SEL ? " on" : ""), onclick: () => { TAKE_SEL = i; renderTakes(); drawMimic(); } }, String(t.n)))); }
 }
@@ -427,7 +400,6 @@ $("#playNative").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP();
 $("#playMe").onclick = () => { audioEl.pause(); playMe(); };
 $("#playBoth").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP(); playMe(); };
 $("#playSeq").onclick = async () => { audioEl.pause(); meEl.pause(); await playNativeP(); await new Promise(r => setTimeout(r, 250)); playMe(); };
-$("#analyzeBtn").onclick = analyzeTake;
 $("#sameLen").onchange = () => drawMimic();
 window.addEventListener("resize", () => drawMimic());
 async function pruneAttempts(itemId) { const a = (await DB.byItem(itemId)).sort((x, y) => y.t - x.t); for (const old of a.slice(5)) if (old.audio) { old.audio = null; await DB.put("attempts", old); } }
@@ -440,60 +412,6 @@ function drawLive() {
   const vf = pts.filter(p => p.f0).map(p => p.f0).sort((a, b) => a - b); const med = vf.length ? vf[vf.length >> 1] : 150;
   drawMimic(pts.map(p => p.f0 ? 12 * Math.log2(p.f0 / med) : null));
 }
-function drawCompare(c, an, cmp, tones) {
-  const { g, W, H } = setupCanvas(c); g.clearRect(0, 0, W, H);
-  const pad = 8; const yOf = v => H / 2 - v / 7 * (H / 2 - pad);
-  g.strokeStyle = css("--line"); g.lineWidth = 1; [-4, 0, 4].forEach(v => { g.beginPath(); g.moveTo(0, yOf(v)); g.lineTo(W, yOf(v)); g.stroke(); });
-  const norm = arr => { const scale = Math.min(2, Math.max(0.5, 8 / arr.range)); const mid = (arr.p10 + arr.p90) / 2; return v => (v - mid) * scale; };
-  let ref = [], usr = [];
-  if (cmp && cmp.global.path.length) {
-    // rita native på sin tidsaxel, användaren omplacerad längs DTW-vägen
-    const nm = norm(modelAn), nu = norm(an);
-    const M = cmp.ma.v.length; ref = cmp.ma.v.map(v => nm(v));
-    const mapped = new Array(M).fill(null); const cnt = new Array(M).fill(0);
-    for (const [ui, mi] of cmp.global.path) { mapped[mi] = (mapped[mi] || 0) + nu(cmp.ua.v[ui]); cnt[mi]++; }
-    usr = mapped.map((v, i) => cnt[i] ? v / cnt[i] : null);
-  } else {
-    ref = MA.templateCurve(tones, an.syls.map(s => s.durMs));
-    const nu = norm(an); usr = [];
-    an.syls.forEach(s => { const n = Math.max(4, Math.round(s.durMs / 20)); const cc = s.raw.length ? s.raw : [0]; for (let k = 0; k < n; k++) usr.push(nu(cc[Math.round(k * (cc.length - 1) / (n - 1))])); usr.push(null); });
-  }
-  const N = Math.max(ref.length, usr.length) || 1;
-  const line = (arr, color, w, dash) => { g.strokeStyle = color; g.lineWidth = w; g.setLineDash(dash || []); g.beginPath(); let pen = false; arr.forEach((v, i) => { if (v == null) { pen = false; return; } const x = i / (N - 1 || 1) * W, y = Math.max(2, Math.min(H - 2, yOf(v))); if (!pen) { g.moveTo(x, y); pen = true; } else g.lineTo(x, y); }); g.stroke(); g.setLineDash([]); };
-  line(ref, css("--muted"), 4, cmp ? [] : [6, 5]);
-  line(usr, css("--accent"), 2.5);
-  g.font = "11px " + css("--mono"); g.fillStyle = css("--muted"); g.fillText(cmp ? "grå = native" : "streckad = idealkurva", 6, H - 6); g.fillStyle = css("--accent"); g.fillText("grön = du", W - 62, H - 6);
-}
-
-/* ---------- resultat ---------- */
-function scoreCls(v) { return v == null ? "" : v >= 80 ? "ok" : v >= 50 ? "mid" : "bad"; }
-function renderResult(an, j, cmp, tones, blob) {
-  const out = $("#result"); out.replaceChildren();
-  out.append(h("div", { class: "tiles" },
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.toneScore) }, j.toneScore == null ? "–" : j.toneScore + " %"), "toner"),
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.iniScore) }, j.iniScore == null ? "–" : j.iniScore + " %"), "initialer"),
-    h("div", { class: "tile" }, h("b", { class: scoreCls(j.simScore) }, j.simScore == null ? "–" : j.simScore + " %"), cmp ? "likhet med native" : "likhet (kräver native)")));
-  const cv = h("canvas", { "data-ratio": "0.4", "aria-label": "Tonkurvor" }); out.append(h("div", { class: "card stack" }, h("label", { class: "lbl" }, "Tonkurva"), cv));
-  requestAnimationFrame(() => drawCompare(cv, an, cmp, tones));
-  const url = URL.createObjectURL(blob); const me = new Audio(url);
-  out.append(h("div", { class: "row" },
-    h("button", { class: "btn", onclick: () => me.play() }, "▶ Min"),
-    h("button", { class: "btn", onclick: () => playModel() }, "▶ Native"),
-    h("button", { class: "btn", onclick: async () => { playModel(); await new Promise(r => audioEl.addEventListener("ended", r, { once: true })); me.play(); } }, "▶ Native, sedan jag")));
-  if (j.sylFound !== j.rows.length) out.append(h("div", { class: "banner" }, "Hittade " + j.sylFound + " stavelser men frasen har " + j.rows.length + ". Säg frasen lite tydligare med små pauser, så blir analysen säkrare."));
-  const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, ""), h("th", null, "Ton"), h("th", null, "Initial"), h("th", null, cmp ? "Likhet" : "Längd"))));
-  const body = h("tbody");
-  j.rows.forEach(r => {
-    body.append(h("tr", null,
-      h("td", null, h("b", { class: "mono t" + r.py.tone }, MA.marked(r.py.syl, r.py.tone))),
-      h("td", null, r.heard == null ? "–" : h("span", { class: r.toneOk ? "ok" : r.toneOk === false ? "bad" : "" }, (r.toneOk ? "✓ " : r.toneOk === false ? "✗ " : "") + (r.exp === 5 ? "neutral" : r.exp) + (r.toneOk === false && r.heard ? " (hörde " + r.heard + ")" : ""))),
-      h("td", null, r.ini ? h("span", { class: r.ini.ok ? "ok" : "bad" }, (r.ini.ok ? "✓ " : "✗ ") + r.info.ini + (r.ini.ms != null ? " " + r.ini.ms + " ms" : r.ini.heard ? " (" + r.ini.heard + ")" : "")) : h("span", { class: "muted" }, r.info.ini || "–")),
-      h("td", null, r.sim ? h("span", { class: scoreCls(r.sim.pitch) }, r.sim.pitch + " %") : r.durMs ? r.durMs + " ms" : "–")));
-    if (r.tips.length) body.append(h("tr", null, h("td", { colspan: 4, style: "padding-top:0" }, h("ul", { class: "tips small", style: "margin:0;padding-left:18px" }, r.tips.map(t => h("li", null, t))))));
-  });
-  tb.append(body); out.append(h("div", { class: "card" }, tb));
-  out.append(h("div", { class: "note" }, "Analysen är en uppskattning: toner mäts från tonhöjdskurvan, aspiration från hur länge det brusar före rösten och s/sh/x från var bruset ligger i frekvens. Den är säkrast med en riktig native-inspelning och i ett tyst rum."));
-}
 async function renderHistory() {
   if (!CUR) return;
   const a = (await DB.byItem(CUR.id)).sort((x, y) => y.t - x.t);
@@ -501,9 +419,7 @@ async function renderHistory() {
   box.replaceChildren();
   if (!a.length) return;
   box.append(h("h2", null, "Tidigare försök (" + a.length + ")"));
-  const best = Math.max(...a.map(x => x.toneScore || 0));
-  box.append(h("div", { class: "note" }, "Bästa tonresultat: " + best + " %"));
-  a.slice(0, 8).forEach(x => box.append(h("div", { class: "item" }, h("span", { class: "small" }, new Date(x.t).toLocaleString("sv", { dateStyle: "short", timeStyle: "short" })), h("span", { class: "small mono" }, "ton " + (x.toneScore ?? "–") + " · ini " + (x.iniScore ?? "–") + (x.simScore != null ? " · likh " + x.simScore : "")), x.audio ? h("button", { class: "chip", onclick: () => new Audio(URL.createObjectURL(x.audio)).play() }, "▶") : null)));
+  a.slice(0, 8).forEach(x => box.append(h("div", { class: "item" }, h("span", { class: "small" }, new Date(x.t).toLocaleString("sv", { dateStyle: "short", timeStyle: "short" })), x.audio ? h("button", { class: "chip", onclick: () => new Audio(URL.createObjectURL(x.audio)).play() }, "▶") : null)));
 }
 $("#itemSel").onchange = e => selectItem(e.target.value);
 $("#prevItem").onclick = () => { const P = practiceItems(); const i = P.indexOf(CUR); if (i > 0) selectItem(P[i - 1].id); else if (i < 0 && P[0]) selectItem(P[0].id); };
@@ -512,14 +428,13 @@ $("#nextItem").onclick = () => { const P = practiceItems(); const i = P.indexOf(
 /* ---------- BIBLIOTEK ---------- */
 async function renderLib() {
   const list = $("#libList"); list.replaceChildren(); $("#libCount").textContent = ITEMS.length + " fraser";
-  const atts = await DB.all("attempts"); const best = {}; atts.forEach(a => { best[a.itemId] = Math.max(best[a.itemId] || 0, a.toneScore || 0); });
   const own = ITEMS.filter(i => !i.audioPath); const shown = own.slice().reverse().slice(0, 200);
   if (ITEMS.length > own.length) list.append(h("div", { class: "note" }, (ITEMS.length - own.length) + " meningar från meningsbanken visas inte här. Hitta dem under Öva."));
   shown.forEach(it => {
     const del = h("button", { class: "chip" }, "Ta bort");
     del.onclick = async () => { if (!del.dataset.arm) { del.dataset.arm = 1; del.textContent = "Säker?"; return; } await DB.del("items", it.id); await loadItems(); if (CUR && CUR.id === it.id) CUR = ITEMS[0] || null; renderItemSel(); renderLib(); };
     list.append(h("div", { class: "item" },
-      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, it.zh), " ", it.audio ? h("span", { class: "tag" }, "native") : null, best[it.id] != null ? h("span", { class: "tag" }, "bäst " + best[it.id] + " %") : null, h("div", { class: "note mono" }, pyNode(itemSyls(it))), it.sv ? h("div", { class: "note" }, it.sv) : null),
+      h("div", { style: "min-width:0;flex:1" }, h("span", { class: "zh" }, it.zh), " ", it.audio ? h("span", { class: "tag" }, "native") : null, h("div", { class: "note mono" }, pyNode(itemSyls(it))), it.sv ? h("div", { class: "note" }, it.sv) : null),
       h("div", { class: "row", style: "flex:none" }, h("button", { class: "chip", onclick: () => { selectItem(it.id); location.hash = "ova"; } }, "Öva"), del)));
   });
 }
@@ -601,38 +516,21 @@ function nextListen() {
 /* ---------- STATISTIK ---------- */
 async function computeStats() {
   const atts = (await DB.all("attempts")).sort((a, b) => a.t - b.t);
-  const perTone = {}, conf = {}, asp = { asp: { n: 0, ok: 0, ms: [] }, unasp: { n: 0, ok: 0, ms: [] } }, sib = {};
-  for (const a of atts) for (const r of a.rows || []) {
-    if (r.exp && r.exp !== 5 && r.toneOk != null) { const p = perTone[r.exp] = perTone[r.exp] || { n: 0, ok: 0 }; p.n++; if (r.toneOk) p.ok++; else if (r.heard) conf[r.exp + "→" + r.heard] = (conf[r.exp + "→" + r.heard] || 0) + 1; }
-    if (r.iniKind === "aspirerad" || r.iniKind === "oaspirerad") { const k = r.iniKind === "aspirerad" ? "asp" : "unasp"; asp[k].n++; if (r.iniOk) asp[k].ok++; if (r.ms != null) asp[k].ms.push(r.ms); }
-    if (r.iniKind === "frikativa") { const s = sib[r.ini] = sib[r.ini] || { n: 0, ok: 0 }; s.n++; if (r.iniOk) s.ok++; }
-  }
-  return { atts, perTone, conf, asp, sib, listen: await getListenStats() };
+  return { atts, listen: await getListenStats() };
 }
 const pctS = o => o && o.n ? Math.round(o.ok / o.n * 100) + " %" : "–";
 async function renderStats() {
   const area = $("#statArea"); area.replaceChildren(h("div", { class: "note" }, "Räknar…"));
   const S = await computeStats(); const a = S.atts; area.replaceChildren();
-  const first = a.slice(0, 10), last = a.slice(-10); const avg = arr => { const v = arr.map(x => x.toneScore).filter(x => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
-  area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, a.length), "inspelningar"), h("div", { class: "tile" }, h("b", null, avg(first) == null ? "–" : avg(first) + " %"), "toner, första 10"), h("div", { class: "tile" }, h("b", null, avg(last) == null ? "–" : avg(last) + " %"), "toner, senaste 10")));
-  if (a.length > 1) { const cv = h("canvas", { "data-ratio": "0.35" }); area.append(h("h2", null, "Tonresultat över tid"), cv); requestAnimationFrame(() => { const { g, W, H } = setupCanvas(cv); const v = a.map(x => x.toneScore ?? null); g.strokeStyle = css("--line"); [0, 50, 100].forEach(p => { g.beginPath(); g.moveTo(0, H - p / 100 * (H - 10) - 5); g.lineTo(W, H - p / 100 * (H - 10) - 5); g.stroke(); }); g.strokeStyle = css("--accent"); g.lineWidth = 2; g.beginPath(); let pen = false; const sm = v.map((_, i) => { const w = v.slice(Math.max(0, i - 4), i + 1).filter(x => x != null); return w.length ? w.reduce((s, x) => s + x, 0) / w.length : null; }); sm.forEach((x, i) => { if (x == null) return; const X = i / (sm.length - 1) * W, Y = H - x / 100 * (H - 10) - 5; pen ? g.lineTo(X, Y) : (g.moveTo(X, Y), pen = true); }); g.stroke(); }); }
-  area.append(h("h2", null, "Toner när du talar"));
-  area.append(h("table", null, h("tbody", null, [1, 2, 3, 4].map(t => h("tr", null, h("td", { class: "t" + t }, MA.TONE_NAME[t] + " ton"), h("td", { class: "mono" }, pctS(S.perTone[t])), h("td", { class: "note" }, S.perTone[t] ? S.perTone[t].n + " st" : ""))))));
-  const conf = Object.entries(S.conf).sort((x, y) => y[1] - x[1]).slice(0, 5);
-  if (conf.length) area.append(h("div", { class: "note" }, "Vanligaste förväxlingar: " + conf.map(([k, n]) => k + " (" + n + ")").join(", ")));
-  area.append(h("h2", null, "Initialer"));
-  const avgMs = arr => arr.length ? Math.round(arr.reduce((s, x) => s + x, 0) / arr.length) + " ms" : "–";
-  area.append(h("table", null, h("tbody", null,
-    h("tr", null, h("td", null, "Aspirerade (p t k c ch q)"), h("td", { class: "mono" }, pctS(S.asp.asp)), h("td", { class: "note" }, "snitt " + avgMs(S.asp.asp.ms))),
-    h("tr", null, h("td", null, "Oaspirerade (b d g z zh j)"), h("td", { class: "mono" }, pctS(S.asp.unasp)), h("td", { class: "note" }, "snitt " + avgMs(S.asp.unasp.ms))),
-    ["s", "sh", "x"].map(k => h("tr", null, h("td", null, k), h("td", { class: "mono" }, pctS(S.sib[k])), h("td", { class: "note" }, S.sib[k] ? S.sib[k].n + " st" : ""))))));
+  area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, a.length), "inspelningar")));
+  area.append(h("div", { class: "note" }, "Uttalet bedöms inte automatiskt. Jämför din tonkurva med native och betygsätt själv."));
   area.append(h("h2", null, "Hörträning"));
   const L = S.listen;
   area.append(h("table", null, h("tbody", null, [1, 2, 3, 4, 5].map(t => h("tr", null, h("td", { class: "t" + t }, t === 5 ? "neutral ton" : MA.TONE_NAME[t] + " ton"), h("td", { class: "mono" }, pctS(L.tones[t])), h("td", { class: "note" }, L.tones[t] ? L.tones[t].n + " st" : ""))), Object.entries(L.pairs).map(([k, v]) => h("tr", null, h("td", null, k), h("td", { class: "mono" }, pctS(v)), h("td", { class: "note" }, v.n + " st"))))));
-  const PS = await pairStats(); const tpk = Object.keys(PS.listen).concat(Object.keys(PS.speak));
+  const PS = await pairStats(); const tpk = Object.keys(PS.listen);
   if (tpk.length) {
     area.append(h("h2", null, "Tonpar"));
-    const rows = [...new Set(tpk)].sort().map(k => h("tr", null, h("td", { class: "mono" }, pairLabel(k)), h("td", { class: "mono" }, "hör " + pctS(PS.listen[k])), h("td", { class: "mono" }, "tal " + pctS(PS.speak[k]))));
+    const rows = [...new Set(tpk)].sort().map(k => h("tr", null, h("td", { class: "mono" }, pairLabel(k)), h("td", { class: "mono" }, "hör " + pctS(PS.listen[k]))));
     area.append(h("table", null, h("tbody", null, rows)));
     const tc = Object.entries(L.tpConf || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (tc.length) area.append(h("div", { class: "note" }, "Vanligaste förväxlingar av tonpar: " + tc.map(([k, n]) => k + " (" + n + ")").join(", ")));
@@ -642,8 +540,8 @@ async function renderStats() {
   area.append(h("div", { class: "row" }, h("button", { class: "btn primary", onclick: () => exportStats(S, "app") }, "Uppdatera Utveckling"), h("button", { class: "btn", onclick: () => exportStats(S, false) }, "Spara fil"), h("button", { class: "btn", onclick: () => exportStats(S, true) }, "Kopiera")));
 }
 async function exportStats(S, copy) {
-  const data = JSON.stringify({ app: "mandapp-studio-stats", version: 1, exported: new Date().toISOString(), perTone: S.perTone, conf: S.conf, asp: { asp: { n: S.asp.asp.n, ok: S.asp.asp.ok }, unasp: { n: S.asp.unasp.n, ok: S.asp.unasp.ok } }, sib: S.sib, listen: S.listen, pairs: await pairStats(),
-    attempts: S.atts.slice(-300).map(a => ({ t: a.t, zh: a.zh, toneScore: a.toneScore, iniScore: a.iniScore, simScore: a.simScore })) });
+  const data = JSON.stringify({ app: "mandapp-studio-stats", version: 1, exported: new Date().toISOString(), listen: S.listen, pairs: await pairStats(),
+    attempts: S.atts.slice(-300).map(a => ({ t: a.t, zh: a.zh })) });
   if (copy === "app") { try { await importPron(JSON.parse(data)); location.hash = "statistik"; } catch (e) { console.warn(e); toast("Kunde inte skicka"); } return; }
   if (copy) { try { await navigator.clipboard.writeText(data); toast("Kopierat"); } catch { toast("Kunde inte kopiera"); } return; }
   const file = new File([data], "skuggning-statistik.json", { type: "application/json" });
@@ -681,9 +579,8 @@ async function ensureItem(w, src) {
 const pairKey = py => { const s = MA.parsePinyin(py); return s.length === 2 ? "" + s[0].tone + s[1].tone : null; };
 const pairLabel = k => k[0] + "+" + (k[1] === "5" ? "0" : k[1]);
 async function pairStats() {
-  const speak = {}; const atts = await DB.all("attempts");
-  for (const a of atts) { const r = a.rows || []; if (r.length !== 2) continue; const it = ITEMS.find(i => i.id === a.itemId); const k = it ? pairKey(it.pinyin) : null; if (!k) continue; const o = speak[k] = speak[k] || { n: 0, ok: 0 }; o.n++; if (r.every(x => x.toneOk !== false)) o.ok++; }
-  const L = await getListenStats(); return { speak, listen: L.tp || {} };
+  // Bara hörträning: talade tonpar bedöms inte automatiskt (analysen var inte pålitlig).
+  const L = await getListenStats(); return { listen: L.tp || {} };
 }
 let tpSel = null;
 async function renderTonpar() {
@@ -692,8 +589,8 @@ async function renderTonpar() {
   for (const a of [1, 2, 3, 4]) {
     g.append(h("div", { class: "hd t" + a }, a + "+"));
     for (const b of [1, 2, 3, 4, 5]) {
-      const k = "" + a + b; const sp = st.speak[k], li = st.listen[k];
-      const n = (sp ? sp.n : 0) + (li ? li.n : 0), ok = (sp ? sp.ok : 0) + (li ? li.ok : 0); const pc = n ? ok / n : null;
+      const k = "" + a + b; const li = st.listen[k];
+      const n = li ? li.n : 0, ok = li ? li.ok : 0; const pc = n ? ok / n : null;
       const bg = pc == null ? "" : pc >= 0.8 ? "background:var(--good-soft)" : pc >= 0.5 ? "background:var(--warn-soft)" : "background:var(--bad-soft)";
       g.append(h("button", { class: tpSel === k ? "sel" : "", style: bg, "aria-label": "Tonpar " + pairLabel(k), onclick: () => { tpSel = k; renderTonpar(); showPair(k); } }, h("b", null, pairLabel(k)), h("small", null, pc == null ? (tp[k] || []).length + " ord" : Math.round(pc * 100) + " %")));
     }
@@ -915,7 +812,7 @@ window.SK_onVoice = () => { if (curView() === "skugga") renderHome(); };
 function topicCount(words) { const ws = (words || []).filter(Boolean); return sentencePool().filter(i => ws.some(w => i.zh.includes(w) && i.zh !== w)).length; }
 async function syncPron() {
   const S = await computeStats(); if (!S.atts.length) return;
-  const o = { perTone: S.perTone, conf: S.conf, asp: { asp: { n: S.asp.asp.n, ok: S.asp.asp.ok }, unasp: { n: S.asp.unasp.n, ok: S.asp.unasp.ok } }, sib: S.sib, listen: S.listen, attempts: S.atts.slice(-300).map(a => ({ t: a.t, zh: a.zh, toneScore: a.toneScore, iniScore: a.iniScore, simScore: a.simScore })) };
+  const o = { listen: S.listen, attempts: S.atts.slice(-300).map(a => ({ t: a.t, zh: a.zh })) };
   await importPron(o, true);
 }
 window.SK = { show, countWith, topicCount, startTopic, syncPron, importText: t => importText(t), ready: () => SK_READY };
