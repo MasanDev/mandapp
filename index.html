@@ -339,7 +339,8 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
     <div class="curvebox" id="mimicCard">
       <canvas id="live" data-ratio="0.42" aria-label="Tonkurvor för native och dig"></canvas>
       <div class="leg"><span><span>━ native</span> &nbsp; <span style="color:var(--accent)">━ du</span> &nbsp; <span class="mono" id="takeInfo"></span></span>
-        <label><input type="checkbox" id="sameLen" checked> Samma längd</label></div>
+        <span><label id="sameLenLbl"><input type="checkbox" id="sameLen" checked> Samma längd</label> <label title="Delar upp kurvorna stavelse för stavelse med en modell som körs i webbläsaren (116 MB, laddas ner en gång). Ingen bedömning."><input type="checkbox" id="sylMode"> Stavelser</label></span></div>
+      <div class="note" id="sylNote" hidden></div>
     </div>
     <div class="segctl" id="speedChips" role="group" aria-label="Hastighet"><button type="button" class="chip" data-r="1">1×</button><button type="button" class="chip" data-r="0.75">0,75×</button><button type="button" class="chip" data-r="0.5">0,5×</button></div>
     <div class="ctrl">
@@ -371,6 +372,14 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
           <button class="btn" id="randSent" type="button">Slumpa</button>
         </div>
         <div id="sentHits" class="stack"></div>
+      </div>
+    </details>
+    <details class="card" id="testBox">
+      <summary>Testinspelning (för att mäta analysen)</summary>
+      <div class="stack" style="margin-top:10px">
+        <div class="note">Spela in meningen med medvetna fel. Markera sedan vad du faktiskt sa på varje stavelse och spara. Skicka exportfilen till Claude, så mäts analysen mot dina riktiga fel. Spela gärna in några helt rätta också.</div>
+        <div id="testForm"></div>
+        <div class="row small"><span class="mono note" id="testCount"></span><button type="button" class="btn" id="testExport">Exportera tester</button></div>
       </div>
     </details>
     <details class="card" id="modelBox">
@@ -535,6 +544,7 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
 
 <script src="vendor/ts-fsrs-5.4.2.umd.js"></script>
 <script src="analysis.js"></script>
+<script src="align.js"></script>
 <script src="skugga.js"></script>
 <script>
 "use strict";

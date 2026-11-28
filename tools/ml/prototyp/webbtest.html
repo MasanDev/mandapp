@@ -1,0 +1,12 @@
+<!doctype html><meta charset=utf-8><script src="ort.wasm.min.js"></script><script>
+(async()=>{try{
+ort.env.wasm.numThreads=1; ort.env.wasm.wasmPaths='./';
+const t0=performance.now(); const parts=await Promise.all(['model.part00','model.part01'].map(u=>fetch(u).then(r=>r.arrayBuffer())));
+const tot=parts.reduce((a,b)=>a+b.byteLength,0), buf=new Uint8Array(tot); let o=0; for(const p of parts){buf.set(new Uint8Array(p),o);o+=p.byteLength;}
+const s=await ort.InferenceSession.create(buf,{executionProviders:['wasm']}); const t1=performance.now();
+const x=new Float32Array(await (await fetch('test.f32')).arrayBuffer());
+const r=await s.run({audio:new ort.Tensor('float32',x,[1,x.length])}); const t2=performance.now();
+const lp=r.logp, T=lp.dims[1], V=lp.dims[2]; const am=[]; for(let t=0;t<T;t++){let b=0;for(let v=1;v<V;v++) if(lp.data[t*V+v]>lp.data[t*V+b]) b=v; am.push(b);}
+document.title='OK '+JSON.stringify({load:(t1-t0)|0,run:(t2-t1)|0,dur:x.length/16,T,am:am.join(',')});
+}catch(e){document.title='ERR '+e}})();
+</script>
