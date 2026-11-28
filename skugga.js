@@ -275,6 +275,7 @@ async function addTake(blob, x) {
   const take = { blob, x, pt, url: URL.createObjectURL(blob), t: Date.now(), n: (TAKES.length ? TAKES[TAKES.length - 1].n : 0) + 1 };
   TAKES.push(take); if (TAKES.length > 6) { const old = TAKES.shift(); URL.revokeObjectURL(old.url); }
   TAKE_SEL = TAKES.length - 1; $("#result").replaceChildren(); renderTakes(); drawMimic();
+  if (SYL.on) runSeg(take.pt, x);
   const att = { id: uid(), itemId: CUR.id, zh: CUR.zh, t: take.t, audio: blob };
   take.attId = att.id; DB.put("attempts", att).then(() => { pruneAttempts(CUR.id); renderHistory(); });
   return take;
@@ -361,7 +362,7 @@ $("#modeMan").onclick = () => { if (CONT.on) contStop(); };
 /* ---------- härmningsläge: kurvor och uppspelning ---------- */
 const TAKES = []; let TAKE_SEL = -1; let NATIVE = null;
 async function nativeTrack(it) {
-  try { const x = await MA.toMono16k(await it.audio.arrayBuffer()); const pt = MA.pitchTrack(x); if (CUR && CUR.id === it.id && pt) { NATIVE = pt; drawMimic(); } } catch (e) { console.warn(e); }
+  try { const x = await MA.toMono16k(await it.audio.arrayBuffer()); const pt = MA.pitchTrack(x); if (CUR && CUR.id === it.id && pt) { pt.x = x; NATIVE = pt; drawMimic(); if (SYL.on) runSeg(NATIVE); } } catch (e) { console.warn(e); }
 }
 function renderTakes() {
   const row = $("#takesRow"); row.replaceChildren();
@@ -374,6 +375,7 @@ function drawMimic(live) {
   const pad = 10, R = 9; const yOf = v => H / 2 - Math.max(-R, Math.min(R, v)) / R * (H / 2 - pad);
   g.strokeStyle = css("--line"); g.lineWidth = 1; [-6, 0, 6].forEach(v => { g.beginPath(); g.moveTo(0, yOf(v)); g.lineTo(W, yOf(v)); g.stroke(); });
   const same = $("#sameLen").checked; const take = TAKES[TAKE_SEL];
+  if (!live && SYL.on && NATIVE && NATIVE.seg && (!take || take.pt.seg)) { drawSylView(g, W, H, yOf, take); return; }
   const durs = [NATIVE ? NATIVE.st.length : 0, take ? take.pt.st.length : 0, live ? live.length : 0]; const maxLen = Math.max(1, ...durs);
   const draw = (arr, color, w, en) => {
     const n = arr.length; if (!n) return; const span = same ? W : W * n / maxLen; const xOf = i => i / Math.max(1, n - 1) * span;
@@ -389,6 +391,60 @@ function drawMimic(live) {
   g.font = "11px " + css("--mono"); g.fillStyle = css("--muted");
   if (!NATIVE && CUR && CUR.audio) g.fillText("läser native…", 6, 14);
 }
+/* ---------- stavelse för stavelse (modell i webbläsaren, align.js) ---------- */
+const SYL = { on: false, ready: false };
+try { SYL.on = localStorage.getItem("studio-syl") === "1"; } catch { }
+function sylNote(t) { const e = $("#sylNote"); if (e) { e.textContent = t || ""; e.hidden = !t; } }
+async function runSeg(pt, x) {
+  const it = CUR; if (!it || !window.MAL) return;
+  x = x || pt.x; if (!x) return;
+  const syls = itemSyls(it); const tones = MA.sandhi(syls, it.zh).tones;
+  try {
+    if (!SYL.ready) { const cached = await MAL.isCached(); sylNote(cached ? "Startar stavelsemodellen…" : "Laddar ner stavelsemodellen (116 MB, bara första gången)…"); await MAL.load(f => sylNote("Laddar ner stavelsemodellen: " + Math.round(f * 100) + " %")); SYL.ready = true; sylNote(""); }
+    const seg = await MAL.segment(x, syls, tones);
+    if (CUR !== it) return;
+    if (!seg) { sylNote("Kunde inte dela upp i stavelser. Visar hela kurvan."); return; }
+    seg.base = pt.startSec; pt.seg = seg; drawMimic();
+  } catch (e) { console.warn(e); sylNote("Stavelsemodellen gick inte att starta (" + (e.message || e) + ")."); }
+}
+function setSyl(on) {
+  SYL.on = on; try { localStorage.setItem("studio-syl", on ? "1" : "0"); } catch { }
+  $("#sylMode").checked = on; $("#sameLenLbl").hidden = on;
+  if (on) { if (NATIVE && !NATIVE.seg) runSeg(NATIVE); TAKES.forEach(t => { if (!t.pt.seg) runSeg(t.pt, t.x); }); } else sylNote("");
+  drawMimic();
+}
+function drawSylView(g, W, H, yOf, take) {
+  const b = NATIVE.seg.bounds, n = b.length - 1; const tot = b[n] - b[0] || 1;
+  const top = 26; const slotX = [], slotW = [];
+  let acc = 0; for (let k = 0; k < n; k++) { slotX.push(acc / tot * W); slotW.push((b[k + 1] - b[k]) / tot * W); acc += b[k + 1] - b[k]; }
+  const syls = CUR ? itemSyls(CUR) : []; const tones = CUR ? MA.sandhi(syls, CUR.zh).tones : []; const chars = CUR ? [...CUR.zh].filter(c => /[㐀-鿿]/.test(c)) : [];
+  g.save(); g.setLineDash([3, 4]); g.strokeStyle = css("--line"); g.lineWidth = 1;
+  for (let k = 1; k < n; k++) { g.beginPath(); g.moveTo(slotX[k], top - 4); g.lineTo(slotX[k], H); g.stroke(); }
+  g.restore();
+  g.textAlign = "center"; g.textBaseline = "top";
+  for (let k = 0; k < n; k++) {
+    const cx = slotX[k] + slotW[k] / 2; g.fillStyle = css("--fg"); g.font = "15px system-ui, sans-serif"; g.fillText(chars[k] || "", cx, 2);
+    if (slotW[k] > 26 && syls[k]) { g.fillStyle = css("--t" + tones[k]) || css("--muted"); g.font = "10px " + css("--mono"); g.fillText(MA.marked(syls[k].syl, syls[k].tone), cx, 18); }
+  }
+  g.textAlign = "start"; g.textBaseline = "alphabetic";
+  const yS = v => Math.max(top + 8, yOf(v));
+  const drawSeg = (pt, color, w) => {
+    const bb = pt.seg.bounds; if (bb.length - 1 !== n) return;
+    g.strokeStyle = color; g.lineWidth = w; g.lineJoin = "round"; g.lineCap = "round";
+    for (let k = 0; k < n; k++) {
+      g.beginPath(); let pen = false; const a = bb[k], e = bb[k + 1];
+      for (let i = 0; i < pt.st.length; i++) {
+        const t = pt.startSec + i * 0.01 + 0.02; if (t < a || t >= e) continue;
+        const v = pt.st[i]; if (v == null) { pen = false; continue; }
+        const X = slotX[k] + (t - a) / (e - a || 1) * slotW[k], Y = yS(v);
+        if (!pen) { g.moveTo(X, Y); pen = true; } else g.lineTo(X, Y);
+      }
+      g.stroke();
+    }
+  };
+  drawSeg(NATIVE, css("--muted"), 5);
+  if (take) drawSeg(take.pt, css("--accent"), 3);
+}
 const meEl = new Audio();
 function playMe() { const t = TAKES[TAKE_SEL]; if (!t) return Promise.resolve(); return new Promise(res => { meEl.src = t.url; meEl.onloadedmetadata = () => { try { meEl.currentTime = t.pt.startSec; } catch { } }; meEl.onended = res; meEl.onerror = res; meEl.play().catch(res); }); }
 function playNativeP() {
@@ -401,6 +457,8 @@ $("#playMe").onclick = () => { audioEl.pause(); playMe(); };
 $("#playBoth").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP(); playMe(); };
 $("#playSeq").onclick = async () => { audioEl.pause(); meEl.pause(); await playNativeP(); await new Promise(r => setTimeout(r, 250)); playMe(); };
 $("#sameLen").onchange = () => drawMimic();
+$("#sylMode").onchange = e => setSyl(e.target.checked);
+if (SYL.on) setSyl(true);
 window.addEventListener("resize", () => drawMimic());
 async function pruneAttempts(itemId) { const a = (await DB.byItem(itemId)).sort((x, y) => y.t - x.t); for (const old of a.slice(5)) if (old.audio) { old.audio = null; await DB.put("attempts", old); } }
 
