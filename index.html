@@ -374,6 +374,14 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
         <div id="sentHits" class="stack"></div>
       </div>
     </details>
+    <details class="card" id="testBox">
+      <summary>Testinspelning (för att mäta analysen)</summary>
+      <div class="stack" style="margin-top:10px">
+        <div class="note">Spela in meningen med medvetna fel. Markera sedan vad du faktiskt sa på varje stavelse och spara. Skicka exportfilen till Claude, så mäts analysen mot dina riktiga fel. Spela gärna in några helt rätta också.</div>
+        <div id="testForm"></div>
+        <div class="row small"><span class="mono note" id="testCount"></span><button type="button" class="btn" id="testExport">Exportera tester</button></div>
+      </div>
+    </details>
     <details class="card" id="modelBox">
       <summary>Fler inställningar</summary>
       <div class="stack" style="margin-top:10px">
