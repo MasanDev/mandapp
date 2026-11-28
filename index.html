@@ -377,9 +377,19 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
     <details class="card" id="testBox">
       <summary>Testinspelning (för att mäta analysen)</summary>
       <div class="stack" style="margin-top:10px">
-        <div class="note">Spela in meningen med medvetna fel. Markera sedan vad du faktiskt sa på varje stavelse och spara. Skicka exportfilen till Claude, så mäts analysen mot dina riktiga fel. Spela gärna in några helt rätta också.</div>
-        <div id="testForm"></div>
-        <div class="row small"><span class="mono note" id="testCount"></span><button type="button" class="btn" id="testExport">Exportera tester</button></div>
+        <div class="note">Spara inspelningar här, med eller utan medvetna fel. Sedan kan du eller en native-talare lyssna och rätta dem stavelse för stavelse, nu eller senare. Rättade inspelningar laddas upp till GitHub så att Claude kan mäta analysen mot dem.</div>
+        <div class="row"><button type="button" class="btn primary" id="testSave" disabled>Spara försöket för test</button></div>
+        <div class="lbl" id="testCount"></div>
+        <div id="testList" class="stack"></div>
+        <details id="testUp">
+          <summary class="small">Uppladdning till GitHub</summary>
+          <div class="stack" style="margin-top:8px">
+            <div class="note">Nyckeln sparas bara i den här webbläsaren. Skapa ett privat repo och en finkornig nyckel (fine-grained token) med skrivrätt till Contents i bara det repot.</div>
+            <label class="small">Repo <input type="text" id="ghRepo" placeholder="MasanDev/mandapp-tester" autocomplete="off" spellcheck="false"></label>
+            <label class="small">Nyckel <input type="password" id="ghToken" placeholder="github_pat_…" autocomplete="off"></label>
+          </div>
+        </details>
+        <div class="row small"><button type="button" class="btn" id="testUpload">Ladda upp rättade</button><button type="button" class="btn" id="testExport">Exportera som fil</button><span class="note" id="testUpNote"></span></div>
       </div>
     </details>
     <details class="card" id="modelBox">

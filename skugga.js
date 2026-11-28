@@ -446,41 +446,100 @@ function drawSylView(g, W, H, yOf, take) {
   drawSeg(NATIVE, css("--muted"), 5);
   if (take) drawSeg(take.pt, css("--accent"), 3);
 }
-/* ---------- testinspelningar: medvetna fel med facit, för att mäta analysen ---------- */
+/* ---------- testinspelningar: spara nu, rätta senare (gärna av en native-talare), ladda upp till GitHub ---------- */
 const TEST_INI = ["b","p","m","f","d","t","n","l","g","k","h","j","q","x","zh","ch","sh","r","z","c","s","y","w"];
+const testAudio = new Audio(); let TEST_OPEN = null, TEST_DEL = null;
 async function getTests() { return (await DB.get("kv", "tests")) || []; }
-async function updTestCount() { const n = (await getTests()).length; $("#testCount").textContent = n ? n + " sparade" : "Inga sparade än"; $("#testExport").disabled = !n; }
-function renderTestBox() {
-  const box = $("#testForm"); if (!box) return; box.replaceChildren(); updTestCount();
-  const take = TAKES[TAKE_SEL];
-  if (!CUR || !take) { box.append(h("div", { class: "note" }, "Spela in ett försök först.")); return; }
-  const syls = itemSyls(CUR); const tones = MA.sandhi(syls, CUR.zh).tones; const chars = [...CUR.zh].filter(c => /[㐀-鿿]/.test(c));
-  const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, "Stavelse"), h("th", null, "Ton du sa"), h("th", null, "Initial du sa"))));
-  const body = h("tbody"); const rows = [];
-  syls.forEach((s, i) => {
-    const ini = MA.splitIF(s.syl).ini;
-    const tSel = h("select", { "aria-label": "Ton du sa på " + (chars[i] || s.syl) }, h("option", { value: "" }, "rätt (" + tones[i] + ")"), [1, 2, 3, 4, 5].map(t => h("option", { value: String(t) }, t === 5 ? "neutral" : String(t))), h("option", { value: "?" }, "osäker"));
-    const iSel = h("select", { "aria-label": "Initial du sa på " + (chars[i] || s.syl) }, h("option", { value: "" }, "rätt (" + (ini || "–") + ")"), TEST_INI.filter(x => x !== ini).map(x => h("option", { value: x }, x)), h("option", { value: "-" }, "ingen"), h("option", { value: "?" }, "osäker"));
-    rows.push({ tSel, iSel });
-    body.append(h("tr", null, h("td", null, h("span", { class: "zh" }, chars[i] || ""), " ", h("span", { class: "mono t" + tones[i] }, MA.marked(s.syl, s.tone))), h("td", null, tSel), h("td", null, iSel)));
+async function putTests(all) { await DB.put("kv", all, "tests"); }
+const testStatus = x => x.uploaded ? "uppladdad" : x.said ? "rättad" : "ej rättad";
+function renderTestBox() { const take = TAKES[TAKE_SEL]; const b = $("#testSave"); if (!b) return; b.disabled = !CUR || !take; b.textContent = take ? "Spara försök " + take.n + " för test" : "Spela in ett försök först"; }
+$("#testSave").onclick = async () => {
+  const take = TAKES[TAKE_SEL]; if (!CUR || !take) return;
+  const syls = itemSyls(CUR); const tones = MA.sandhi(syls, CUR.zh).tones;
+  const all = await getTests();
+  all.push({ id: uid(), t: Date.now(), itemId: CUR.id, zh: CUR.zh, pinyin: CUR.pinyin, syls: syls.map(s => s.syl), lexTones: syls.map(s => s.tone), expectedTones: tones, nativeAudio: CUR.audioPath || null, voice: CUR.voice || null, said: null, audio: take.blob });
+  await putTests(all); toast("Sparat. Rätta det när du vill."); renderTestList();
+};
+function testForm(x, all) {
+  if (!x.syls) { const ps = MA.parsePinyin(x.pinyin); x.syls = ps.map(s => s.syl); x.lexTones = ps.map(s => s.tone); }
+  const chars = [...x.zh].filter(c => /[㐀-鿿]/.test(c)); const rows = [];
+  const tb = h("table", null, h("thead", null, h("tr", null, h("th", null, "Stavelse"), h("th", null, "Ton som sades"), h("th", null, "Initial som sades"))));
+  const body = h("tbody");
+  x.syls.forEach((syl, i) => {
+    const ini = MA.splitIF(syl).ini, et = x.expectedTones[i], prev = x.said ? x.said[i] : null;
+    const tv = !prev ? "" : prev.tone == null ? "?" : prev.tone === et ? "" : String(prev.tone);
+    const iv = !prev ? "" : prev.ini == null ? "?" : prev.ini === ini ? "" : prev.ini === "" ? "-" : prev.ini;
+    const opt = (v, t, cur) => h("option", { value: v, selected: v === cur }, t);
+    const tSel = h("select", { "aria-label": "Ton på " + (chars[i] || syl) }, opt("", "rätt (" + et + ")", tv), [1, 2, 3, 4, 5].filter(t => t !== et).map(t => opt(String(t), t === 5 ? "neutral" : String(t), tv)), opt("?", "osäker", tv));
+    const iSel = h("select", { "aria-label": "Initial på " + (chars[i] || syl) }, opt("", "rätt (" + (ini || "–") + ")", iv), TEST_INI.filter(v => v !== ini).map(v => opt(v, v, iv)), opt("-", "ingen", iv), opt("?", "osäker", iv));
+    rows.push({ tSel, iSel, ini, et });
+    body.append(h("tr", null, h("td", null, h("span", { class: "zh" }, chars[i] || ""), " ", h("span", { class: "mono t" + et }, MA.marked(syl, x.lexTones ? x.lexTones[i] : et))), h("td", null, tSel), h("td", null, iSel)));
   });
   tb.append(body);
-  const save = h("button", { class: "btn primary", type: "button", onclick: async () => {
-    const said = rows.map((r, i) => ({ tone: r.tSel.value === "" ? tones[i] : r.tSel.value === "?" ? null : +r.tSel.value, ini: r.iSel.value === "" ? MA.splitIF(syls[i].syl).ini : r.iSel.value === "?" ? null : r.iSel.value === "-" ? "" : r.iSel.value, changed: !!(r.tSel.value || r.iSel.value) }));
-    const all = await getTests();
-    all.push({ id: uid(), t: Date.now(), itemId: CUR.id, zh: CUR.zh, pinyin: CUR.pinyin, expectedTones: tones, nativeAudio: CUR.audioPath || null, take: take.n, said, audio: take.blob });
-    await DB.put("kv", all, "tests"); toast("Test sparat"); updTestCount();
-  } }, "Spara försök " + take.n + " som test");
-  box.append(tb, h("div", { class: "row", style: "margin-top:8px" }, save));
+  const done = h("button", { class: "btn primary", type: "button", onclick: async () => {
+    x.said = rows.map(r => ({ tone: r.tSel.value === "" ? r.et : r.tSel.value === "?" ? null : +r.tSel.value, ini: r.iSel.value === "" ? r.ini : r.iSel.value === "?" ? null : r.iSel.value === "-" ? "" : r.iSel.value }));
+    x.checkedAt = Date.now(); x.uploaded = false; await putTests(all); TEST_OPEN = null; toast("Rättat"); renderTestList();
+  } }, "Klar");
+  return h("div", { class: "stack", style: "margin:6px 0 10px" }, tb, h("div", { class: "row" }, done, h("button", { class: "btn", type: "button", onclick: () => { TEST_OPEN = null; renderTestList(); } }, "Avbryt")));
+}
+function playNativeOf(x) {
+  const it = ITEMS.find(i => i.id === x.itemId);
+  if (it && it.audio) { testAudio.src = URL.createObjectURL(it.audio); } else if (x.nativeAudio) testAudio.src = x.nativeAudio; else { toast("Native saknas"); return; }
+  testAudio.play().catch(() => toast("Kunde inte spela upp"));
+}
+async function renderTestList() {
+  const box = $("#testList"); if (!box) return; const all = await getTests();
+  const nOpen = all.filter(x => !x.said).length, nUp = all.filter(x => x.said && !x.uploaded).length;
+  $("#testCount").textContent = all.length ? all.length + " sparade · " + nOpen + " ej rättade · " + nUp + " att ladda upp" : "Inga sparade än";
+  $("#testUpload").disabled = !nUp; $("#testExport").disabled = !all.length;
+  box.replaceChildren(...all.slice().reverse().map(x => {
+    const del = h("button", { class: "chip", type: "button", onclick: async () => { if (TEST_DEL !== x.id) { TEST_DEL = x.id; renderTestList(); return; } await putTests(all.filter(y => y.id !== x.id)); TEST_DEL = null; renderTestList(); } }, TEST_DEL === x.id ? "Ta bort?" : "✕");
+    const row = h("div", { class: "row small", style: "flex-wrap:wrap;gap:6px" },
+      h("span", { class: "zh", style: "flex:1;min-width:8em" }, x.zh),
+      h("span", { class: "tag" + (x.said ? "" : " warn") }, testStatus(x)),
+      h("button", { class: "chip", type: "button", onclick: () => { testAudio.src = URL.createObjectURL(x.audio); testAudio.play().catch(() => { }); } }, "▶ inspelning"),
+      h("button", { class: "chip", type: "button", onclick: () => playNativeOf(x) }, "▶ native"),
+      h("button", { class: "chip" + (TEST_OPEN === x.id ? " on" : ""), type: "button", onclick: () => { TEST_OPEN = TEST_OPEN === x.id ? null : x.id; renderTestList(); } }, x.said ? "Ändra" : "Rätta"), del);
+    return TEST_OPEN === x.id ? h("div", null, row, testForm(x, all)) : row;
+  }));
 }
 function b64(blob) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = () => rej(r.error); r.readAsDataURL(blob); }); }
+const testMeta = x => ({ ...x, audio: undefined, audioType: x.audio ? x.audio.type : null });
+const extOf = t => /mp4|m4a|aac/.test(t || "") ? "m4a" : /ogg/.test(t || "") ? "ogg" : /wav/.test(t || "") ? "wav" : "webm";
+try { $("#ghRepo").value = localStorage.getItem("studio-gh-repo") || ""; $("#ghToken").value = localStorage.getItem("studio-gh-token") || ""; } catch { }
+$("#ghRepo").onchange = e => { try { localStorage.setItem("studio-gh-repo", e.target.value.trim()); } catch { } };
+$("#ghToken").onchange = e => { try { localStorage.setItem("studio-gh-token", e.target.value.trim()); } catch { } };
+async function ghPut(repo, token, path, b64content, msg) {
+  const url = "https://api.github.com/repos/" + repo + "/contents/" + path;
+  const hd = { Authorization: "Bearer " + token, Accept: "application/vnd.github+json" };
+  let sha; const g = await fetch(url, { headers: hd }); if (g.ok) sha = (await g.json()).sha;
+  const r = await fetch(url, { method: "PUT", headers: hd, body: JSON.stringify({ message: msg, content: b64content, sha }) });
+  if (!r.ok) throw new Error(r.status === 401 ? "nyckeln godtogs inte" : r.status === 404 ? "hittar inte repot (eller nyckeln saknar åtkomst)" : r.status === 403 ? "nyckeln saknar skrivrätt" : "GitHub svarade " + r.status);
+}
+$("#testUpload").onclick = async () => {
+  const repo = ($("#ghRepo").value || "").trim(), token = ($("#ghToken").value || "").trim(), note = $("#testUpNote");
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { $("#testUp").open = true; note.textContent = "Fyll i repo och nyckel först."; return; }
+  const all = await getTests(); const todo = all.filter(x => x.said && !x.uploaded); let n = 0;
+  try {
+    for (const x of todo) {
+      note.textContent = "Laddar upp " + (n + 1) + " av " + todo.length + "…";
+      const base = "tester/" + new Date(x.t).toISOString().slice(0, 10) + "-" + x.id;
+      if (x.audio) await ghPut(repo, token, base + "." + extOf(x.audio.type), await b64(x.audio), "Testinspelning " + x.zh);
+      await ghPut(repo, token, base + ".json", btoa(unescape(encodeURIComponent(JSON.stringify(testMeta(x), null, 1)))), "Facit " + x.zh);
+      x.uploaded = true; n++; await putTests(all);
+    }
+    note.textContent = n + " uppladdade."; toast("Uppladdat");
+  } catch (e) { note.textContent = "Stoppade efter " + n + ": " + (e.message || e) + "."; }
+  renderTestList();
+};
 $("#testExport").onclick = async () => {
   const all = await getTests(); if (!all.length) return;
-  const out = []; for (const x of all) out.push({ ...x, audio: undefined, audioType: x.audio ? x.audio.type : null, audioB64: x.audio ? await b64(x.audio) : null });
-  const file = new File([JSON.stringify({ app: "mandapp-testinspelningar", version: 1, exported: new Date().toISOString(), tests: out })], "mandapp-tester-" + new Date().toISOString().slice(0, 10) + ".json", { type: "application/json" });
+  const out = []; for (const x of all) out.push({ ...testMeta(x), audioB64: x.audio ? await b64(x.audio) : null });
+  const file = new File([JSON.stringify({ app: "mandapp-testinspelningar", version: 2, exported: new Date().toISOString(), tests: out })], "mandapp-tester-" + new Date().toISOString().slice(0, 10) + ".json", { type: "application/json" });
   if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: "Mandapp tester" }); return; } catch (e) { if (e.name === "AbortError") return; } }
   const a = h("a", { href: URL.createObjectURL(file), download: file.name }); document.body.append(a); a.click(); a.remove();
 };
+$("#testBox").addEventListener("toggle", () => { if ($("#testBox").open) renderTestList(); });
 const meEl = new Audio();
 function playMe() { const t = TAKES[TAKE_SEL]; if (!t) return Promise.resolve(); return new Promise(res => { meEl.src = t.url; meEl.onloadedmetadata = () => { try { meEl.currentTime = t.pt.startSec; } catch { } }; meEl.onended = res; meEl.onerror = res; meEl.play().catch(res); }); }
 function playNativeP() {
