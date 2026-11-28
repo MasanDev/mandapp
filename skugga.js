@@ -185,7 +185,7 @@ function renderItem() {
     $("#modelBox").open = true;
   }
   mr.append(h("button", { class: "btn", onclick: () => recordModel() }, "● Spela in native"));
-  $("#recBtn").disabled = !CUR.audio || CONT.on; $("#playNative").disabled = !CUR.audio; $("#contBtn").disabled = !CUR.audio; $("#modeLoop").disabled = !CUR.audio;
+  $("#recBtn").disabled = !CUR.audio && !CONT.on; $("#playNative").disabled = !CUR.audio; $("#contBtn").disabled = !CUR.audio; $("#modeLoop").disabled = !CUR.audio;
   $("#recNote").textContent = CUR.audio ? "Lyssna, tryck på den röda knappen och härma. Tryck igen när du är klar." : "Den här frasen saknar native-ljud. Lägg till det under Fler inställningar.";
   renderHistory(); renderRelated();
 }
@@ -244,7 +244,7 @@ function stopRec() {
   REC.stream.getTracks().forEach(t => t.stop()); try { REC.ac.close(); } catch { }
   const btn = $("#recBtn"); btn.classList.remove("live"); btn.setAttribute("aria-label", "Spela in");
 }
-$("#recBtn").onclick = () => { if (!CUR) return; audioEl.pause(); meEl.pause(); REC.on ? stopRec() : startRec("user"); };
+$("#recBtn").onclick = () => { if (CONT.on) { contStop(); return; } if (!CUR) return; audioEl.pause(); meEl.pause(); REC.on ? stopRec() : startRec("user"); };
 function recordModel() { if (REC.on) return; if (!CUR) return; startRec("model"); }
 async function onRecStop() {
   const blob = new Blob(REC.chunks, { type: (REC.mr && REC.mr.mimeType) || "audio/webm" });
@@ -288,7 +288,7 @@ function wavBlob(f32, sr) {
 }
 
 /* ---------- kontinuerligt läge ---------- */
-const CONT = { on: false, stream: null, ac: null, proc: null, state: "off", pre: [], cur: [], floor: -60, loud: 0, quiet: 0, live: [], sr: 48000 };
+const CONT = { gen: 0, on: false, stream: null, ac: null, proc: null, state: "off", pre: [], cur: [], floor: -60, loud: 0, quiet: 0, live: [], sr: 48000 };
 function contStatus(t) { const e = $("#contNote"); e.textContent = t; e.hidden = !CONT.on; }
 function setModeUi() { $("#modeMan").classList.toggle("on", !CONT.on); $("#modeLoop").classList.toggle("on", CONT.on); $("#recBtn").classList.toggle("live", CONT.on || REC.on); }
 async function contStart() {
@@ -299,21 +299,25 @@ async function contStart() {
   CONT.proc = CONT.ac.createScriptProcessor(2048, 1, 1); const mute = CONT.ac.createGain(); mute.gain.value = 0;
   src.connect(CONT.proc); CONT.proc.connect(mute); mute.connect(CONT.ac.destination);
   CONT.on = true; CONT.pre = []; CONT.cur = []; CONT.floor = -55; CONT.state = "idle";
+  CONT.gen++;
   CONT.proc.onaudioprocess = e => contFrame(e.inputBuffer.getChannelData(0));
-  $("#recBtn").disabled = true; setModeUi();
+  $("#recBtn").disabled = false; $("#recBtn").setAttribute("aria-label", "Stoppa loopen"); setModeUi();
   contCycle();
 }
 function contStop() {
-  CONT.on = false; CONT.state = "off";
+  CONT.gen++; CONT.on = false; CONT.state = "off";
+  audioEl.pause(); meEl.pause(); $("#recBtn").setAttribute("aria-label", "Spela in");
   try { CONT.proc.disconnect(); } catch { } try { CONT.stream.getTracks().forEach(t => t.stop()); } catch { } try { CONT.ac.close(); } catch { }
   $("#recBtn").disabled = !(CUR && CUR.audio); setModeUi(); contStatus("");
 }
 async function contCycle() {
   if (!CONT.on) return;
+  const g = CONT.gen, live = () => CONT.on && CONT.gen === g;
   CONT.state = "busy";
   if ($("#contNative").checked) { contStatus("Lyssna på native…"); await playNativeP(); await new Promise(r => setTimeout(r, 150)); }
-  if (!CONT.on) return;
+  if (!live()) return;
   await beep("ready");
+  if (!live()) return;
   CONT.pre = []; CONT.cur = []; CONT.loud = 0; CONT.quiet = 0; CONT.live = []; CONT.state = "idle";
   contStatus("Redo. Prata när du vill.");
 }
@@ -338,6 +342,7 @@ function contFrame(d) {
   }
 }
 async function contFinish() {
+  const g = CONT.gen, live = () => CONT.on && CONT.gen === g;
   CONT.state = "busy"; await beep("stop");
   const len = CONT.cur.reduce((a, b) => a + b.length, 0); const all = new Float32Array(len); let o = 0; for (const b of CONT.cur) { all.set(b, o); o += b.length; }
   CONT.cur = [];
@@ -345,6 +350,7 @@ async function contFinish() {
     const AC = window.OfflineAudioContext || window.webkitOfflineAudioContext; const ab = CONT.ac.createBuffer(1, all.length, CONT.sr);
     ab.copyToChannel(all, 0); const x = await MA.resample(ab);
     const take = await addTake(wavBlob(all, CONT.sr), x);
+    if (!live()) return;
     if (!take) { contStatus("Hörde för lite. Försök igen."); }
     else {
       $("#recNote").textContent = "Försök " + take.n + " (kontinuerligt).";
@@ -352,11 +358,11 @@ async function contFinish() {
       if (m === "me") await playMe(); else if (m === "both") await Promise.all([playNativeP(), playMe()]); else if (m === "seq") { await playNativeP(); await new Promise(r => setTimeout(r, 250)); await playMe(); }
       await new Promise(r => setTimeout(r, 300));
     }
-  } catch (e) { console.error(e); contStatus("Fel: " + (e.message || e)); }
-  contCycle();
+  } catch (e) { console.error(e); if (live()) contStatus("Fel: " + (e.message || e)); }
+  if (live()) contCycle();
 }
 $("#contBtn").onclick = () => { audioEl.pause(); meEl.pause(); beep("init"); CONT.on ? contStop() : contStart(); };
-$("#modeLoop").onclick = () => { if (!CONT.on && CUR && CUR.audio) $("#contBtn").click(); };
+$("#modeLoop").onclick = () => { if (CONT.on) contStop(); else if (CUR && CUR.audio) $("#contBtn").click(); };
 $("#modeMan").onclick = () => { if (CONT.on) contStop(); };
 
 /* ---------- härmningsläge: kurvor och uppspelning ---------- */
@@ -541,11 +547,11 @@ $("#testExport").onclick = async () => {
 };
 $("#testBox").addEventListener("toggle", () => { if ($("#testBox").open) renderTestList(); });
 const meEl = new Audio();
-function playMe() { const t = TAKES[TAKE_SEL]; if (!t) return Promise.resolve(); return new Promise(res => { meEl.src = t.url; meEl.onloadedmetadata = () => { try { meEl.currentTime = t.pt.startSec; } catch { } }; meEl.onended = res; meEl.onerror = res; meEl.play().catch(res); }); }
+function playMe() { const t = TAKES[TAKE_SEL]; if (!t) return Promise.resolve(); return new Promise(res => { meEl.src = t.url; meEl.onloadedmetadata = () => { try { meEl.currentTime = t.pt.startSec; } catch { } }; meEl.onended = res; meEl.onerror = res; meEl.onpause = res; meEl.play().catch(res); }); }
 function playNativeP() {
   if (!CUR) return Promise.resolve();
   if (!CUR.audio) return Promise.resolve();
-  return new Promise(res => { audioEl.playbackRate = +$("#speed").value; try { audioEl.currentTime = AB.a != null ? AB.a : (NATIVE ? NATIVE.startSec : 0); } catch { } audioEl.onended = () => { audioEl.onended = null; res(); }; audioEl.play().catch(res); });
+  return new Promise(res => { audioEl.playbackRate = +$("#speed").value; try { audioEl.currentTime = AB.a != null ? AB.a : (NATIVE ? NATIVE.startSec : 0); } catch { } audioEl.onended = () => { audioEl.onended = null; res(); }; audioEl.onpause = () => { audioEl.onpause = null; res(); }; audioEl.play().catch(res); });
 }
 $("#playNative").onclick = () => { audioEl.pause(); meEl.pause(); playNativeP(); };
 $("#playMe").onclick = () => { audioEl.pause(); playMe(); };
@@ -1124,9 +1130,16 @@ function show(v, qs) {
   if (v === "tonpar") renderTonpar(); if (v === "lyssna") lsShow(); else lsEl.pause(); if (v === "stat") renderStats(); if (v === "hor") nextListen();
   if (v === "skugga") renderHome();
   if (v === "ova") { renderDots(); requestAnimationFrame(() => drawMimic()); }
-  if (REC.on && v !== "ova") stopRec(); if (CONT.on && v !== "ova") contStop();
-  if (v !== "ova") { audioEl.pause(); meEl.pause(); }
+  if (v !== "ova") stopPlayer();
 }
+// Stoppa allt ljud i spelaren: inspelning, loopläget och A–B-loopen. Körs när du lämnar Öva eller appen hamnar i bakgrunden.
+function stopPlayer() {
+  if (REC.on) stopRec(); if (CONT.on) contStop();
+  if (AB.loop) { AB.loop = false; $("#loopBtn").classList.remove("on"); }
+  audioEl.pause(); meEl.pause();
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopPlayer(); });
+window.addEventListener("pagehide", stopPlayer);
 async function deepLink(q) {
   await READY; $("#sentQ").value = q;
   const w = ITEMS.find(i => i.zh === q && (i.audio || i.audioPath)); if (w && (!CUR || CUR.id !== w.id)) await selectItem(w.id);
