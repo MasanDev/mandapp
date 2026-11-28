@@ -921,12 +921,157 @@ async function syncPron() {
 window.SK = { show, countWith, topicCount, startTopic, syncPron, importText: t => importText(t), ready: () => SK_READY };
 $("#fromBank").onclick = () => exportToStudio();
 
+/* ---------- LYSSNA FÖRST, LÄS SEN ---------- */
+// Hörförståelse på längre native-meningar. Texten är dold medan man lyssnar. Man väljer hur mycket man uppfattade,
+// sedan visas tecken, pinyin och översättning. Betyget schemaläggs med FSRS i ett eget schema (kv "lsrs"), skilt från skuggningen.
+const lsEl = new Audio(); lsEl.preload = "auto"; let lsUrl = null;
+const LS_GRADES = [[1, "Inget", "nästan inget"], [2, "Delar", "några ord"], [3, "Det mesta", "huvudpoängen"], [4, "Allt", "varje ord"]];
+const LS_LEN = { mid: [8, 11, "8–11 tecken"], long: [12, 99, "12+ tecken"], mix: [8, 99, "Blandat"] };
+const LS = { srs: null, ids: [], i: 0, grades: {}, revealed: false, pick: 0, plays: 0, len: "long", speed: "1", started: false };
+try { LS.len = localStorage.getItem("ls-len") || "long"; if (!LS_LEN[LS.len]) LS.len = "long"; LS.speed = localStorage.getItem("ls-speed") || "1"; } catch { }
+const hanCount = s => [...s].filter(c => /[㐀-鿿]/.test(c)).length;
+const LS_SIZE = 10;
+async function lsSrs() { if (!LS.srs) LS.srs = (await DB.get("kv", "lsrs")) || {}; return LS.srs; }
+function lsPool() { const [a, b] = LS_LEN[LS.len]; return practiceItems().filter(i => { const n = hanCount(i.zh); return n >= a && n <= b; }); }
+async function lsBuild() {
+  const S = await lsSrs(); const end = endOfToday(); const all = practiceItems(); const pool = lsPool();
+  const shuffled = a => a.map(x => [Math.random(), x]).sort((x, y) => x[0] - y[0]).map(x => x[1]);
+  const due = all.filter(i => S[i.id] && S[i.id].due <= end).sort((a, b) => S[a.id].due - S[b.id].due).slice(0, Math.ceil(LS_SIZE / 2)).map(i => i.id);
+  const fresh = shuffled(pool.filter(i => !S[i.id] && !due.includes(i.id))).slice(0, LS_SIZE - due.length).map(i => i.id);
+  const rest = shuffled(pool.filter(i => !due.includes(i.id) && !fresh.includes(i.id))).slice(0, LS_SIZE - due.length - fresh.length).map(i => i.id);
+  return due.concat(shuffled(fresh.concat(rest)));
+}
+function lsSetSpeed(r) { if (!["1", "0.75", "0.5"].includes(String(r))) r = "1"; LS.speed = String(r); lsEl.playbackRate = +r; try { localStorage.setItem("ls-speed", r); } catch { } document.querySelectorAll("#lsSpeed .chip").forEach(b => b.classList.toggle("on", b.dataset.r === LS.speed)); }
+const lsCur = () => ITEMS.find(i => i.id === LS.ids[LS.i]) || null;
+async function lsPlay() {
+  const it = lsCur(); if (!it) return;
+  if (!lsEl.paused) { lsEl.pause(); lsEl.currentTime = 0; lsPlayUi(false); return; }
+  if (!it.audio && it.audioPath) await ensureAudio(it);
+  if (!it.audio) { toast("Ljudet kunde inte hämtas"); return; }
+  if (lsEl.dataset.id !== it.id) { if (lsUrl) URL.revokeObjectURL(lsUrl); lsUrl = URL.createObjectURL(it.audio); lsEl.src = lsUrl; lsEl.dataset.id = it.id; }
+  lsEl.playbackRate = +LS.speed; lsEl.currentTime = 0;
+  try { await lsEl.play(); LS.plays++; lsPlayUi(true); const c = $("#lsPlays"); if (c) c.textContent = "Spelad " + LS.plays + (LS.plays === 1 ? " gång" : " gånger"); } catch { }
+}
+function lsPlayUi(on) { const b = $("#lsPlayBtn"); if (b) { b.classList.toggle("on", on); b.textContent = on ? "■" : "▶"; b.setAttribute("aria-label", on ? "Stoppa" : "Spela"); } }
+lsEl.onended = () => lsPlayUi(false); lsEl.onpause = () => lsPlayUi(false);
+// Översätt passets meningar till svenska i ett anrop (bara de som saknar svenska). Sparas på meningen, så den syns även i skuggspelaren.
+let lsTrPromise = null;
+function lsTranslate(ids) {
+  if (typeof claudeJson !== "function" || typeof apiKey !== "function" || !apiKey()) return Promise.resolve(false);
+  const need = ids.map(id => ITEMS.find(i => i.id === id)).filter(it => it && !/[åäöÅÄÖ]|\b(jag|du|det|är|och|inte|en|ett|har|vi|han|hon)\b/i.test(it.sv || ""));
+  if (!need.length) return Promise.resolve(true);
+  lsTrPromise = claudeJson("Översätt varje kinesisk mening till naturlig, kort svenska. Svara som JSON: {\"sv\": [\"...\", ...]} i samma ordning, en översättning per mening.\n\n" + need.map((it, k) => (k + 1) + ". " + it.zh).join("\n"), { modelTier: "quick" })
+    .then(async j => { const a = j && Array.isArray(j.sv) ? j.sv : []; for (let k = 0; k < need.length; k++) if (a[k]) { need[k].sv = String(a[k]); await DB.put("items", need[k]); } return true; })
+    .catch(e => { console.warn("översättning", e); LS.trErr = e; return false; });
+  return lsTrPromise;
+}
+function lsDots() { return h("div", { class: "lsdots", "aria-label": (LS.i + 1) + " av " + LS.ids.length }, LS.ids.map((id, k) => h("i", { class: LS.grades[id] ? "d" : k === LS.i ? "n" : "" }))); }
+function lsIntro() {
+  const area = $("#lsArea"); area.replaceChildren();
+  const S = LS.srs || {}; const end = endOfToday(); const due = practiceItems().filter(i => S[i.id] && S[i.id].due <= end).length;
+  const heard = Object.keys(S).length;
+  area.append(h("div", { class: "card stack" },
+    h("h2", { style: "margin:0" }, "Lyssna först, läs sen"),
+    h("div", { class: "note" }, "Du hör en längre mening med native-röst utan att se texten. Lyssna så många gånger du vill, välj hur mycket du uppfattade och se sedan tecken, pinyin och översättning. Meningar du missar kommer tillbaka enligt samma repetitionsschema som ordkorten."),
+    h("div", { class: "lbl" }, "Meningslängd"),
+    h("div", { class: "lslen", role: "group", "aria-label": "Meningslängd" }, Object.entries(LS_LEN).map(([k, v]) => h("button", { type: "button", class: "chip" + (LS.len === k ? " on" : ""), onclick: () => { LS.len = k; try { localStorage.setItem("ls-len", k); } catch { } lsIntro(); } }, v[2]))),
+    h("div", { class: "note" }, lsPool().length + " meningar med native-ljud passar längd och röstfilter" + (heard ? " · " + heard + " hörda hittills" : "") + (due ? " · " + due + " att repetera idag" : "")),
+    h("button", { class: "btn primary block", type: "button", onclick: lsStart }, "Börja (" + LS_SIZE + " meningar)"),
+    typeof apiKey === "function" && apiKey() ? null : h("div", { class: "note" }, "Utan API-nyckel visas ordförklaringar från ordboken men ingen svensk översättning av hela meningen.")));
+}
+async function lsStart() {
+  await READY; await lsSrs(); const ids = await lsBuild();
+  if (!ids.length) { toast("Inga meningar passar röstfiltret och längden"); return; }
+  Object.assign(LS, { ids, i: 0, grades: {}, started: true, trErr: null });
+  lsTranslate(ids); lsShowItem();
+}
+function lsShowItem() {
+  const it = lsCur(); if (!it) return lsSummary();
+  LS.revealed = false; LS.pick = 0; LS.plays = 0; lsEl.pause();
+  const area = $("#lsArea"); area.replaceChildren();
+  area.append(lsDots(),
+    h("div", { class: "lshid", id: "lsCard" }, h("div", { class: "stack", style: "gap:10px" },
+      h("button", { class: "lsplay", id: "lsPlayBtn", type: "button", "aria-label": "Spela", onclick: lsPlay }, "▶"),
+      h("div", { class: "note", id: "lsPlays" }, "Texten är dold. Lyssna så många gånger du vill."))),
+    h("div", { class: "segctl", id: "lsSpeed", role: "group", "aria-label": "Hastighet" }, [["1", "1×"], ["0.75", "0,75×"], ["0.5", "0,5×"]].map(([r, t]) => h("button", { type: "button", class: "chip", "data-r": r, onclick: () => lsSetSpeed(r) }, t))),
+    h("div", { class: "lbl", id: "lsQ" }, "Hur mycket uppfattade du?"),
+    h("div", { class: "rate4", id: "lsRate", role: "group", "aria-label": "Hur mycket uppfattade du?" }, LS_GRADES.map(([g, t, s]) => h("button", { type: "button", class: "g" + g, "data-g": g, onclick: () => lsGrade(g) }, t, h("small", null, s)))),
+    h("div", { id: "lsReveal", class: "stack" }));
+  lsSetSpeed(LS.speed);
+  setTimeout(() => { if (curView() === "lyssna" && lsCur() === it && !LS.plays) lsPlay(); }, 250);
+}
+function lsGrade(g) {
+  LS.pick = g; document.querySelectorAll("#lsRate button").forEach(b => b.classList.toggle("sel", +b.dataset.g === g));
+  if (!LS.revealed) lsReveal();
+}
+async function lsReveal() {
+  const it = lsCur(); if (!it) return; LS.revealed = true;
+  $("#lsQ").textContent = "Stämde det? Du kan ändra innan du går vidare.";
+  const card = $("#lsCard"); card.classList.remove("lshid"); card.classList.add("card");
+  const gloss = h("div", { class: "lsgloss note" }, "Tryck på ett ord för att se vad det betyder.");
+  const zh = h("div", { class: "lszh", lang: "zh-CN" });
+  const fillZh = () => {
+    zh.replaceChildren();
+    if (typeof segment !== "function" || typeof DICT === "undefined" || !DICT.ready) { zh.append(it.zh); return; }
+    for (const p of segment(it.zh)) {
+      if (!p.w) { zh.append(p.t); continue; }
+      const e = bestEntry(p.t);
+      const sp = h("span", { class: "w", onclick: () => { zh.querySelectorAll(".w.sel").forEach(x => x.classList.remove("sel")); sp.classList.add("sel"); gloss.replaceChildren(h("b", { lang: "zh-CN" }, p.t), " ", e ? pinyinText(e.p) : "", e ? " · " + cleanDefs(e.e) : " · finns inte i ordboken"); } }, p.t);
+      zh.append(sp);
+    }
+  };
+  fillZh(); if (typeof loadDict === "function" && !(typeof DICT !== "undefined" && DICT.ready)) loadDict().then(fillZh).catch(() => { });
+  const sv = h("div", { class: "svl" });
+  const setSv = () => { sv.textContent = it.sv || (typeof apiKey === "function" && apiKey() ? (LS.trErr ? "Översättningen misslyckades." : "Översätter…") : ""); };
+  setSv(); if (lsTrPromise) lsTrPromise.then(setSv);
+  card.replaceChildren(h("div", { class: "stack", style: "gap:6px;text-align:center;width:100%" },
+    zh, h("div", { class: "pyl" }, pyNode(MA.parsePinyin(it.pinyin))), sv,
+    h("div", { class: "row", style: "justify-content:center" },
+      h("button", { class: "chip", type: "button", id: "lsPlayBtn2", onclick: lsPlay }, "▶ Lyssna igen"),
+      h("button", { class: "chip", type: "button", onclick: () => lsToShadow([it.id], "Från Lyssna") }, "说 Skugga den")),
+    h("div", { class: "note" }, it.voice ? it.voice : "", it.credit && !it.voice ? it.credit : "")), gloss);
+  $("#lsReveal").replaceChildren(h("button", { class: "btn primary block", type: "button", onclick: lsNext }, LS.i + 1 < LS.ids.length ? "Nästa ›" : "Klar"));
+}
+async function lsNext() {
+  const it = lsCur(); if (!it || !LS.pick) return;
+  const g = LS.pick; const S = await lsSrs(); const t = new Date();
+  const prev = S[it.id] ? dataToCard(S[it.id]) : dataToCard(newCardData());
+  const rating = g === 1 ? R.Again : g === 2 ? R.Hard : g === 4 ? R.Easy : R.Good;
+  S[it.id] = cardToData(F.next(prev, t, rating).card); S[it.id].g = g; S[it.id].plays = LS.plays;
+  DB.put("kv", S, "lsrs").catch(() => { });
+  try { Store.appendLog({ k: "listen", h: it.zh, r: g, t: +t }); } catch { }
+  LS.grades[it.id] = g; LS.i++; lsShowItem(); window.scrollTo(0, 0);
+}
+function lsToShadow(ids, title) {
+  if (!ids.length) return; lsEl.pause();
+  Object.assign(PASS, { on: true, kind: "topic", ids: ids.slice(), done: [], title, requeued: {} });
+  location.hash = "ova"; selectItem(ids[0]).then(renderDots);
+}
+function lsSummary() {
+  LS.started = false; lsEl.pause();
+  const area = $("#lsArea"); area.replaceChildren();
+  const cnt = g => Object.values(LS.grades).filter(x => x === g).length;
+  const hard = LS.ids.filter(id => LS.grades[id] && LS.grades[id] <= 2);
+  area.append(h("div", { class: "done card" }, h("b", null, "Omgången är klar"),
+    h("div", { class: "tiles", style: "grid-template-columns:repeat(4,1fr)" }, LS_GRADES.map(([g, t]) => h("div", { class: "tile" }, h("b", null, cnt(g)), t))),
+    h("div", { class: "stack" },
+      hard.length ? h("button", { class: "btn primary block", type: "button", onclick: () => lsToShadow(hard, "Svåra från Lyssna") }, "Skugga de " + hard.length + " svåra") : null,
+      h("button", { class: hard.length ? "btn block" : "btn primary block", type: "button", onclick: lsStart }, "Ny omgång"),
+      h("button", { class: "btn block", type: "button", onclick: lsIntro }, "Byt längd"))));
+  area.append(h("div", { class: "stack" }, LS.ids.map(id => { const it = ITEMS.find(i => i.id === id); if (!it) return null; const g = LS.grades[id]; return h("div", { class: "card", style: "padding:10px 12px" }, h("div", { class: "zh", lang: "zh-CN" }, it.zh), h("div", { class: "note mono" }, pyNode(MA.parsePinyin(it.pinyin))), it.sv ? h("div", { class: "note" }, it.sv) : null, g ? h("div", { class: "note" }, "Du uppfattade: " + LS_GRADES[g - 1][1].toLowerCase()) : null); })));
+}
+async function lsShow() {
+  await lsSrs();
+  if (LS.started && lsCur()) { if (!$("#lsArea").childNodes.length) lsShowItem(); return; }
+  lsIntro(); READY.then(() => { if (curView() === "lyssna" && !LS.started) lsIntro(); });
+}
+
 /* ---------- routing (styrs av huvudappen) ---------- */
 function show(v, qs) {
   const q = qs ? new URLSearchParams(qs).get("q") : null; if (q && v === "ova") setTimeout(() => deepLink(q), 0);
   if (v === "ova" && qs && new URLSearchParams(qs).get("fri")) { PASS.on = false; renderDots(); history.replaceState(null, "", "#ova"); $("#pickBox").open = true; }
   if (v === "bibliotek") { renderLib(); if (!$("#tqList").childNodes.length) tqSearch(); }
-  if (v === "tonpar") renderTonpar(); if (v === "stat") renderStats(); if (v === "hor") nextListen();
+  if (v === "tonpar") renderTonpar(); if (v === "lyssna") lsShow(); else lsEl.pause(); if (v === "stat") renderStats(); if (v === "hor") nextListen();
   if (v === "skugga") renderHome();
   if (v === "ova") { renderDots(); requestAnimationFrame(() => drawMimic()); }
   if (REC.on && v !== "ova") stopRec(); if (CONT.on && v !== "ova") contStop();
