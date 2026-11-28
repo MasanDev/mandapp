@@ -318,7 +318,7 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
       <a class="tile2" href="#tonpar"><i>调</i><b>Tonpar</b><small>Alla 20 par med riktiga röster</small></a>
       <a class="tile2" href="#hor"><i>听</i><b>Hörträning</b><small>Toner och minimala par</small></a>
       <a class="tile2" href="#bibliotek"><i>库</i><b>Bibliotek</b><small>Egna fraser och Tatoeba</small></a>
-      <a class="tile2" href="#stat"><i>统</i><b>Uttal</b><small>Toner och initialer över tid</small></a>
+      <a class="tile2" href="#stat"><i>统</i><b>Uttal</b><small>Inspelningar och hörträning</small></a>
     </div>
   </section>
 
@@ -351,7 +351,6 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
     <div class="mini" id="playRow">
       <button type="button" class="chip" id="playBoth" disabled>Båda samtidigt</button>
       <button type="button" class="chip" id="playSeq" disabled>Native → jag</button>
-      <button type="button" class="chip" id="analyzeBtn" disabled>Analysera</button>
     </div>
     <div class="takes" id="takesRow"></div>
     <div class="note center" id="recNote"></div>
@@ -1430,7 +1429,7 @@ async function exportToStudio() {
 }
 async function importPron(o, silent) {
   const p = Object.assign({}, STATE.profile);
-  p.pron = { imported: now(), perTone: o.perTone || {}, conf: o.conf || {}, asp: o.asp || {}, sib: o.sib || {}, listen: o.listen || {}, attempts: (o.attempts || []).slice(-150).map(a => ({ t: a.t, s: a.toneScore, i: a.iniScore })) };
+  p.pron = { imported: now(), listen: o.listen || {}, attempts: (o.attempts || []).slice(-150).map(a => ({ t: a.t })) };
   await Store.saveProfile(p); if (!silent) toast("Uttalsstatistik uppdaterad");
 }
 
@@ -1526,19 +1525,12 @@ async function renderStats() {
   const P = STATE.profile.pron;
   area.append(h("h2", null, "Uttal"));
   if (P) {
-    const at = P.attempts || []; const avg = a => { const v = a.map(x => x.s).filter(x => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
-    const f = avg(at.slice(0, 10)), l = avg(at.slice(-10));
-    const pc = o => o && o.n ? Math.round(o.ok / o.n * 100) : null;
-    area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, at.length), "inspelningar"), h("div", { class: "tile" }, h("b", null, f == null ? "–" : f + " %"), "toner i början"), h("div", { class: "tile" }, h("b", null, l == null ? "–" : l + " %"), "toner nu")));
-    area.append(distBlock([1, 2, 3, 4].map(t => ["Ton " + t, pc(P.perTone[t]) || 0, "var(--t" + t + ")"]), 100, true));
-    const rows = [["Aspirerade", pc(P.asp.asp)], ["Oaspirerade", pc(P.asp.unasp)], ["s", pc(P.sib.s)], ["sh", pc(P.sib.sh)], ["x", pc(P.sib.x)]].filter(r => r[1] != null);
-    if (rows.length) area.append(distBlock(rows.map(([k, v]) => [k, v, "var(--accent)"]), 100, true));
+    const at = P.attempts || []; const pc = o => o && o.n ? Math.round(o.ok / o.n * 100) : null;
+    area.append(h("div", { class: "tiles" }, h("div", { class: "tile" }, h("b", null, at.length), "inspelningar")));
     const lt = P.listen && P.listen.tones || {}; const lr = [1, 2, 3, 4, 5].filter(t => lt[t]).map(t => ["Hör ton " + (t === 5 ? "0" : t), pc(lt[t]), "var(--blue)"]);
     if (lr.length) area.append(h("label", { class: "lbl" }, "Hörträning"), distBlock(lr, 100, true));
-    const conf = Object.entries(P.conf || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    if (conf.length) area.append(h("div", { class: "note" }, "Vanligaste tonförväxlingar när du talar: " + conf.map(([k, n]) => k + " (" + n + ")").join(", ") + "."));
     area.append(h("div", { class: "note" }, "Importerad " + new Date(P.imported).toLocaleDateString("sv") + " från Skugga."));
-  } else area.append(h("div", { class: "note" }, "Ingen uttalsstatistik än. Spela in och analysera i Skugga, så syns den här."));
+  } else area.append(h("div", { class: "note" }, "Ingen uttalsstatistik än. Spela in i Skugga, så syns den här."));
   // veckorapport
   area.append(h("h2", null, "Veckorapport"));
   const repBox = h("div", { class: "stack" }); area.append(repBox);
@@ -1551,7 +1543,7 @@ async function renderStats() {
       const wk = now() - 7 * DAY; let rv = 0, ok = 0, lapsesN = 0; const days = new Set(); let reads = 0, looks = 0;
       for (const d of Object.keys(logs)) for (const e of (logs[d].entries || [])) { if (e.t < wk) continue; if (e.k === "rev") { rv++; days.add(d); if (e.r > 1) ok++; else lapsesN++; } if (e.k === "read") reads++; if (e.k === "lookup") looks++; }
       const added = ws.filter(w => w.added >= wk).map(w => w.hanzi);
-      const facts = { repetitioner: rv, dagarMedRepetition: days.size, andelRatt: rv ? Math.round(ok / rv * 100) : null, nyaOrd: added.length, exempelNyaOrd: added.slice(0, 15), mognaOrd: counts.mogen, totaltOrd: ws.length, iglar: ws.filter(w => status(w) === "igel").map(w => w.hanzi).slice(0, 8), svaraste: hard.map(w => w.hanzi).slice(0, 8), lastaTexter: reads, uppslag: looks, svit: streak, uttal: P ? { tonerProcentPerTon: Object.fromEntries([1, 2, 3, 4].map(t => [t, P.perTone[t] && P.perTone[t].n ? Math.round(P.perTone[t].ok / P.perTone[t].n * 100) : null])), forvaxlingar: P.conf } : null };
+      const facts = { repetitioner: rv, dagarMedRepetition: days.size, andelRatt: rv ? Math.round(ok / rv * 100) : null, nyaOrd: added.length, exempelNyaOrd: added.slice(0, 15), mognaOrd: counts.mogen, totaltOrd: ws.length, iglar: ws.filter(w => status(w) === "igel").map(w => w.hanzi).slice(0, 8), svaraste: hard.map(w => w.hanzi).slice(0, 8), lastaTexter: reads, uppslag: looks, svit: streak, uttal: P ? { skuggningsinspelningar: (P.attempts || []).length, horTonerProcent: Object.fromEntries([1, 2, 3, 4, 5].map(t => { const o = P.listen && P.listen.tones && P.listen.tones[t]; return [t, o && o.n ? Math.round(o.ok / o.n * 100) : null]; })) } : null };
       try {
         const r = await STATE.sample.json(
 `Du är en uppmuntrande men ärlig kinesisklärare som följer råden på Hacking Chinese. ${profileSummary()}.
