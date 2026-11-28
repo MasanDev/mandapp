@@ -171,7 +171,6 @@ canvas{width:100%;display:block;background:var(--surface);border:1px solid var(-
 .cnt{font:500 .72rem var(--mono);color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 8px;white-space:nowrap}
 .cnt.z{color:var(--muted);background:var(--sunk)}
 .tiles2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tile2:first-child{grid-column:1/-1}
 .tile2{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:1px}
 .tile2 i{font-style:normal;font-family:var(--han);font-size:1.35rem;color:var(--accent);line-height:1.2}
 .tile2 b{font-size:.92rem}
@@ -220,6 +219,26 @@ canvas{width:100%;display:block;background:var(--surface);border:1px solid var(-
 .vrow small{display:block;color:var(--muted);font-size:.78rem}
 .vrow.sel{background:var(--accent-soft);border-radius:10px;border-top-color:transparent;padding-inline:8px}
 .vrow .chk{color:var(--accent);font-weight:700}
+
+/* skugga: lyssna först */
+.lsdots{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.lsdots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.lsdots i.d{background:var(--accent)} .lsdots i.n{background:var(--accent);opacity:.45}
+.lshid{min-height:150px;display:grid;place-items:center;border:1.5px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center;padding:16px}
+.lsplay{width:84px;height:84px;border-radius:50%;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);font-size:1.6rem;display:grid;place-items:center;margin:0 auto}
+.lsplay.on{background:var(--accent);color:var(--on-accent)}
+.rate4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rate4 button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 2px;font-weight:700;font-size:.86rem}
+.rate4 button small{display:block;font-weight:500;font-size:.7rem;color:var(--muted)}
+.rate4 button.sel{border-color:var(--accent);background:var(--accent-soft)}
+.rate4 .g1{color:var(--seal)} .rate4 .g4{color:var(--good)}
+.lszh{font-family:var(--han);font-size:clamp(1.5rem,7vw,2.1rem);font-weight:700;line-height:1.5;letter-spacing:.03em}
+.lszh .w{cursor:pointer;border-bottom:1px dotted transparent;border-radius:4px}
+.lszh .w:hover,.lszh .w.sel{border-bottom-color:var(--accent);background:var(--accent-soft)}
+.lsgloss{min-height:1.3em;font-size:.88rem}
+.lslen{display:grid;grid-template-columns:repeat(3,1fr);background:var(--sunk);border-radius:12px;padding:3px;gap:3px}
+.lslen .chip{justify-content:center;background:transparent;border-radius:9px;padding:7px 0;font-weight:600;font-size:.85rem;color:var(--muted)}
+.lslen .chip.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 
 /* skugga: tonpar, hör */
 .toneopts{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
@@ -295,6 +314,7 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
     <div id="homeLists" class="stack"></div>
     <div class="tiles2">
       <a class="tile2" href="#ova?fri=1"><i>说</i><b>Fri övning</b><small>Sök och välj bland alla meningar</small></a>
+      <a class="tile2" href="#lyssna"><i>懂</i><b>Lyssna först</b><small>Hör längre meningar, läs sen</small></a>
       <a class="tile2" href="#tonpar"><i>调</i><b>Tonpar</b><small>Alla 20 par med riktiga röster</small></a>
       <a class="tile2" href="#hor"><i>听</i><b>Hörträning</b><small>Toner och minimala par</small></a>
       <a class="tile2" href="#bibliotek"><i>库</i><b>Bibliotek</b><small>Egna fraser och Tatoeba</small></a>
@@ -415,6 +435,12 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 8px);background:var(--
     </div>
     <div class="note" id="libCount"></div>
     <div class="stack" id="libList"></div>
+  </section>
+
+  <!-- SKUGGA: LYSSNA FÖRST, LÄS SEN -->
+  <section class="view" id="v-lyssna">
+    <div class="subhead"><a href="#skugga">‹ Skugga</a></div>
+    <div id="lsArea" class="stack"></div>
   </section>
 
   <!-- SKUGGA: HÖR -->
@@ -1679,9 +1705,9 @@ function applyTheme() { let t = ""; try { t = localStorage.getItem("mandapp-them
 $("#btnSettings").onclick = openSettings;
 
 /* ============ routing ============ */
-const VIEWS = ["skugga", "ova", "tonpar", "bibliotek", "hor", "stat", "amne", "repetera", "ord", "lagg-till", "statistik"];
-const TAB_OF = { skugga: "skugga", ova: "skugga", tonpar: "skugga", bibliotek: "skugga", hor: "skugga", stat: "skugga", amne: "amne", repetera: "repetera", ord: "ord", "lagg-till": "ord", statistik: "ord" };
-const TITLE_OF = { skugga: "Skugga", ova: "Skugga", tonpar: "Tonpar", bibliotek: "Bibliotek", hor: "Hörträning", stat: "Uttal", amne: "Ämne", repetera: "Repetera", ord: "Ord", "lagg-till": "Ord", statistik: "Ord" };
+const VIEWS = ["skugga", "ova", "tonpar", "bibliotek", "lyssna", "hor", "stat", "amne", "repetera", "ord", "lagg-till", "statistik"];
+const TAB_OF = { skugga: "skugga", ova: "skugga", tonpar: "skugga", bibliotek: "skugga", lyssna: "skugga", hor: "skugga", stat: "skugga", amne: "amne", repetera: "repetera", ord: "ord", "lagg-till": "ord", statistik: "ord" };
+const TITLE_OF = { skugga: "Skugga", ova: "Skugga", tonpar: "Tonpar", bibliotek: "Bibliotek", lyssna: "Lyssna först", hor: "Hörträning", stat: "Uttal", amne: "Ämne", repetera: "Repetera", ord: "Ord", "lagg-till": "Ord", statistik: "Ord" };
 let lastView = null;
 function route() {
   let [v, qs] = location.hash.slice(1).split("?");
