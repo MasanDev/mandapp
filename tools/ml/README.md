@@ -7,7 +7,7 @@ Nuvarande analys (`analysis.js`, ingen ML) på appens egna native-inspelningar:
 Huvudorsak: stavelsegränser i flytande tal hittas inte.
 
 ## Plan
-1. Kör `python tools/ml/discover.py <modell-id ...>` (kräver nätverk till huggingface.co) för att se kandidaternas vokabulär
+1. Ladda kandidatmodeller från huggingface.co (kräver miljön "mandapp" med nätverk dit) och kontrollera vokabulär
    (tecken eller tonmärkt pinyin), storlek och avkodning på native-meningar.
 2. Välj liten CTC-modell. Mål: tvångsjustering (forced alignment) av den kända meningen -> stavelsegränser.
    Helst tonmärkt pinyin som utdata (ger även ton per stavelse); teckenmodell räcker för gränser, men dess tonsignal
